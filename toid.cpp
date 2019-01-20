@@ -43,7 +43,8 @@
  */
 #include <stdio.h>
 #include <math.h>
-#include "portaudio.h"
+#include <stdint.h>
+#include <portaudio.h>
 
 #define NUM_SECONDS   (5)
 #define SAMPLE_RATE   (44100)
@@ -54,8 +55,7 @@
 #endif
 
 #define TABLE_SIZE   (200)
-typedef struct
-{
+typedef struct {
     float sine[TABLE_SIZE];
     int left_phase;
     int right_phase;
@@ -67,28 +67,26 @@ paTestData;
 ** It may called at interrupt level on some machines so don't do anything
 ** that could mess up the system like calling malloc() or free().
 */
-static int patestCallback( const void *inputBuffer, void *outputBuffer,
+static int patestCallback(const void *inputBuffer, void *outputBuffer,
                             unsigned long framesPerBuffer,
                             const PaStreamCallbackTimeInfo* timeInfo,
                             PaStreamCallbackFlags statusFlags,
-                            void *userData )
-{
-    paTestData *data = (paTestData*)userData;
-    float *out = (float*)outputBuffer;
+                            void *userData ) {
+    paTestData *data = static_cast<paTestData*>(userData);
+    float *out = static_cast<float*>(outputBuffer);
     unsigned long i;
 
     (void) timeInfo; /* Prevent unused variable warnings. */
     (void) statusFlags;
     (void) inputBuffer;
 
-    for( i=0; i<framesPerBuffer; i++ )
-    {
+    for (i = 0; i < framesPerBuffer; i++) {
         *out++ = data->sine[data->left_phase];  /* left */
         *out++ = data->sine[data->right_phase];  /* right */
         data->left_phase += 1;
-        if( data->left_phase >= TABLE_SIZE ) data->left_phase -= TABLE_SIZE;
-        data->right_phase += 3; /* higher pitch so we can distinguish left and right. */
-        if( data->right_phase >= TABLE_SIZE ) data->right_phase -= TABLE_SIZE;
+        if (data->left_phase >= TABLE_SIZE) data->left_phase -= TABLE_SIZE;
+        data->right_phase += 3;
+        if (data->right_phase >= TABLE_SIZE) data->right_phase -= TABLE_SIZE;
     }
 
     return paContinue;
@@ -97,16 +95,14 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 /*
  * This routine is called by portaudio when playback is done.
  */
-static void StreamFinished( void* userData )
-{
-   paTestData *data = (paTestData *) userData;
-   printf( "Stream Completed: %s\n", data->message );
+static void StreamFinished(void* userData) {
+  paTestData *data = static_cast<paTestData *>(userData);
+  printf("Stream Completed: %s\n", data->message);
 }
 
 /*******************************************************************/
 int main(void);
-int main(void)
-{
+int main(void) {
     PaStreamParameters outputParameters;
     PaStream *stream;
     PaError err;
@@ -114,26 +110,29 @@ int main(void)
     int i;
 
 
-    printf("PortAudio Test: output sine wave. SR = %d, BufSize = %d\n", SAMPLE_RATE, FRAMES_PER_BUFFER);
+    printf("PortAudio Test: output sine wave. SR = %d, BufSize = %d\n",
+      SAMPLE_RATE, FRAMES_PER_BUFFER);
 
     /* initialise sinusoidal wavetable */
-    for( i=0; i<TABLE_SIZE; i++ )
-    {
-        data.sine[i] = (float) sin( ((double)i/(double)TABLE_SIZE) * M_PI * 2. );
+    for (i = 0; i < TABLE_SIZE; i++) {
+        data.sine[i] = static_cast<float>(
+          sin((static_cast<double>(i)/static_cast<double>(TABLE_SIZE))
+            * M_PI * 2.));
     }
     data.left_phase = data.right_phase = 0;
 
     err = Pa_Initialize();
-    if( err != paNoError ) goto error;
+    if (err != paNoError) goto error;
 
-    outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
+    outputParameters.device = Pa_GetDefaultOutputDevice();
     if (outputParameters.device == paNoDevice) {
-      fprintf(stderr,"Error: No default output device.\n");
+      fprintf(stderr, "Error: No default output device.\n");
       goto error;
     }
     outputParameters.channelCount = 2;       /* stereo output */
-    outputParameters.sampleFormat = paFloat32; /* 32 bit floating point output */
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
+    outputParameters.sampleFormat = paFloat32;
+    outputParameters.suggestedLatency =
+      Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
 
     err = Pa_OpenStream(
@@ -142,26 +141,26 @@ int main(void)
               &outputParameters,
               SAMPLE_RATE,
               FRAMES_PER_BUFFER,
-              paClipOff,      /* we won't output out of range samples so don't bother clipping them */
+              paClipOff,
               patestCallback,
-              &data );
-    if( err != paNoError ) goto error;
+              &data);
+    if (err != paNoError) goto error;
 
-    sprintf( data.message, "No Message" );
-    err = Pa_SetStreamFinishedCallback( stream, &StreamFinished );
-    if( err != paNoError ) goto error;
+    sprintf(data.message, "No Message");
+    err = Pa_SetStreamFinishedCallback(stream, &StreamFinished);
+    if (err != paNoError) goto error;
 
-    err = Pa_StartStream( stream );
-    if( err != paNoError ) goto error;
+    err = Pa_StartStream(stream);
+    if (err != paNoError) goto error;
 
-    printf("Play for %d seconds.\n", NUM_SECONDS );
-    Pa_Sleep( NUM_SECONDS * 1000 );
+    printf("Play for %d seconds.\n", NUM_SECONDS);
+    Pa_Sleep(NUM_SECONDS * 1000);
 
-    err = Pa_StopStream( stream );
-    if( err != paNoError ) goto error;
+    err = Pa_StopStream(stream);
+    if (err != paNoError) goto error;
 
-    err = Pa_CloseStream( stream );
-    if( err != paNoError ) goto error;
+    err = Pa_CloseStream(stream);
+    if (err != paNoError) goto error;
 
     Pa_Terminate();
     printf("Test finished.\n");
@@ -169,8 +168,8 @@ int main(void)
     return err;
 error:
     Pa_Terminate();
-    fprintf( stderr, "An error occured while using the portaudio stream\n" );
-    fprintf( stderr, "Error number: %d\n", err );
-    fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+    fprintf(stderr, "An error occured while using the portaudio stream\n");
+    fprintf(stderr, "Error number: %d\n", err);
+    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(err));
     return err;
 }
