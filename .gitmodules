@@ -1,3 +1,6 @@
 [submodule "portaudio"]
 	path = portaudio
 	url = https://git.assembla.com/portaudio.git
+[submodule "rustoid/rust-portaudio"]
+	path = rustoid/rust-portaudio
+	url = https://github.com/RustAudio/rust-portaudio.git
