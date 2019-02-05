@@ -1,0 +1,4 @@
+*.lock
+*.so
+*.egg-info
+rustoid/target/*
