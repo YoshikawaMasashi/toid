@@ -1,6 +1,6 @@
 [package]
-authors = ["Messense Lv <messense@icloud.com>"]
-name = "word-count"
+authors = ["(marshi)masashi yoshikawa <earnest.marshi@gmail.com>"]
+name = "rustoid"
 version = "0.1.0"
 edition = "2018"
 
@@ -9,5 +9,5 @@ rayon = "1.0.2"
 pyo3 = "0.6.0-alpha.2"
 
 [lib]
-name = "word_count"
+name = "rustoid"
 crate-type = ["cdylib"]

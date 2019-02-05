@@ -75,7 +75,7 @@ fn count_line(line: &str, needle: &str) -> usize {
 }
 
 #[pymodule]
-fn word_count(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn rustoid(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(count_line))?;
     m.add_class::<WordCounter>()?;
 

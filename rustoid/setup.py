@@ -32,7 +32,7 @@ install_requires = []
 tests_require = install_requires + ["pytest", "pytest-benchmark"]
 
 setup(
-    name="word-count",
+    name="rustoid",
     version="0.1.0",
     classifiers=[
         "License :: OSI Approved :: MIT License",
@@ -43,8 +43,8 @@ setup(
         "Operating System :: POSIX",
         "Operating System :: MacOS :: MacOS X",
     ],
-    packages=["word_count"],
-    rust_extensions=[RustExtension("word_count.word_count", "Cargo.toml")],
+    packages=["rustoid"],
+    rust_extensions=[RustExtension("rustoid.rustoid", "Cargo.toml")],
     install_requires=install_requires,
     tests_require=tests_require,
     setup_requires=setup_requires,
