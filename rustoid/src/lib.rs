@@ -8,6 +8,7 @@ use pyo3::wrap_pyfunction;
 use rayon::prelude::*;
 use std::fs;
 use std::path::PathBuf;
+use portaudio_sys as portaudio;
 
 /// Represents a file that can be searched
 #[pyclass]
@@ -76,9 +77,36 @@ fn count_line(line: &str, needle: &str) -> usize {
     total
 }
 
+struct PaTestData {
+    sine: [f64; 200],
+    left_phase: i32,
+    right_phase: i32,
+    message: [char; 20],
+}
+
+#[pyfunction]
+fn portaudio_test() -> i32 {
+    let mut outputParameters: portaudio::PaStreamParameters;
+    let mut stream: *mut portaudio::PaStream;
+    let mut err: portaudio::PaError;
+    let mut data: PaTestData;
+
+    let NUM_SECONDS: i32 = 5;
+    let SAMPLE_RATE: i32 = 44100;
+    let FRAMES_PER_BUFFER: i32 = 64;
+    let M_PI: f64 = 3.14159265;
+    let TABLE_SIZE: i32 = 200;
+
+    println!("PortAudio Test: output sine wave. SR = {}, BufSize = {}\n",
+      SAMPLE_RATE, FRAMES_PER_BUFFER);
+    
+    1
+}
+
 #[pymodule]
 fn rustoid(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(count_line))?;
+    m.add_wrapped(wrap_pyfunction!(portaudio_test))?;
     m.add_class::<WordCounter>()?;
 
     Ok(())

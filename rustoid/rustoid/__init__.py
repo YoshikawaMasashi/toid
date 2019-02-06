@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .rustoid import WordCounter, count_line
 
-__all__ = ["WordCounter", "count_line", "search_py"]
+__all__ = ["WordCounter", "count_line", "portaudio_test", "search_py"]
 
 
 def search_py(path, needle):
