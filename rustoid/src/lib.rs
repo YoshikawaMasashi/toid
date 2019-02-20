@@ -77,7 +77,7 @@ fn count_line(line: &str, needle: &str) -> usize {
     total
 }
 
-struct PaTestData {
+pub struct PaTestData {
     sine: [f64; 200],
     left_phase: i32,
     right_phase: i32,
@@ -89,7 +89,7 @@ fn portaudio_test() -> i32 {
     let mut outputParameters: portaudio::PaStreamParameters;
     let mut stream: *mut portaudio::PaStream;
     let mut err: portaudio::PaError;
-    let mut data: PaTestData;
+    let mut data: PaTestData = PaTestData {sine: [0.0; 200], left_phase: 0, right_phase: 0, message: ['\0'; 20]};
 
     let NUM_SECONDS: i32 = 5;
     let SAMPLE_RATE: i32 = 44100;
@@ -100,6 +100,24 @@ fn portaudio_test() -> i32 {
     println!("PortAudio Test: output sine wave. SR = {}, BufSize = {}\n",
       SAMPLE_RATE, FRAMES_PER_BUFFER);
     
+    for i in 0..TABLE_SIZE {
+        data.sine[i as usize] = ((i as f64) / (TABLE_SIZE as f64) * M_PI * 2.).sin();
+    }
+
+    unsafe {
+        err = portaudio::Pa_Initialize();
+        if err != portaudio::PaErrorCode_paNoError {
+            return -1; // TODO(marshi): error handling
+        }
+        /*
+        outputParameters.device = portaudio::Pa_GetDefaultOutputDevice();
+        if outputParameters.device == -1 {
+            println!("Error: No default output device.\n");
+            return -1; // TODO(marshi): error handling
+        }
+        */
+    }
+
     1
 }
 
