@@ -1,14 +1,11 @@
 // Source adopted from
 // https://github.com/tildeio/helix-website/blob/master/crates/word_count/src/lib.rs
 
-extern crate portaudio_sys;
-
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use rayon::prelude::*;
 use std::fs;
 use std::path::PathBuf;
-use portaudio_sys as portaudio;
 
 /// Represents a file that can be searched
 #[pyclass]
@@ -77,46 +74,8 @@ fn count_line(line: &str, needle: &str) -> usize {
     total
 }
 
-pub struct PaTestData {
-    sine: [f64; 200],
-    left_phase: i32,
-    right_phase: i32,
-    message: [char; 20],
-}
-
 #[pyfunction]
 fn portaudio_test() -> i32 {
-    let mut outputParameters: portaudio::PaStreamParameters;
-    let mut stream: *mut portaudio::PaStream;
-    let mut err: portaudio::PaError;
-    let mut data: PaTestData = PaTestData {sine: [0.0; 200], left_phase: 0, right_phase: 0, message: ['\0'; 20]};
-
-    let NUM_SECONDS: i32 = 5;
-    let SAMPLE_RATE: i32 = 44100;
-    let FRAMES_PER_BUFFER: i32 = 64;
-    let M_PI: f64 = 3.14159265;
-    let TABLE_SIZE: i32 = 200;
-
-    println!("PortAudio Test: output sine wave. SR = {}, BufSize = {}\n",
-      SAMPLE_RATE, FRAMES_PER_BUFFER);
-    
-    for i in 0..TABLE_SIZE {
-        data.sine[i as usize] = ((i as f64) / (TABLE_SIZE as f64) * M_PI * 2.).sin();
-    }
-
-    unsafe {
-        err = portaudio::Pa_Initialize();
-        if err != portaudio::PaErrorCode_paNoError {
-            return -1; // TODO(marshi): error handling
-        }
-        /*
-        outputParameters.device = portaudio::Pa_GetDefaultOutputDevice();
-        if outputParameters.device == -1 {
-            println!("Error: No default output device.\n");
-            return -1; // TODO(marshi): error handling
-        }
-        */
-    }
 
     1
 }

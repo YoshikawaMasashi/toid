@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 rayon = "1.0.2"
 pyo3 = "0.6.0-alpha.2"
-portaudio_sys = { path = "./rust-portaudio/rust-portaudio-sys", version = "0.1.0" }
+portaudio = "0.7.0"
 
 [lib]
 name = "rustoid"
