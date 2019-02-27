@@ -5,3 +5,4 @@ authors = ["masashi yoshikawa <yoshikawa@al4.biz>"]
 edition = "2018"
 
 [dependencies]
+cpal = "0.8.2"
