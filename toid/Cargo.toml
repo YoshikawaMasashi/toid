@@ -1,10 +1,8 @@
 [package]
 name = "toid"
 version = "0.1.0"
-authors = ["masashi yoshikawa <yoshikawa@al4.biz>"]
+authors = ["masashi yoshikawa <earnest.marshi@gmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 im = "14.0.0"

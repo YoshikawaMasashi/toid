@@ -1,15 +1,13 @@
-use im::hashmap::HashMap;
 use std::boxed::Box;
 use std::cell::RefCell;
-use std::option::Option;
 use std::rc::Rc;
 
-struct Store<T> {
+pub struct Store<T> {
     state: Rc<T>,
 }
 
 impl<T> Store<T> {
-    fn new(initial_state: T) -> Self {
+    pub fn new(initial_state: T) -> Self {
         let state = Rc::new(initial_state);
         Store { state }
     }
@@ -19,26 +17,26 @@ impl<T> Store<T> {
         self.state = new_state;
     }
 
-    fn get_state(&self) -> Rc<T> {
+    pub fn get_state(&self) -> Rc<T> {
         return Rc::clone(&self.state);
     }
 }
 
-trait Reduce<T, S> {
-    fn reduce(&self, state: Rc<T>, event: &S) -> (T);
+pub trait Reduce<T, S> {
+    fn reduce(&self, state: Rc<T>, event: &S) -> T;
 }
 
-struct Reducer<T, S> {
+pub struct Reducer<T, S> {
     store: Rc<RefCell<Store<T>>>,
-    reduce: Box<Reduce<T, S>>,
+    reduce: Box<dyn Reduce<T, S>>,
 }
 
 impl<T, S> Reducer<T, S> {
-    fn new(store: Rc<RefCell<Store<T>>>, reduce: Box<Reduce<T, S>>) -> Self {
+    pub fn new(store: Rc<RefCell<Store<T>>>, reduce: Box<dyn Reduce<T, S>>) -> Self {
         Reducer { store, reduce }
     }
 
-    fn reduce(&self, event: &S) {
+    pub fn reduce(&self, event: &S) {
         let mut store = self.store.borrow_mut();
         let state = store.get_state();
         let new_state = self.reduce.reduce(state, event);
@@ -46,22 +44,23 @@ impl<T, S> Reducer<T, S> {
     }
 }
 
-struct Event {
-    key: i32,
-    value: i32,
-}
-
-struct HashMapReduce {}
-
-impl Reduce<HashMap<i32, i32>, Event> for HashMapReduce {
-    fn reduce(&self, state: Rc<HashMap<i32, i32>>, event: &Event) -> (HashMap<i32, i32>) {
-        state.update(event.key, event.value)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use im::hashmap::HashMap;
+
+    struct Event {
+        key: i32,
+        value: i32,
+    }
+
+    struct HashMapReduce {}
+
+    impl Reduce<HashMap<i32, i32>, Event> for HashMapReduce {
+        fn reduce(&self, state: Rc<HashMap<i32, i32>>, event: &Event) -> HashMap<i32, i32> {
+            state.update(event.key, event.value)
+        }
+    }
 
     #[test]
     fn state_works() {
