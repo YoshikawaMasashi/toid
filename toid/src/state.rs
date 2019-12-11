@@ -1,61 +1,62 @@
+use im::hashmap::HashMap;
+use std::boxed::Box;
 use std::cell::RefCell;
 use std::option::Option;
 use std::rc::Rc;
 
-struct State {
-    state_num: i32,
+struct Store<T> {
+    state: Rc<T>,
 }
 
-struct Store {
-    state: Rc<State>,
-}
-
-impl Store {
-    fn new(state_num: i32) -> Store {
-        let state = State { state_num };
-        let state = Rc::new(state);
+impl<T> Store<T> {
+    fn new(initial_state: T) -> Self {
+        let state = Rc::new(initial_state);
         Store { state }
     }
 
-    fn update_state(&mut self, state_num: i32) {
-        let new_state = State { state_num };
-        let new_state = Rc::new(new_state);
+    fn update_state(&mut self, state: T) {
+        let new_state = Rc::new(state);
         self.state = new_state;
     }
 
-    fn get_state(&self) -> Rc<State> {
+    fn get_state(&self) -> Rc<T> {
         return Rc::clone(&self.state);
     }
 }
 
-struct Reducer {
-    store: Option<Rc<RefCell<Store>>>,
+trait Reduce<T, S> {
+    fn reduce(&self, state: Rc<T>, event: &S) -> (T);
 }
 
-impl Reducer {
-    fn new() -> Reducer {
-        Reducer { store: None }
+struct Reducer<T, S> {
+    store: Rc<RefCell<Store<T>>>,
+    reduce: Box<Reduce<T, S>>,
+}
+
+impl<T, S> Reducer<T, S> {
+    fn new(store: Rc<RefCell<Store<T>>>, reduce: Box<Reduce<T, S>>) -> Self {
+        Reducer { store, reduce }
     }
 
-    fn reduce(&mut self, event: &Event) {
-        if let Some(store) = self.store.as_mut() {
-            store.borrow_mut().update_state(event.new_state_num);
-        } else {
-            println!("state is None");
-        }
-    }
-
-    fn register_store(&mut self, store: Rc<RefCell<Store>>) {
-        self.store = Some(store);
-    }
-    fn unregister_store(&mut self) {
-        self.store = None;
+    fn reduce(&self, event: &S) {
+        let mut store = self.store.borrow_mut();
+        let state = store.get_state();
+        let new_state = self.reduce.reduce(state, event);
+        store.update_state(new_state);
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Event {
-    new_state_num: i32,
+struct Event {
+    key: i32,
+    value: i32,
+}
+
+struct HashMapReduce {}
+
+impl Reduce<HashMap<i32, i32>, Event> for HashMapReduce {
+    fn reduce(&self, state: Rc<HashMap<i32, i32>>, event: &Event) -> (HashMap<i32, i32>) {
+        state.update(event.key, event.value)
+    }
 }
 
 #[cfg(test)]
@@ -64,16 +65,23 @@ mod tests {
 
     #[test]
     fn state_works() {
-        let store = Rc::new(RefCell::new(Store::new(0)));
-        assert_eq!(store.borrow().get_state().state_num, 0);
+        let initial_state: HashMap<i32, i32> = HashMap::new();
+        let store = Rc::new(RefCell::new(Store::new(initial_state)));
+        assert_eq!(store.borrow().get_state().len(), 0);
 
-        let mut reducer = Reducer::new();
-        reducer.register_store(Rc::clone(&store));
+        let reduce = Box::new(HashMapReduce {});
+        let reducer = Reducer::new(Rc::clone(&store), reduce);
 
-        reducer.reduce(&Event { new_state_num: 1 });
-        assert_eq!(store.borrow().get_state().state_num, 1);
+        reducer.reduce(&Event { key: 0, value: 1 });
+        assert_eq!(store.borrow().get_state().len(), 1);
+        assert_eq!(*store.borrow().get_state().get(&(0 as i32)).unwrap(), 1);
 
-        reducer.reduce(&Event { new_state_num: 0 });
-        assert_eq!(store.borrow().get_state().state_num, 0);
+        reducer.reduce(&Event { key: 1, value: 345 });
+        assert_eq!(store.borrow().get_state().len(), 2);
+        assert_eq!(*store.borrow().get_state().get(&(1 as i32)).unwrap(), 345);
+
+        reducer.reduce(&Event { key: 1, value: 2 });
+        assert_eq!(store.borrow().get_state().len(), 2);
+        assert_eq!(*store.borrow().get_state().get(&(1 as i32)).unwrap(), 2);
     }
 }
