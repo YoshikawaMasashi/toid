@@ -1,7 +1,11 @@
+//! stateモジュールでは、イベント駆動の仕組みを実装しています。
+//! Observerパターンや、Webのフロントエンドで使われるFluxと基本的には似たような仕組みで動いています。
+
 use std::boxed::Box;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+/// Storeはstateを保持し、必要に応じてアップデートをする窓口を提供します。
 pub struct Store<T> {
     state: Rc<T>,
 }
@@ -22,10 +26,13 @@ impl<T> Store<T> {
     }
 }
 
+/// Reduceでは、あるeventが会った時に、stateの変更の仕方をユーザーが決めることができるインターフェースです。
 pub trait Reduce<T, S> {
     fn reduce(&self, state: Rc<T>, event: &S) -> T;
 }
 
+/// Reducerでは、ユーザーが実装したReduceによって、Storeに変更するように要請します。
+/// Storeではstateを変更できるメソッドは非公開であるので、Reducerでしか変更できません。
 pub struct Reducer<T, S> {
     store: Rc<RefCell<Store<T>>>,
     reduce: Box<dyn Reduce<T, S>>,
