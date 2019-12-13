@@ -2,11 +2,14 @@
 //! sound_outputモジュールでは、stateモジュールのユースケースとなります。
 
 use std::boxed::Box;
+use std::cell::RefCell;
 use std::option::Option;
 use std::rc::Rc;
 use std::vec::Vec;
 
 use super::state::Reduce;
+use super::state::Reducer;
+use super::state::Store;
 
 /// state::Storeで使う用のStateです。
 /// SoundStateから、audioのAPIのコールバックで使う用の波形が取得できます。
@@ -26,20 +29,30 @@ impl SoundState {
             wave_length,
         }
     }
+}
 
+struct SoundStateManager {
+    store: Rc<RefCell<Store<SoundState>>>,
+    reducer: Reducer<Rc<Store<SoundState>>, SoundStateEvent>,
+}
+
+impl SoundStateManager {
     pub fn get_wave(&self) -> Vec<f32> {
-        let hertz = self.get_hertz();
         let mut ret = Vec::new();
-        for wave_idx in 0..self.wave_length {
-            ret.push(((self.phase + wave_idx as f32) * hertz).sin());
+        let state = self.store.borrow().get_state();
+        let hertz = self.get_hertz(state.pitch);
+        for wave_idx in 0..state.wave_length {
+            ret.push(((state.phase + wave_idx as f32) * hertz).sin());
         }
-        let next_phase = (self.phase + (self.wave_length as f32)) % 1.0;
+        let next_phase = (state.phase + (state.wave_length as f32)) % 1.0;
+        self.reducer
+            .reduce(&SoundStateEvent::ChangePhase(next_phase));
         ret
     }
 
-    fn get_hertz(&self) -> f32 {
+    fn get_hertz(&self, pitch: i32) -> f32 {
         // A4 -> 69 440hz
-        (440 as f32) * (2.0 as f32).powf(((self.pitch - 69) as f32) / 12 as f32)
+        (440 as f32) * (2.0 as f32).powf(((pitch - 69) as f32) / 12 as f32)
     }
 }
 
