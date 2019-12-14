@@ -2,6 +2,7 @@ extern crate portaudio;
 
 use super::sound_output::SoundStateManager;
 use portaudio as pa;
+use std::option::Option;
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -12,27 +13,32 @@ const FRAMES_PER_BUFFER: u32 = 512;
 const TABLE_SIZE: usize = 200;
 const INTERLEAVED: bool = true;
 
-/*
-struct PortAudioOutputter {
+pub struct PortAudioOutputter {
     sound_state_manager: Arc<RwLock<SoundStateManager>>,
     portaudio: pa::PortAudio,
+    stream: Option<Arc<RwLock<pa::Stream<pa::NonBlocking, pa::Output<f32>>>>>,
 }
 
 impl PortAudioOutputter {
-    fn new(sound_state_manager: Arc<RwLock<SoundStateManager>>) -> Self {
+    pub fn new(sound_state_manager: Arc<RwLock<SoundStateManager>>) -> Self {
         let portaudio = pa::PortAudio::new().unwrap();
 
         PortAudioOutputter {
             sound_state_manager,
             portaudio,
+            stream: None,
         }
     }
 
-    fn run(&self) {
-        // FnMut(<S::Flow as Flow>::CallbackArgs) -> ffi::PaStreamCallbackResult + 'static
-        let callback: FnMut(pa::OutputStreamCallbackArgs<f32>) -> pa::StreamCallbackResult
-            + 'static = move |pa::OutputStreamCallbackArgs { buffer, frames, .. }| {
-            let waves = self.sound_state_manager.write().unwrap().get_wave();
+    pub fn run(&mut self) {
+        let sound_state_manager = Arc::clone(&self.sound_state_manager);
+        let callback = move |pa::OutputStreamCallbackArgs::<'static, f32> {
+                                 buffer,
+                                 frames,
+                                 ..
+                             }|
+              -> pa::StreamCallbackResult {
+            let waves = sound_state_manager.write().unwrap().get_wave();
 
             let mut idx = 0;
             for i in 0..frames {
@@ -42,6 +48,9 @@ impl PortAudioOutputter {
             }
             pa::Continue
         };
+        let callback: Box<
+            FnMut(pa::OutputStreamCallbackArgs<'static, f32>) -> pa::StreamCallbackResult,
+        > = Box::new(callback);
 
         let mut settings = self
             .portaudio
@@ -54,9 +63,27 @@ impl PortAudioOutputter {
             .open_non_blocking_stream(settings, callback)
             .unwrap();
 
-        /*
         stream.start().unwrap();
-            */
+        self.stream = Some(Arc::new(RwLock::new(stream)));
+    }
+
+    pub fn stop(&mut self) {
+        Option::as_ref(&self.stream)
+            .unwrap()
+            .write()
+            .unwrap()
+            .stop()
+            .unwrap();
+        Option::as_ref(&self.stream)
+            .unwrap()
+            .write()
+            .unwrap()
+            .close()
+            .unwrap();
+        self.stream = None;
+    }
+
+    pub fn sleep(&mut self, millseconds: i32) {
+        self.portaudio.sleep(millseconds);
     }
 }
-*/
