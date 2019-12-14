@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"./state"
 )
 
 func main() {
-	fmt.Println("hello world")
+	state.PrintHelloWorld()
 }
