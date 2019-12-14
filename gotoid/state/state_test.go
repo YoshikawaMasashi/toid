@@ -1,8 +1,11 @@
 package state_test
 
 import (
-    "testing" // テストで使える関数・構造体が用意されているパッケージをimport
+	"."
+	"testing"
 )
 
 func TestExampleSuccess(t *testing.T) {
+	var initial_store = make(map[string]int)
+	var store = state.NewStore(&initial_store)
 }
