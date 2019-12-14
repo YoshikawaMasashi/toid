@@ -33,20 +33,35 @@ impl SoundState {
 
 struct SoundStateManager {
     store: Rc<RefCell<Store<SoundState>>>,
-    reducer: Reducer<Rc<Store<SoundState>>, SoundStateEvent>,
+    reducer: Reducer<SoundState, SoundStateEvent>,
 }
 
 impl SoundStateManager {
+    pub fn new(
+        store: Rc<RefCell<Store<SoundState>>>,
+        reducer: Reducer<SoundState, SoundStateEvent>,
+    ) -> Self {
+        SoundStateManager { store, reducer }
+    }
     pub fn get_wave(&self) -> Vec<f32> {
         let mut ret = Vec::new();
         let state = self.store.borrow().get_state();
         let hertz = self.get_hertz(state.pitch);
-        for wave_idx in 0..state.wave_length {
-            ret.push(((state.phase + wave_idx as f32) * hertz).sin());
+
+        if state.sound_on {
+            for wave_idx in 0..state.wave_length {
+                ret.push(((state.phase + wave_idx as f32) * hertz / (44100 as f32)).sin());
+            }
+            let next_phase =
+                (state.phase + (state.wave_length as f32) * hertz / (44100 as f32)) % 1.0;
+            println!("{}", next_phase);
+            self.reducer
+                .reduce(&SoundStateEvent::ChangePhase(next_phase));
+        } else {
+            for wave_idx in 0..state.wave_length {
+                ret.push(0.0);
+            }
         }
-        let next_phase = (state.phase + (state.wave_length as f32)) % 1.0;
-        self.reducer
-            .reduce(&SoundStateEvent::ChangePhase(next_phase));
         ret
     }
 
@@ -93,5 +108,50 @@ impl Reduce<SoundState, SoundStateEvent> for SoundStateReduce {
                 wave_length: state.wave_length,
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_is_close(a: f32, b: f32, delta: f32) {
+        if (a - b).abs() > delta {
+            panic!("is not close: {} {}")
+        }
+    }
+
+    #[test]
+    fn state_works() {
+        let initial_state: SoundState = SoundState::new(512);
+        let store = Rc::new(RefCell::new(Store::new(initial_state)));
+
+        assert_eq!(store.borrow().get_state().phase, 0.0);
+        assert_eq!(store.borrow().get_state().pitch, 60);
+        assert_eq!(store.borrow().get_state().sound_on, true);
+        assert_eq!(store.borrow().get_state().wave_length, 512);
+
+        let reduce = Box::new(SoundStateReduce {});
+        let reducer = Reducer::new(Rc::clone(&store), reduce);
+        let manager = SoundStateManager::new(Rc::clone(&store), reducer);
+
+        let reduce = Box::new(SoundStateReduce {});
+        let reducer = Reducer::new(Rc::clone(&store), reduce);
+
+        reducer.reduce(&SoundStateEvent::ChangePitch(69));
+        assert_eq!(store.borrow().get_state().pitch, 69);
+
+        let wave = manager.get_wave();
+
+        let true_wave = [
+            0., 0.00997716, 0.01995432, 0.02993148, 0.03990864, 0.04988579, 0.05986295, 0.06984011,
+            0.07981727, 0.08979443,
+        ];
+
+        for i in 0..10 {
+            assert_is_close(wave[i], true_wave[i], 0.01);
+        }
+
+        assert_is_close(store.borrow().get_state().phase, 0.108390026, 0.01);
     }
 }
