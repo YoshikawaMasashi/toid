@@ -2,9 +2,9 @@
 //! sound_outputモジュールでは、stateモジュールのユースケースとなります。
 
 use std::boxed::Box;
-use std::cell::RefCell;
 use std::option::Option;
-use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::RwLock;
 use std::vec::Vec;
 
 use super::state::Reduce;
@@ -32,20 +32,20 @@ impl SoundState {
 }
 
 struct SoundStateManager {
-    store: Rc<RefCell<Store<SoundState>>>,
+    store: Arc<RwLock<Store<SoundState>>>,
     reducer: Reducer<SoundState, SoundStateEvent>,
 }
 
 impl SoundStateManager {
     pub fn new(
-        store: Rc<RefCell<Store<SoundState>>>,
+        store: Arc<RwLock<Store<SoundState>>>,
         reducer: Reducer<SoundState, SoundStateEvent>,
     ) -> Self {
         SoundStateManager { store, reducer }
     }
     pub fn get_wave(&self) -> Vec<f32> {
         let mut ret = Vec::new();
-        let state = self.store.borrow().get_state();
+        let state = self.store.read().unwrap().get_state();
         let hertz = self.get_hertz(state.pitch);
 
         if state.sound_on {
@@ -81,7 +81,7 @@ enum SoundStateEvent {
 struct SoundStateReduce {}
 
 impl Reduce<SoundState, SoundStateEvent> for SoundStateReduce {
-    fn reduce(&self, state: Rc<SoundState>, event: &SoundStateEvent) -> SoundState {
+    fn reduce(&self, state: Arc<SoundState>, event: &SoundStateEvent) -> SoundState {
         match event {
             SoundStateEvent::ChangePitch(pitch) => SoundState {
                 phase: state.phase,
@@ -124,22 +124,22 @@ mod tests {
     #[test]
     fn state_works() {
         let initial_state: SoundState = SoundState::new(512);
-        let store = Rc::new(RefCell::new(Store::new(initial_state)));
+        let store = Arc::new(RwLock::new(Store::new(initial_state)));
 
-        assert_eq!(store.borrow().get_state().phase, 0.0);
-        assert_eq!(store.borrow().get_state().pitch, 60);
-        assert_eq!(store.borrow().get_state().sound_on, true);
-        assert_eq!(store.borrow().get_state().wave_length, 512);
-
-        let reduce = Box::new(SoundStateReduce {});
-        let reducer = Reducer::new(Rc::clone(&store), reduce);
-        let manager = SoundStateManager::new(Rc::clone(&store), reducer);
+        assert_eq!(store.read().unwrap().get_state().phase, 0.0);
+        assert_eq!(store.read().unwrap().get_state().pitch, 60);
+        assert_eq!(store.read().unwrap().get_state().sound_on, true);
+        assert_eq!(store.read().unwrap().get_state().wave_length, 512);
 
         let reduce = Box::new(SoundStateReduce {});
-        let reducer = Reducer::new(Rc::clone(&store), reduce);
+        let reducer = Reducer::new(Arc::clone(&store), reduce);
+        let manager = SoundStateManager::new(Arc::clone(&store), reducer);
+
+        let reduce = Box::new(SoundStateReduce {});
+        let reducer = Reducer::new(Arc::clone(&store), reduce);
 
         reducer.reduce(&SoundStateEvent::ChangePitch(69));
-        assert_eq!(store.borrow().get_state().pitch, 69);
+        assert_eq!(store.read().unwrap().get_state().pitch, 69);
 
         let wave = manager.get_wave();
 
@@ -152,6 +152,6 @@ mod tests {
             assert_is_close(wave[i], true_wave[i], 0.01);
         }
 
-        assert_is_close(store.borrow().get_state().phase, 0.108390026, 0.01);
+        assert_is_close(store.read().unwrap().get_state().phase, 0.108390026, 0.01);
     }
 }
