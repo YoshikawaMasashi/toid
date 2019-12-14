@@ -7,11 +7,8 @@ use std::sync::Arc;
 use std::sync::RwLock;
 
 const CHANNELS: i32 = 2;
-const NUM_SECONDS: i32 = 5;
 const SAMPLE_RATE: f64 = 44_100.0;
 const FRAMES_PER_BUFFER: u32 = 512;
-const TABLE_SIZE: usize = 200;
-const INTERLEAVED: bool = true;
 
 pub struct PortAudioOutputter {
     sound_state_manager: Arc<RwLock<SoundStateManager>>,
@@ -48,9 +45,6 @@ impl PortAudioOutputter {
             }
             pa::Continue
         };
-        let callback: Box<
-            FnMut(pa::OutputStreamCallbackArgs<'static, f32>) -> pa::StreamCallbackResult,
-        > = Box::new(callback);
 
         let mut settings = self
             .portaudio

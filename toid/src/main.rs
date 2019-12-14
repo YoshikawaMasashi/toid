@@ -1,6 +1,5 @@
 extern crate portaudio;
 
-use portaudio as pa;
 use std::boxed::Box;
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -12,13 +11,6 @@ use toid::sound_output::SoundStateManager;
 use toid::sound_output::SoundStateReduce;
 use toid::state::Reducer;
 use toid::state::Store;
-
-const CHANNELS: i32 = 2;
-const NUM_SECONDS: i32 = 5;
-const SAMPLE_RATE: f64 = 44_100.0;
-const FRAMES_PER_BUFFER: u32 = 512;
-const TABLE_SIZE: usize = 200;
-const INTERLEAVED: bool = true;
 
 fn main() {
     let initial_state: SoundState = SoundState::new(512);

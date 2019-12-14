@@ -1,9 +1,6 @@
 //! MVP的にmonophonicなメロディをライブコーディングするモジュールです。
 //! sound_outputモジュールでは、stateモジュールのユースケースとなります。
-
-use std::boxed::Box;
 use std::f64::consts::PI;
-use std::option::Option;
 use std::sync::Arc;
 use std::sync::RwLock;
 use std::vec::Vec;
@@ -51,9 +48,9 @@ impl SoundStateManager {
 
         if state.sound_on {
             for wave_idx in 0..state.wave_length {
-                let ret_ =
-                    ((state.phase + wave_idx as f32 * hertz / (44100 as f32)) * 2.0 * (PI as f32))
-                        .sin();
+                let ret_ = (state.phase
+                    + (wave_idx as f32) * hertz * 2.0 * (PI as f32) / (44100 as f32))
+                    .sin();
                 ret.push(ret_);
             }
             let next_phase =
@@ -61,7 +58,7 @@ impl SoundStateManager {
             self.reducer
                 .reduce(&SoundStateEvent::ChangePhase(next_phase));
         } else {
-            for wave_idx in 0..state.wave_length {
+            for _ in 0..state.wave_length {
                 ret.push(0.0);
             }
         }
@@ -120,7 +117,7 @@ mod tests {
 
     fn assert_is_close(a: f32, b: f32, delta: f32) {
         if (a - b).abs() > delta {
-            panic!("is not close: {} {}")
+            panic!("is not close: {} {}", a, b)
         }
     }
 
@@ -147,12 +144,12 @@ mod tests {
         let wave = manager.get_wave();
 
         let true_wave = [
-            0., 0.00997716, 0.01995432, 0.02993148, 0.03990864, 0.04988579, 0.05986295, 0.06984011,
-            0.07981727, 0.08979443,
+            0., 0.06268834, 0.12537667, 0.188065, 0.25075334, 0.3134417, 0.37613, 0.43881837,
+            0.5015067, 0.56419504,
         ];
 
         for i in 0..10 {
-            assert_is_close(wave[i], true_wave[i], 0.01);
+            assert_is_close(wave[i], true_wave[i], 0.03);
         }
 
         assert_is_close(store.read().unwrap().get_state().phase, 0.108390026, 0.01);
