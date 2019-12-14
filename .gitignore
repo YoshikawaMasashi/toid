@@ -1,6 +1,5 @@
 *.lock
 *.so
 *.egg-info
-rustoid/target/*
 toid/target/*
 rust-survey/*
