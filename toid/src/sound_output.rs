@@ -2,6 +2,7 @@
 //! sound_outputモジュールでは、stateモジュールのユースケースとなります。
 
 use std::boxed::Box;
+use std::f64::consts::PI;
 use std::option::Option;
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -31,7 +32,7 @@ impl SoundState {
     }
 }
 
-struct SoundStateManager {
+pub struct SoundStateManager {
     store: Arc<RwLock<Store<SoundState>>>,
     reducer: Reducer<SoundState, SoundStateEvent>,
 }
@@ -50,11 +51,13 @@ impl SoundStateManager {
 
         if state.sound_on {
             for wave_idx in 0..state.wave_length {
-                ret.push(((state.phase + wave_idx as f32) * hertz / (44100 as f32)).sin());
+                let ret_ =
+                    ((state.phase + wave_idx as f32 * hertz / (44100 as f32)) * 2.0 * (PI as f32))
+                        .sin();
+                ret.push(ret_);
             }
             let next_phase =
-                (state.phase + (state.wave_length as f32) * hertz / (44100 as f32)) % 1.0;
-            println!("{}", next_phase);
+                state.phase + (state.wave_length as f32) * hertz / (44100 as f32) % 1.0;
             self.reducer
                 .reduce(&SoundStateEvent::ChangePhase(next_phase));
         } else {
@@ -71,14 +74,14 @@ impl SoundStateManager {
     }
 }
 
-enum SoundStateEvent {
+pub enum SoundStateEvent {
     ChangePitch(i32),
     SoundOn,
     SoundOff,
     ChangePhase(f32),
 }
 
-struct SoundStateReduce {}
+pub struct SoundStateReduce {}
 
 impl Reduce<SoundState, SoundStateEvent> for SoundStateReduce {
     fn reduce(&self, state: Arc<SoundState>, event: &SoundStateEvent) -> SoundState {
@@ -104,7 +107,7 @@ impl Reduce<SoundState, SoundStateEvent> for SoundStateReduce {
             SoundStateEvent::ChangePhase(phase) => SoundState {
                 phase: *phase,
                 pitch: state.pitch,
-                sound_on: false,
+                sound_on: state.sound_on,
                 wave_length: state.wave_length,
             },
         }
