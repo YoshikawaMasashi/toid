@@ -48,9 +48,9 @@ impl SoundStateManager {
 
         if state.sound_on {
             for wave_idx in 0..state.wave_length {
-                let ret_ = (state.phase
-                    + (wave_idx as f32) * hertz * 2.0 * (PI as f32) / (44100 as f32))
-                    .sin();
+                let ret_ = state.phase + (wave_idx as f32) * hertz / (44100 as f32);
+                let ret_ = ret_ * 2.0 * (PI as f32);
+                let ret_ = ret_.sin();
                 ret.push(ret_);
             }
             let next_phase =
