@@ -3,3 +3,4 @@
 *.egg-info
 toid/target/*
 rust-survey/*
+pytoid/target/*
