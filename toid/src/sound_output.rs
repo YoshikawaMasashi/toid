@@ -5,9 +5,9 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::vec::Vec;
 
-use super::state::Reduce;
-use super::state::Reducer;
-use super::state::Store;
+use super::state_management::reducer::Reduce;
+use super::state_management::reducer::Reducer;
+use super::state_management::store::Store;
 
 /// state::Storeで使う用のStateです。
 /// SoundStateから、audioのAPIのコールバックで使う用の波形が取得できます。

@@ -9,8 +9,8 @@ use toid::sound_output::SoundState;
 use toid::sound_output::SoundStateEvent;
 use toid::sound_output::SoundStateManager;
 use toid::sound_output::SoundStateReduce;
-use toid::state::Reducer;
-use toid::state::Store;
+use toid::state_management::reducer::Reducer;
+use toid::state_management::store::Store;
 
 fn main() {
     let initial_state: SoundState = SoundState::new(512);
