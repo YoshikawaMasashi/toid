@@ -8,7 +8,7 @@ use std::sync::RwLock;
 trait Event {}
 
 enum StateType {
-    HashMapState(HashMapState),
+    HashMapState(Arc<HashMapState>),
     i32(i32),
     f32(f32),
 }
@@ -16,9 +16,7 @@ enum StateType {
 impl Clone for StateType {
     fn clone(&self) -> StateType {
         match self {
-            StateType::HashMapState(m) => StateType::HashMapState(HashMapState {
-                state_map: m.state_map.clone(),
-            }),
+            StateType::HashMapState(m) => StateType::HashMapState(Arc::clone(m)),
             StateType::i32(i) => StateType::i32(*i),
             StateType::f32(f) => StateType::f32(*f),
         }
@@ -39,7 +37,7 @@ impl HashMapState {
         let new_state = HashMapState {
             state_map: new_state_map,
         };
-        StateType::HashMapState(new_state)
+        StateType::HashMapState(Arc::new(new_state))
     }
 }
 
