@@ -13,3 +13,9 @@ $ cargo run
 
 ## pytoid
 pythonバインディングを作る予定ですが、まだ全然できてないです。
+
+インストール
+```
+$ cd pytoid
+$ pip install -e .
+```
