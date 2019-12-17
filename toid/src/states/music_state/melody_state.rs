@@ -1,5 +1,4 @@
 use im::ordmap::OrdMap;
-use std::sync::Arc;
 
 pub enum CurrentMelodyState {
     On(f32, i64),

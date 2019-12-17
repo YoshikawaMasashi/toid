@@ -7,7 +7,6 @@ use super::state_management::reducer::Reducer;
 use super::state_management::store::Store;
 use super::states::music_state::melody_state::CurrentMelodyState;
 use super::states::music_state::melody_state::MelodyEvent;
-use super::states::music_state::melody_state::MelodyState;
 use super::states::music_state::MusicState;
 
 pub enum MusicStateEvent {
@@ -85,7 +84,7 @@ impl MusicStateManager {
 
             let ret_ = match current_melody {
                 CurrentMelodyState::On(pitch, samples) => {
-                    let x = ((samples as f32) * get_hertz(pitch) / 44100.0);
+                    let x = (samples as f32) * get_hertz(pitch) / 44100.0;
                     let x = x * 2.0 * (PI as f32);
                     x.sin()
                 }

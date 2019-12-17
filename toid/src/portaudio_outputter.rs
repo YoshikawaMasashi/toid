@@ -1,6 +1,6 @@
 extern crate portaudio;
 
-use super::sound_output::SoundStateManager;
+use super::music_state_manager::MusicStateManager;
 use portaudio as pa;
 use std::option::Option;
 use std::sync::Arc;
@@ -11,13 +11,13 @@ const SAMPLE_RATE: f64 = 44_100.0;
 const FRAMES_PER_BUFFER: u32 = 512;
 
 pub struct PortAudioOutputter {
-    sound_state_manager: Arc<RwLock<SoundStateManager>>,
+    sound_state_manager: Arc<RwLock<MusicStateManager>>,
     portaudio: pa::PortAudio,
     stream: Option<Arc<RwLock<pa::Stream<pa::NonBlocking, pa::Output<f32>>>>>,
 }
 
 impl PortAudioOutputter {
-    pub fn new(sound_state_manager: Arc<RwLock<SoundStateManager>>) -> Self {
+    pub fn new(sound_state_manager: Arc<RwLock<MusicStateManager>>) -> Self {
         let portaudio = pa::PortAudio::new().unwrap();
 
         PortAudioOutputter {
