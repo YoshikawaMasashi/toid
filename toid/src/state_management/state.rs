@@ -25,6 +25,13 @@ impl State {
             _ => panic!("is not i32"),
         }
     }
+
+    fn unwrap_f32(&self) -> f32 {
+        match self {
+            State::f32(f) => *f,
+            _ => panic!("is not f32"),
+        }
+    }
 }
 
 impl Clone for State {
