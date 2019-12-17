@@ -2,50 +2,66 @@ use im::hashmap::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use super::state_management::hashmap_state::HashMapState;
 use super::state_management::reducer::Reduce;
 use super::state_management::reducer::Reducer;
+use super::state_management::state::State;
 use super::state_management::store::Store;
 
 struct Event {
-    key: i32,
+    key: String,
     value: i32,
 }
 
 struct HashMapReduce {}
 
-impl Reduce<HashMap<i32, i32>, Event> for HashMapReduce {
-    fn reduce(&self, state: Arc<HashMap<i32, i32>>, event: &Event) -> HashMap<i32, i32> {
-        state.update(event.key, event.value)
+impl Reduce<Event> for HashMapReduce {
+    fn reduce(&self, state: State, event: Event) -> State {
+        state
+            .unwrap_manual_state()
+            .update(event.key, State::i32(event.value))
+            .unwrap()
     }
 }
 
 #[test]
 fn state_works() {
-    let initial_state: HashMap<i32, i32> = HashMap::new();
+    let initial_state = State::ManualState(Arc::new(HashMapState::new()));
     let store = Arc::new(RwLock::new(Store::new(initial_state)));
-    assert_eq!(store.read().unwrap().get_state().len(), 0);
+    assert_eq!(
+        store
+            .read()
+            .unwrap()
+            .get_state()
+            .unwrap_manual_state()
+            .contains_address(String::from("a")),
+        false
+    );
 
     let reduce = Box::new(HashMapReduce {});
     let reducer = Reducer::new(Arc::clone(&store), reduce);
-
-    reducer.reduce(&Event { key: 0, value: 1 });
-    assert_eq!(store.read().unwrap().get_state().len(), 1);
+    reducer.reduce(Event {
+        key: String::from("a"),
+        value: 1,
+    });
     assert_eq!(
-        *store.read().unwrap().get_state().get(&(0 as i32)).unwrap(),
+        store
+            .read()
+            .unwrap()
+            .get_state()
+            .unwrap_manual_state()
+            .contains_address(String::from("a")),
+        true
+    );
+    assert_eq!(
+        store
+            .read()
+            .unwrap()
+            .get_state()
+            .unwrap_manual_state()
+            .get_by_address(String::from("a"))
+            .unwrap()
+            .unwrap_i32(),
         1
-    );
-
-    reducer.reduce(&Event { key: 1, value: 345 });
-    assert_eq!(store.read().unwrap().get_state().len(), 2);
-    assert_eq!(
-        *store.read().unwrap().get_state().get(&(1 as i32)).unwrap(),
-        345
-    );
-
-    reducer.reduce(&Event { key: 1, value: 2 });
-    assert_eq!(store.read().unwrap().get_state().len(), 2);
-    assert_eq!(
-        *store.read().unwrap().get_state().get(&(1 as i32)).unwrap(),
-        2
     );
 }

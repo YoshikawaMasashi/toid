@@ -1,22 +1,24 @@
 use std::sync::Arc;
 
+use super::state::State;
+
 /// Storeはstateを保持し、必要に応じてアップデートをする窓口を提供します。
-pub struct Store<T> {
-    state: Arc<T>,
+pub struct Store {
+    state: State,
 }
 
-impl<T> Store<T> {
-    pub fn new(initial_state: T) -> Self {
-        let state = Arc::new(initial_state);
-        Store { state }
+impl Store {
+    pub fn new(initial_state: State) -> Self {
+        Store {
+            state: initial_state,
+        }
     }
 
-    pub fn update_state(&mut self, state: T) {
-        let new_state = Arc::new(state);
-        self.state = new_state;
+    pub fn update_state(&mut self, state: State) {
+        self.state = state;
     }
 
-    pub fn get_state(&self) -> Arc<T> {
-        return Arc::clone(&self.state);
+    pub fn get_state(&self) -> State {
+        return self.state.clone();
     }
 }

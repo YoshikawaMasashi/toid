@@ -7,6 +7,8 @@ use std::vec::Vec;
 
 use super::state_management::reducer::Reduce;
 use super::state_management::reducer::Reducer;
+use super::state_management::state::ManualState;
+use super::state_management::state::State;
 use super::state_management::store::Store;
 
 /// state::Storeで使う用のStateです。
@@ -29,36 +31,105 @@ impl SoundState {
     }
 }
 
+impl ManualState for SoundState {
+    fn get_by_address(&self, address: String) -> Result<State, String> {
+        match &*address {
+            "phase" => Ok(State::f32(self.phase)),
+            "pitch" => Ok(State::i32(self.pitch)),
+            "sound_on" => Ok(State::bool(self.sound_on)),
+            "wave_length" => Ok(State::usize(self.wave_length)),
+            _ => Err(String::from("invalid address")),
+        }
+    }
+
+    fn update(&self, address: String, value: State) -> Result<State, String> {
+        match &*address {
+            "phase" => Ok(State::ManualState(Arc::new(SoundState {
+                phase: value.unwrap_f32(),
+                pitch: self.pitch,
+                sound_on: self.sound_on,
+                wave_length: self.wave_length,
+            }))),
+            "pitch" => Ok(State::ManualState(Arc::new(SoundState {
+                phase: self.phase,
+                pitch: value.unwrap_i32(),
+                sound_on: self.sound_on,
+                wave_length: self.wave_length,
+            }))),
+            "sound_on" => Ok(State::ManualState(Arc::new(SoundState {
+                phase: self.phase,
+                pitch: self.pitch,
+                sound_on: value.unwrap_bool(),
+                wave_length: self.wave_length,
+            }))),
+            "wave_length" => Ok(State::ManualState(Arc::new(SoundState {
+                phase: self.phase,
+                pitch: self.pitch,
+                sound_on: self.sound_on,
+                wave_length: value.unwrap_usize(),
+            }))),
+            _ => Err(String::from("invalid address")),
+        }
+    }
+
+    fn contains_address(&self, address: String) -> bool {
+        match &*address {
+            "phase" => true,
+            "pitch" => true,
+            "sound_on" => true,
+            "wave_length" => true,
+            _ => false,
+        }
+    }
+}
+
 pub struct SoundStateManager {
-    store: Arc<RwLock<Store<SoundState>>>,
-    reducer: Reducer<SoundState, SoundStateEvent>,
+    store: Arc<RwLock<Store>>,
+    reducer: Reducer<SoundStateEvent>,
 }
 
 impl SoundStateManager {
-    pub fn new(
-        store: Arc<RwLock<Store<SoundState>>>,
-        reducer: Reducer<SoundState, SoundStateEvent>,
-    ) -> Self {
+    pub fn new(store: Arc<RwLock<Store>>, reducer: Reducer<SoundStateEvent>) -> Self {
         SoundStateManager { store, reducer }
     }
     pub fn get_wave(&self) -> Vec<f32> {
         let mut ret = Vec::new();
         let state = self.store.read().unwrap().get_state();
-        let hertz = self.get_hertz(state.pitch);
 
-        if state.sound_on {
-            for wave_idx in 0..state.wave_length {
-                let ret_ = state.phase + (wave_idx as f32) * hertz / (44100 as f32);
+        let pitch = state
+            .unwrap_manual_state()
+            .get_by_address(String::from("pitch"))
+            .unwrap()
+            .unwrap_i32();
+        let phase = state
+            .unwrap_manual_state()
+            .get_by_address(String::from("phase"))
+            .unwrap()
+            .unwrap_f32();
+        let sound_on = state
+            .unwrap_manual_state()
+            .get_by_address(String::from("sound_on"))
+            .unwrap()
+            .unwrap_bool();
+        let wave_length = state
+            .unwrap_manual_state()
+            .get_by_address(String::from("wave_length"))
+            .unwrap()
+            .unwrap_usize();
+        let hertz = self.get_hertz(pitch);
+
+        if sound_on {
+            for wave_idx in 0..wave_length {
+                let ret_ = phase + (wave_idx as f32) * hertz / (44100 as f32);
                 let ret_ = ret_ * 2.0 * (PI as f32);
                 let ret_ = ret_.sin();
                 ret.push(ret_);
             }
-            let next_phase =
-                state.phase + (state.wave_length as f32) * hertz / (44100 as f32) % 1.0;
+            let next_phase = phase + (wave_length as f32) * hertz / (44100 as f32) % 1.0;
             self.reducer
-                .reduce(&SoundStateEvent::ChangePhase(next_phase));
+                .reduce(SoundStateEvent::ChangePhase(next_phase));
         } else {
-            for _ in 0..state.wave_length {
+            for _ in 0..wave_length {
                 ret.push(0.0);
             }
         }
@@ -80,33 +151,25 @@ pub enum SoundStateEvent {
 
 pub struct SoundStateReduce {}
 
-impl Reduce<SoundState, SoundStateEvent> for SoundStateReduce {
-    fn reduce(&self, state: Arc<SoundState>, event: &SoundStateEvent) -> SoundState {
+impl Reduce<SoundStateEvent> for SoundStateReduce {
+    fn reduce(&self, state: State, event: SoundStateEvent) -> State {
         match event {
-            SoundStateEvent::ChangePitch(pitch) => SoundState {
-                phase: state.phase,
-                pitch: *pitch,
-                sound_on: state.sound_on,
-                wave_length: state.wave_length,
-            },
-            SoundStateEvent::SoundOn => SoundState {
-                phase: state.phase,
-                pitch: state.pitch,
-                sound_on: true,
-                wave_length: state.wave_length,
-            },
-            SoundStateEvent::SoundOff => SoundState {
-                phase: state.phase,
-                pitch: state.pitch,
-                sound_on: false,
-                wave_length: state.wave_length,
-            },
-            SoundStateEvent::ChangePhase(phase) => SoundState {
-                phase: *phase,
-                pitch: state.pitch,
-                sound_on: state.sound_on,
-                wave_length: state.wave_length,
-            },
+            SoundStateEvent::ChangePitch(pitch) => state
+                .unwrap_manual_state()
+                .update(String::from("pitch"), State::i32(pitch))
+                .unwrap(),
+            SoundStateEvent::SoundOn => state
+                .unwrap_manual_state()
+                .update(String::from("sound_on"), State::bool(true))
+                .unwrap(),
+            SoundStateEvent::SoundOff => state
+                .unwrap_manual_state()
+                .update(String::from("sound_on"), State::bool(false))
+                .unwrap(),
+            SoundStateEvent::ChangePhase(phase) => state
+                .unwrap_manual_state()
+                .update(String::from("phase"), State::f32(phase))
+                .unwrap(),
         }
     }
 }
@@ -123,13 +186,38 @@ mod tests {
 
     #[test]
     fn state_works() {
-        let initial_state: SoundState = SoundState::new(512);
+        let initial_state = State::ManualState(Arc::new(SoundState::new(512)));
         let store = Arc::new(RwLock::new(Store::new(initial_state)));
 
-        assert_eq!(store.read().unwrap().get_state().phase, 0.0);
-        assert_eq!(store.read().unwrap().get_state().pitch, 60);
-        assert_eq!(store.read().unwrap().get_state().sound_on, true);
-        assert_eq!(store.read().unwrap().get_state().wave_length, 512);
+        let manual_state = store.read().unwrap().get_state().unwrap_manual_state();
+        assert_eq!(
+            manual_state
+                .get_by_address(String::from("phase"))
+                .unwrap()
+                .unwrap_f32(),
+            0.0
+        );
+        assert_eq!(
+            manual_state
+                .get_by_address(String::from("pitch"))
+                .unwrap()
+                .unwrap_i32(),
+            60
+        );
+        assert_eq!(
+            manual_state
+                .get_by_address(String::from("sound_on"))
+                .unwrap()
+                .unwrap_bool(),
+            true
+        );
+        assert_eq!(
+            manual_state
+                .get_by_address(String::from("wave_length"))
+                .unwrap()
+                .unwrap_usize(),
+            512
+        );
 
         let reduce = Box::new(SoundStateReduce {});
         let reducer = Reducer::new(Arc::clone(&store), reduce);
@@ -137,9 +225,15 @@ mod tests {
 
         let reduce = Box::new(SoundStateReduce {});
         let reducer = Reducer::new(Arc::clone(&store), reduce);
-
-        reducer.reduce(&SoundStateEvent::ChangePitch(69));
-        assert_eq!(store.read().unwrap().get_state().pitch, 69);
+        reducer.reduce(SoundStateEvent::ChangePitch(69));
+        let manual_state = store.read().unwrap().get_state().unwrap_manual_state();
+        assert_eq!(
+            manual_state
+                .get_by_address(String::from("pitch"))
+                .unwrap()
+                .unwrap_i32(),
+            69
+        );
 
         let wave = manager.get_wave();
 
@@ -152,6 +246,11 @@ mod tests {
             assert_is_close(wave[i], true_wave[i], 0.03);
         }
 
-        assert_is_close(store.read().unwrap().get_state().phase, 0.108390026, 0.01);
+        let manual_state = store.read().unwrap().get_state().unwrap_manual_state();
+        let now_phase = manual_state
+            .get_by_address(String::from("phase"))
+            .unwrap()
+            .unwrap_f32();
+        assert_is_close(now_phase, 0.108390026, 0.01);
     }
 }

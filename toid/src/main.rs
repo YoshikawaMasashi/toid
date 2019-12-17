@@ -10,11 +10,14 @@ use toid::sound_output::SoundStateEvent;
 use toid::sound_output::SoundStateManager;
 use toid::sound_output::SoundStateReduce;
 use toid::state_management::reducer::Reducer;
+use toid::state_management::state::State;
 use toid::state_management::store::Store;
 
 fn main() {
     let initial_state: SoundState = SoundState::new(512);
-    let store = Arc::new(RwLock::new(Store::new(initial_state)));
+    let store = Arc::new(RwLock::new(Store::new(State::ManualState(Arc::new(
+        initial_state,
+    )))));
 
     let reduce = Box::new(SoundStateReduce {});
     let reducer = Reducer::new(Arc::clone(&store), reduce);
@@ -28,34 +31,34 @@ fn main() {
 
     portaudio_outputter.run();
 
-    reducer.reduce(&SoundStateEvent::SoundOff);
+    reducer.reduce(SoundStateEvent::SoundOff);
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::SoundOn);
-    reducer.reduce(&SoundStateEvent::ChangePitch(60));
+    reducer.reduce(SoundStateEvent::SoundOn);
+    reducer.reduce(SoundStateEvent::ChangePitch(60));
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::ChangePitch(62));
+    reducer.reduce(SoundStateEvent::ChangePitch(62));
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::ChangePitch(64));
+    reducer.reduce(SoundStateEvent::ChangePitch(64));
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::ChangePitch(65));
+    reducer.reduce(SoundStateEvent::ChangePitch(65));
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::ChangePitch(67));
+    reducer.reduce(SoundStateEvent::ChangePitch(67));
     portaudio_outputter.sleep(1000);
-    reducer.reduce(&SoundStateEvent::ChangePitch(69));
+    reducer.reduce(SoundStateEvent::ChangePitch(69));
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::ChangePitch(65));
+    reducer.reduce(SoundStateEvent::ChangePitch(65));
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::ChangePitch(64));
+    reducer.reduce(SoundStateEvent::ChangePitch(64));
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::SoundOff);
+    reducer.reduce(SoundStateEvent::SoundOff);
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::SoundOn);
-    reducer.reduce(&SoundStateEvent::ChangePitch(62));
+    reducer.reduce(SoundStateEvent::SoundOn);
+    reducer.reduce(SoundStateEvent::ChangePitch(62));
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::SoundOff);
+    reducer.reduce(SoundStateEvent::SoundOff);
     portaudio_outputter.sleep(500);
-    reducer.reduce(&SoundStateEvent::SoundOn);
-    reducer.reduce(&SoundStateEvent::ChangePitch(60));
+    reducer.reduce(SoundStateEvent::SoundOn);
+    reducer.reduce(SoundStateEvent::ChangePitch(60));
     portaudio_outputter.sleep(1500);
 
     portaudio_outputter.stop();

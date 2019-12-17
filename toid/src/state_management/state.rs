@@ -4,6 +4,8 @@ pub enum State {
     ManualState(Arc<dyn ManualState>),
     i32(i32),
     f32(f32),
+    bool(bool),
+    usize(usize),
 }
 
 impl State {
@@ -27,6 +29,20 @@ impl State {
             _ => panic!("is not f32"),
         }
     }
+
+    pub fn unwrap_bool(&self) -> bool {
+        match self {
+            State::bool(b) => *b,
+            _ => panic!("is not bool"),
+        }
+    }
+
+    pub fn unwrap_usize(&self) -> usize {
+        match self {
+            State::usize(u) => *u,
+            _ => panic!("is not usize"),
+        }
+    }
 }
 
 impl Clone for State {
@@ -35,6 +51,8 @@ impl Clone for State {
             State::ManualState(m) => State::ManualState(Arc::clone(m)),
             State::i32(i) => State::i32(*i),
             State::f32(f) => State::f32(*f),
+            State::bool(b) => State::bool(*b),
+            State::usize(u) => State::usize(*u),
         }
     }
 }
