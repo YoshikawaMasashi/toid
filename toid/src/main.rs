@@ -10,12 +10,12 @@ use toid::sound_output::SoundStateEvent;
 use toid::sound_output::SoundStateManager;
 use toid::sound_output::SoundStateReduce;
 use toid::state_management::reducer::Reducer;
-use toid::state_management::state::State;
 use toid::state_management::store::Store;
+use toid::states::flex_state::FlexState;
 
 fn main() {
     let initial_state: SoundState = SoundState::new(512);
-    let store = Arc::new(RwLock::new(Store::new(State::ManualState(Arc::new(
+    let store = Arc::new(RwLock::new(Store::new(FlexState::ManualState(Arc::new(
         initial_state,
     )))));
 

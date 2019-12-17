@@ -1,6 +1,8 @@
+pub mod hashmap_state;
+
 use std::sync::Arc;
 
-pub enum State {
+pub enum FlexState {
     ManualState(Arc<dyn ManualState>),
     I32(i32),
     F32(f32),
@@ -8,57 +10,57 @@ pub enum State {
     Usize(usize),
 }
 
-impl State {
+impl FlexState {
     pub fn unwrap_manual_state(&self) -> Arc<dyn ManualState> {
         match self {
-            State::ManualState(m) => Arc::clone(m),
+            FlexState::ManualState(m) => Arc::clone(m),
             _ => panic!("is not ManualState"),
         }
     }
 
     pub fn unwrap_i32(&self) -> i32 {
         match self {
-            State::I32(i) => *i,
+            FlexState::I32(i) => *i,
             _ => panic!("is not i32"),
         }
     }
 
     pub fn unwrap_f32(&self) -> f32 {
         match self {
-            State::F32(f) => *f,
+            FlexState::F32(f) => *f,
             _ => panic!("is not f32"),
         }
     }
 
     pub fn unwrap_bool(&self) -> bool {
         match self {
-            State::Bool(b) => *b,
+            FlexState::Bool(b) => *b,
             _ => panic!("is not bool"),
         }
     }
 
     pub fn unwrap_usize(&self) -> usize {
         match self {
-            State::Usize(u) => *u,
+            FlexState::Usize(u) => *u,
             _ => panic!("is not usize"),
         }
     }
 }
 
-impl Clone for State {
+impl Clone for FlexState {
     fn clone(&self) -> Self {
         match self {
-            State::ManualState(m) => State::ManualState(Arc::clone(m)),
-            State::I32(i) => State::I32(*i),
-            State::F32(f) => State::F32(*f),
-            State::Bool(b) => State::Bool(*b),
-            State::Usize(u) => State::Usize(*u),
+            FlexState::ManualState(m) => FlexState::ManualState(Arc::clone(m)),
+            FlexState::I32(i) => FlexState::I32(*i),
+            FlexState::F32(f) => FlexState::F32(*f),
+            FlexState::Bool(b) => FlexState::Bool(*b),
+            FlexState::Usize(u) => FlexState::Usize(*u),
         }
     }
 }
 
 pub trait ManualState {
-    fn get_by_address(&self, address: String) -> Result<State, String>;
-    fn update(&self, address: String, value: State) -> Result<State, String>;
+    fn get_by_address(&self, address: String) -> Result<FlexState, String>;
+    fn update(&self, address: String, value: FlexState) -> Result<FlexState, String>;
     fn contains_address(&self, address: String) -> bool;
 }

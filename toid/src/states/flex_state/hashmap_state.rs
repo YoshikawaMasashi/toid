@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use im::hashmap::HashMap;
 
-use super::state::ManualState;
-use super::state::State;
+use super::FlexState;
+use super::ManualState;
 
 fn split_by_first_slash(address: String) -> Result<(String, String), String> {
     match address.find('/') {
@@ -16,7 +16,7 @@ fn split_by_first_slash(address: String) -> Result<(String, String), String> {
 }
 
 pub struct HashMapState {
-    state_map: HashMap<String, State>,
+    state_map: HashMap<String, FlexState>,
 }
 
 impl HashMapState {
@@ -28,11 +28,11 @@ impl HashMapState {
 }
 
 impl ManualState for HashMapState {
-    fn get_by_address(&self, address: String) -> Result<State, String> {
+    fn get_by_address(&self, address: String) -> Result<FlexState, String> {
         match split_by_first_slash(address) {
             Ok((first, other)) => match self.state_map.get(&first) {
                 Some(s) => match s {
-                    State::ManualState(m) => m.get_by_address(other),
+                    FlexState::ManualState(m) => m.get_by_address(other),
                     _ => Err(String::from("dame")),
                 },
                 None => Err(String::from("not exist")),
@@ -44,17 +44,17 @@ impl ManualState for HashMapState {
         }
     }
 
-    fn update(&self, address: String, value: State) -> Result<State, String> {
+    fn update(&self, address: String, value: FlexState) -> Result<FlexState, String> {
         match split_by_first_slash(address) {
             Ok((first, other)) => match self.state_map.get(&first) {
                 Some(s) => match s {
-                    State::ManualState(m) => match m.update(other, value) {
+                    FlexState::ManualState(m) => match m.update(other, value) {
                         Ok(new_m) => {
                             let new_state_map = self.state_map.update(first, new_m);
                             let new_state = HashMapState {
                                 state_map: new_state_map,
                             };
-                            Ok(State::ManualState(Arc::new(new_state)))
+                            Ok(FlexState::ManualState(Arc::new(new_state)))
                         }
                         _ => Err(String::from("dame")),
                     },
@@ -67,7 +67,7 @@ impl ManualState for HashMapState {
                 let new_state = HashMapState {
                     state_map: new_state_map,
                 };
-                Ok(State::ManualState(Arc::new(new_state)))
+                Ok(FlexState::ManualState(Arc::new(new_state)))
             }
         }
     }
@@ -76,7 +76,7 @@ impl ManualState for HashMapState {
         match split_by_first_slash(address) {
             Ok((first, other)) => match self.state_map.get(&first) {
                 Some(s) => match s {
-                    State::ManualState(m) => m.contains_address(other),
+                    FlexState::ManualState(m) => m.contains_address(other),
                     _ => false,
                 },
                 None => false,
@@ -96,7 +96,7 @@ mod tests {
         let root_state = root_state
             .update(
                 String::from("music"),
-                State::ManualState(Arc::new(HashMapState::new())),
+                FlexState::ManualState(Arc::new(HashMapState::new())),
             )
             .unwrap()
             .unwrap_manual_state();
@@ -106,7 +106,7 @@ mod tests {
             false
         );
         let root_state = root_state
-            .update(String::from("music/pitch"), State::I32(60))
+            .update(String::from("music/pitch"), FlexState::I32(60))
             .unwrap()
             .unwrap_manual_state();
 

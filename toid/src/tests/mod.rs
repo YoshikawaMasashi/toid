@@ -1,11 +1,11 @@
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use super::state_management::hashmap_state::HashMapState;
 use super::state_management::reducer::Reduce;
 use super::state_management::reducer::Reducer;
-use super::state_management::state::State;
 use super::state_management::store::Store;
+use super::states::flex_state::hashmap_state::HashMapState;
+use super::states::flex_state::FlexState;
 
 struct Event {
     key: String,
@@ -14,18 +14,18 @@ struct Event {
 
 struct HashMapReduce {}
 
-impl Reduce<Event> for HashMapReduce {
-    fn reduce(&self, state: State, event: Event) -> State {
+impl Reduce<FlexState, Event> for HashMapReduce {
+    fn reduce(&self, state: FlexState, event: Event) -> FlexState {
         state
             .unwrap_manual_state()
-            .update(event.key, State::I32(event.value))
+            .update(event.key, FlexState::I32(event.value))
             .unwrap()
     }
 }
 
 #[test]
 fn state_works() {
-    let initial_state = State::ManualState(Arc::new(HashMapState::new()));
+    let initial_state = FlexState::ManualState(Arc::new(HashMapState::new()));
     let store = Arc::new(RwLock::new(Store::new(initial_state)));
     assert_eq!(
         store

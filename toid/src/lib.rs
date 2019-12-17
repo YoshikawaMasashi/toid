@@ -5,6 +5,7 @@
 pub mod portaudio_outputter;
 pub mod sound_output;
 pub mod state_management;
+pub mod states;
 
 #[cfg(test)]
 mod tests;

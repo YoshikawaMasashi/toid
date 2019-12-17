@@ -7,9 +7,9 @@ use std::vec::Vec;
 
 use super::state_management::reducer::Reduce;
 use super::state_management::reducer::Reducer;
-use super::state_management::state::ManualState;
-use super::state_management::state::State;
 use super::state_management::store::Store;
+use super::states::flex_state::FlexState;
+use super::states::flex_state::ManualState;
 
 /// state::Storeで使う用のStateです。
 /// SoundStateから、audioのAPIのコールバックで使う用の波形が取得できます。
@@ -32,37 +32,37 @@ impl SoundState {
 }
 
 impl ManualState for SoundState {
-    fn get_by_address(&self, address: String) -> Result<State, String> {
+    fn get_by_address(&self, address: String) -> Result<FlexState, String> {
         match &*address {
-            "phase" => Ok(State::F32(self.phase)),
-            "pitch" => Ok(State::I32(self.pitch)),
-            "sound_on" => Ok(State::Bool(self.sound_on)),
-            "wave_length" => Ok(State::Usize(self.wave_length)),
+            "phase" => Ok(FlexState::F32(self.phase)),
+            "pitch" => Ok(FlexState::I32(self.pitch)),
+            "sound_on" => Ok(FlexState::Bool(self.sound_on)),
+            "wave_length" => Ok(FlexState::Usize(self.wave_length)),
             _ => Err(String::from("invalid address")),
         }
     }
 
-    fn update(&self, address: String, value: State) -> Result<State, String> {
+    fn update(&self, address: String, value: FlexState) -> Result<FlexState, String> {
         match &*address {
-            "phase" => Ok(State::ManualState(Arc::new(SoundState {
+            "phase" => Ok(FlexState::ManualState(Arc::new(SoundState {
                 phase: value.unwrap_f32(),
                 pitch: self.pitch,
                 sound_on: self.sound_on,
                 wave_length: self.wave_length,
             }))),
-            "pitch" => Ok(State::ManualState(Arc::new(SoundState {
+            "pitch" => Ok(FlexState::ManualState(Arc::new(SoundState {
                 phase: self.phase,
                 pitch: value.unwrap_i32(),
                 sound_on: self.sound_on,
                 wave_length: self.wave_length,
             }))),
-            "sound_on" => Ok(State::ManualState(Arc::new(SoundState {
+            "sound_on" => Ok(FlexState::ManualState(Arc::new(SoundState {
                 phase: self.phase,
                 pitch: self.pitch,
                 sound_on: value.unwrap_bool(),
                 wave_length: self.wave_length,
             }))),
-            "wave_length" => Ok(State::ManualState(Arc::new(SoundState {
+            "wave_length" => Ok(FlexState::ManualState(Arc::new(SoundState {
                 phase: self.phase,
                 pitch: self.pitch,
                 sound_on: self.sound_on,
@@ -84,12 +84,15 @@ impl ManualState for SoundState {
 }
 
 pub struct SoundStateManager {
-    store: Arc<RwLock<Store>>,
-    reducer: Reducer<SoundStateEvent>,
+    store: Arc<RwLock<Store<FlexState>>>,
+    reducer: Reducer<FlexState, SoundStateEvent>,
 }
 
 impl SoundStateManager {
-    pub fn new(store: Arc<RwLock<Store>>, reducer: Reducer<SoundStateEvent>) -> Self {
+    pub fn new(
+        store: Arc<RwLock<Store<FlexState>>>,
+        reducer: Reducer<FlexState, SoundStateEvent>,
+    ) -> Self {
         SoundStateManager { store, reducer }
     }
     pub fn get_wave(&self) -> Vec<f32> {
@@ -151,24 +154,24 @@ pub enum SoundStateEvent {
 
 pub struct SoundStateReduce {}
 
-impl Reduce<SoundStateEvent> for SoundStateReduce {
-    fn reduce(&self, state: State, event: SoundStateEvent) -> State {
+impl Reduce<FlexState, SoundStateEvent> for SoundStateReduce {
+    fn reduce(&self, state: FlexState, event: SoundStateEvent) -> FlexState {
         match event {
             SoundStateEvent::ChangePitch(pitch) => state
                 .unwrap_manual_state()
-                .update(String::from("pitch"), State::I32(pitch))
+                .update(String::from("pitch"), FlexState::I32(pitch))
                 .unwrap(),
             SoundStateEvent::SoundOn => state
                 .unwrap_manual_state()
-                .update(String::from("sound_on"), State::Bool(true))
+                .update(String::from("sound_on"), FlexState::Bool(true))
                 .unwrap(),
             SoundStateEvent::SoundOff => state
                 .unwrap_manual_state()
-                .update(String::from("sound_on"), State::Bool(false))
+                .update(String::from("sound_on"), FlexState::Bool(false))
                 .unwrap(),
             SoundStateEvent::ChangePhase(phase) => state
                 .unwrap_manual_state()
-                .update(String::from("phase"), State::F32(phase))
+                .update(String::from("phase"), FlexState::F32(phase))
                 .unwrap(),
         }
     }
@@ -186,7 +189,7 @@ mod tests {
 
     #[test]
     fn state_works() {
-        let initial_state = State::ManualState(Arc::new(SoundState::new(512)));
+        let initial_state = FlexState::ManualState(Arc::new(SoundState::new(512)));
         let store = Arc::new(RwLock::new(Store::new(initial_state)));
 
         let manual_state = store.read().unwrap().get_state().unwrap_manual_state();
