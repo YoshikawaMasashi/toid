@@ -1,12 +1,12 @@
 use im::ordmap::OrdMap;
 use std::sync::Arc;
 
-enum CurrentMelodyState {
+pub enum CurrentMelodyState {
     On(f32, i64),
     Off,
 }
 
-enum MelodyEvent {
+pub enum MelodyEvent {
     On(f32),
     Off,
 }
@@ -30,8 +30,8 @@ impl Clone for CurrentMelodyState {
 }
 
 pub struct MelodyState {
-    event_seq: OrdMap<i64, MelodyEvent>,
-    current_melody: CurrentMelodyState,
+    pub event_seq: OrdMap<i64, MelodyEvent>,
+    pub current_melody: CurrentMelodyState,
 }
 
 impl MelodyState {

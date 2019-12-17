@@ -3,7 +3,6 @@
 use std::f64::consts::PI;
 use std::sync::Arc;
 use std::sync::RwLock;
-use std::vec::Vec;
 
 use super::state_management::reducer::Reduce;
 use super::state_management::reducer::Reducer;

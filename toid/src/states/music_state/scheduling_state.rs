@@ -1,6 +1,6 @@
 pub struct SchedulingState {
-    bpm: f32,
-    cumulative_samples: i64,
+    pub bpm: f32,
+    pub cumulative_samples: i64,
 }
 
 impl SchedulingState {
