@@ -5,9 +5,10 @@ authors = ["masashi yoshikawa <earnest.marshi@gmail.com>"]
 edition = "2018"
 
 [lib]
-name = "pytoid"
+name = "toid"
 crate-type = ["cdylib"]
 
 [dependencies]
+rayon = "1.0.2"
 pyo3={ version = "0.8.4", features = ["extension-module"] }
 toid={ path = "../toid" }
