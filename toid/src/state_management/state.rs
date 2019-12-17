@@ -5,10 +5,26 @@ use std::boxed::Box;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-enum State {
+pub enum State {
     ManualState(Arc<dyn ManualState>),
     i32(i32),
     f32(f32),
+}
+
+impl State {
+    fn unwrap_manual_state(&self) -> Arc<dyn ManualState> {
+        match self {
+            State::ManualState(m) => Arc::clone(m),
+            _ => panic!("is not ManualState"),
+        }
+    }
+
+    fn unwrap_i32(&self) -> i32 {
+        match self {
+            State::i32(i) => *i,
+            _ => panic!("is not i32"),
+        }
+    }
 }
 
 impl Clone for State {
@@ -21,13 +37,10 @@ impl Clone for State {
     }
 }
 
-trait ManualState {
+pub trait ManualState {
     fn get_by_address(&self, address: String) -> Result<State, String>;
     fn update(&self, address: String, value: State) -> Result<State, String>;
-}
-
-struct HashMapState {
-    state_map: HashMap<String, State>,
+    fn contains_address(&self, address: String) -> bool;
 }
 
 fn split_by_first_slash(address: String) -> Result<(String, String), String> {
@@ -37,6 +50,18 @@ fn split_by_first_slash(address: String) -> Result<(String, String), String> {
             address[i + 1..address.len()].to_string(),
         )),
         None => Err(address),
+    }
+}
+
+pub struct HashMapState {
+    state_map: HashMap<String, State>,
+}
+
+impl HashMapState {
+    pub fn new() -> Self {
+        HashMapState {
+            state_map: HashMap::new(),
+        }
     }
 }
 
@@ -84,6 +109,19 @@ impl ManualState for HashMapState {
             }
         }
     }
+
+    fn contains_address(&self, address: String) -> bool {
+        match split_by_first_slash(address) {
+            Ok((first, other)) => match self.state_map.get(&first) {
+                Some(s) => match s {
+                    State::ManualState(m) => m.contains_address(other),
+                    _ => false,
+                },
+                None => false,
+            },
+            Err(first) => self.state_map.contains_key(&first),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -91,60 +129,35 @@ mod tests {
     use super::*;
 
     #[test]
-    fn state_works() {}
-}
+    fn state_works() {
+        let root_state = HashMapState::new();
+        let root_state = root_state
+            .update(
+                String::from("music"),
+                State::ManualState(Arc::new(HashMapState::new())),
+            )
+            .unwrap()
+            .unwrap_manual_state();
 
-/*
-enum StateType {
-    HashMapState(Arc<HashMapState>),
-    i32(i32),
-    f32(f32),
-}
+        assert_eq!(
+            root_state.contains_address(String::from("music/pitch")),
+            false
+        );
+        let root_state = root_state
+            .update(String::from("music/pitch"), State::i32(60))
+            .unwrap()
+            .unwrap_manual_state();
 
-impl Clone for StateType {
-    fn clone(&self) -> Self {
-        match self {
-            StateType::HashMapState(m) => StateType::HashMapState(Arc::clone(m)),
-            StateType::i32(i) => StateType::i32(*i),
-            StateType::f32(f) => StateType::f32(*f),
-        }
+        assert_eq!(
+            root_state.contains_address(String::from("music/pitch")),
+            true
+        );
+        assert_eq!(
+            root_state
+                .get_by_address(String::from("music/pitch"))
+                .unwrap()
+                .unwrap_i32(),
+            60
+        );
     }
 }
-
-struct HashMapState {
-    state_map: HashMap<String, StateType>,
-}
-
-impl Clone for HashMapState {
-    fn clone(&self) -> Self {
-        HashMapState {
-            state_map: self.state_map.clone(),
-        }
-    }
-}
-
-impl HashMapState {
-    fn get_by_address(&self, address: String) -> Result<StateType, String> {
-        let splited_address: Vec<&str> = address.split(',').collect();
-        let now_state = StateType::HashMapState(Arc::new(self.clone()));
-
-        for name in splited_address {
-            match now_state.clone() {
-                StateType::HashMapState(m) => m.state_map.get(name).unwrap(),
-                StateType::i32(i) => &StateType::i32(i),
-                StateType::f32(f) => &StateType::f32(f),
-            };
-        }
-
-        Ok(StateType::i32(0))
-    }
-
-    fn update(&self, address: String, value: StateType) -> StateType {
-        let new_state_map = self.state_map.update(String::from("a"), StateType::i32(0));
-        let new_state = HashMapState {
-            state_map: new_state_map,
-        };
-        StateType::HashMapState(Arc::new(new_state))
-    }
-}
-*/
