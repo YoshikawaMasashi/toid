@@ -18,6 +18,13 @@ impl Clone for MusicState {
 }
 
 impl MusicState {
+    pub fn new() -> Self {
+        MusicState {
+            scheduling: Arc::new(scheduling_state::SchedulingState::new()),
+            melody: Arc::new(melody_state::MelodyState::new()),
+        }
+    }
+
     pub fn add_new_note_on_event(&self, pitch: f32, samples: i64) -> Self {
         MusicState {
             scheduling: Arc::clone(&self.scheduling),

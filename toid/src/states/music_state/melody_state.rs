@@ -35,6 +35,13 @@ pub struct MelodyState {
 }
 
 impl MelodyState {
+    pub fn new() -> Self {
+        MelodyState {
+            event_seq: OrdMap::new(),
+            current_melody: CurrentMelodyState::Off,
+        }
+    }
+
     pub fn add_new_note_on_event(&self, pitch: f32, samples: i64) -> Self {
         MelodyState {
             event_seq: self.event_seq.update(samples, MelodyEvent::On(pitch)),

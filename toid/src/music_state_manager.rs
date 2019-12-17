@@ -62,30 +62,12 @@ impl MusicStateManager {
 
     pub fn get_wave(&self) -> Vec<f32> {
         let mut ret = Vec::new();
-        let current_cumulative_samples = self
-            .store
-            .read()
-            .unwrap()
-            .get_state()
-            .scheduling
-            .cumulative_samples;
+
+        let state = self.store.read().unwrap().get_state();
+        let current_cumulative_samples = state.scheduling.cumulative_samples;
         let next_cumulative_samples = current_cumulative_samples + (self.wave_length as i64);
-        let event_seq = self
-            .store
-            .read()
-            .unwrap()
-            .get_state()
-            .melody
-            .event_seq
-            .clone();
-        let mut current_melody = self
-            .store
-            .read()
-            .unwrap()
-            .get_state()
-            .melody
-            .current_melody
-            .clone();
+        let event_seq = state.melody.event_seq.clone();
+        let mut current_melody = state.melody.current_melody.clone();
 
         for i in current_cumulative_samples..next_cumulative_samples {
             current_melody = match event_seq.get(&i) {
@@ -103,7 +85,7 @@ impl MusicStateManager {
 
             let ret_ = match current_melody {
                 CurrentMelodyState::On(pitch, samples) => {
-                    let x = ((samples as f32) * 44100.0 / get_hertz(pitch));
+                    let x = ((samples as f32) * get_hertz(pitch) / 44100.0);
                     let x = x * 2.0 * (PI as f32);
                     x.sin()
                 }
@@ -126,5 +108,52 @@ impl MusicStateManager {
             ));
 
         ret
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_is_close(a: f32, b: f32, delta: f32) {
+        if (a - b).abs() > delta {
+            panic!("is not close: {} {}", a, b)
+        }
+    }
+
+    #[test]
+    fn state_works() {
+        let initial_state = MusicState::new();
+        let store = Arc::new(RwLock::new(Store::new(initial_state)));
+
+        let state = store.read().unwrap().get_state();
+        assert_eq!(state.scheduling.bpm, 120.0);
+
+        let manager = MusicStateManager::new(Arc::clone(&store));
+
+        let reducer = Reducer::new(Arc::clone(&store), Box::new(MusicStateReduce {}));
+        reducer.reduce(MusicStateEvent::AddNewNoteOn(69.0, 0));
+        let state = store.read().unwrap().get_state();
+        let first_note_on_pitch = match state.melody.event_seq.get(&0).unwrap() {
+            MelodyEvent::On(pitch) => *pitch,
+            _ => panic!("ERROR"),
+        };
+        assert_eq!(first_note_on_pitch, 69.0);
+
+        let wave = manager.get_wave();
+
+        let true_wave = [
+            0., 0.06268834, 0.12537667, 0.188065, 0.25075334, 0.3134417, 0.37613, 0.43881837,
+            0.5015067, 0.56419504,
+        ];
+        for i in 0..512 {
+            println!("{}", wave[i]);
+        }
+        for i in 0..10 {
+            assert_is_close(wave[i], true_wave[i], 0.03);
+        }
+
+        let state = store.read().unwrap().get_state();
+        assert_eq!(state.scheduling.cumulative_samples, 512);
     }
 }
