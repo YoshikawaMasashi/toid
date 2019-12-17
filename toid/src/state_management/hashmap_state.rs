@@ -106,7 +106,7 @@ mod tests {
             false
         );
         let root_state = root_state
-            .update(String::from("music/pitch"), State::i32(60))
+            .update(String::from("music/pitch"), State::I32(60))
             .unwrap()
             .unwrap_manual_state();
 

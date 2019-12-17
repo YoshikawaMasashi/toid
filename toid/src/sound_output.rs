@@ -34,10 +34,10 @@ impl SoundState {
 impl ManualState for SoundState {
     fn get_by_address(&self, address: String) -> Result<State, String> {
         match &*address {
-            "phase" => Ok(State::f32(self.phase)),
-            "pitch" => Ok(State::i32(self.pitch)),
-            "sound_on" => Ok(State::bool(self.sound_on)),
-            "wave_length" => Ok(State::usize(self.wave_length)),
+            "phase" => Ok(State::F32(self.phase)),
+            "pitch" => Ok(State::I32(self.pitch)),
+            "sound_on" => Ok(State::Bool(self.sound_on)),
+            "wave_length" => Ok(State::Usize(self.wave_length)),
             _ => Err(String::from("invalid address")),
         }
     }
@@ -156,19 +156,19 @@ impl Reduce<SoundStateEvent> for SoundStateReduce {
         match event {
             SoundStateEvent::ChangePitch(pitch) => state
                 .unwrap_manual_state()
-                .update(String::from("pitch"), State::i32(pitch))
+                .update(String::from("pitch"), State::I32(pitch))
                 .unwrap(),
             SoundStateEvent::SoundOn => state
                 .unwrap_manual_state()
-                .update(String::from("sound_on"), State::bool(true))
+                .update(String::from("sound_on"), State::Bool(true))
                 .unwrap(),
             SoundStateEvent::SoundOff => state
                 .unwrap_manual_state()
-                .update(String::from("sound_on"), State::bool(false))
+                .update(String::from("sound_on"), State::Bool(false))
                 .unwrap(),
             SoundStateEvent::ChangePhase(phase) => state
                 .unwrap_manual_state()
-                .update(String::from("phase"), State::f32(phase))
+                .update(String::from("phase"), State::F32(phase))
                 .unwrap(),
         }
     }

@@ -1,4 +1,3 @@
-use im::hashmap::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -19,7 +18,7 @@ impl Reduce<Event> for HashMapReduce {
     fn reduce(&self, state: State, event: Event) -> State {
         state
             .unwrap_manual_state()
-            .update(event.key, State::i32(event.value))
+            .update(event.key, State::I32(event.value))
             .unwrap()
     }
 }

@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 pub enum State {
     ManualState(Arc<dyn ManualState>),
-    i32(i32),
-    f32(f32),
-    bool(bool),
-    usize(usize),
+    I32(i32),
+    F32(f32),
+    Bool(bool),
+    Usize(usize),
 }
 
 impl State {
@@ -18,28 +18,28 @@ impl State {
 
     pub fn unwrap_i32(&self) -> i32 {
         match self {
-            State::i32(i) => *i,
+            State::I32(i) => *i,
             _ => panic!("is not i32"),
         }
     }
 
     pub fn unwrap_f32(&self) -> f32 {
         match self {
-            State::f32(f) => *f,
+            State::F32(f) => *f,
             _ => panic!("is not f32"),
         }
     }
 
     pub fn unwrap_bool(&self) -> bool {
         match self {
-            State::bool(b) => *b,
+            State::Bool(b) => *b,
             _ => panic!("is not bool"),
         }
     }
 
     pub fn unwrap_usize(&self) -> usize {
         match self {
-            State::usize(u) => *u,
+            State::Usize(u) => *u,
             _ => panic!("is not usize"),
         }
     }
@@ -49,10 +49,10 @@ impl Clone for State {
     fn clone(&self) -> Self {
         match self {
             State::ManualState(m) => State::ManualState(Arc::clone(m)),
-            State::i32(i) => State::i32(*i),
-            State::f32(f) => State::f32(*f),
-            State::bool(b) => State::bool(*b),
-            State::usize(u) => State::usize(*u),
+            State::I32(i) => State::I32(*i),
+            State::F32(f) => State::F32(*f),
+            State::Bool(b) => State::Bool(*b),
+            State::Usize(u) => State::Usize(*u),
         }
     }
 }

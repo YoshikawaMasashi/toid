@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use super::state::State;
 
 /// Storeはstateを保持し、必要に応じてアップデートをする窓口を提供します。
