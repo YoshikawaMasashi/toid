@@ -11,3 +11,12 @@ impl SchedulingState {
         }
     }
 }
+
+impl SchedulingState {
+    pub fn change_cumulative_samples(&self, cumulative_samples: i64) -> Self {
+        SchedulingState {
+            bpm: self.bpm,
+            cumulative_samples: cumulative_samples,
+        }
+    }
+}
