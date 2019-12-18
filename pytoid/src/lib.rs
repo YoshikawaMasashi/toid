@@ -6,6 +6,31 @@ use pyo3::wrap_pyfunction;
 use rayon::prelude::*;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::Arc;
+use std::sync::RwLock;
+
+use toid::state_management::store;
+use toid::states::music_state;
+
+#[pyclass(module = "toid")]
+struct MusicState {
+    state: music_state::MusicState,
+}
+
+#[pymethods]
+impl MusicState {
+    #[new]
+    fn new(obj: &PyRawObject) {
+        obj.init(MusicState {
+            state: music_state::MusicState::new(),
+        });
+    }
+}
+
+#[pyclass(module = "toid")]
+struct Store {
+    store: Arc<RwLock<store::Store<music_state::MusicState>>>,
+}
 
 /// Represents a file that can be searched
 #[pyclass(module = "toid")]
@@ -78,6 +103,8 @@ fn count_line(line: &str, needle: &str) -> usize {
 fn toid(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(count_line))?;
     m.add_class::<WordCounter>()?;
+
+    m.add_class::<MusicState>()?;
 
     Ok(())
 }
