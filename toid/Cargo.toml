@@ -7,3 +7,12 @@ edition = "2018"
 [dependencies]
 im = "14.0.0"
 portaudio = "0.7.0"
+ws = "0.9.1"
+
+[[bin]]
+name = "run_server"
+path = "src/run_server.rs"
+
+[[bin]]
+name = "run_client"
+path = "src/run_client.rs"
