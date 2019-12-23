@@ -12,12 +12,12 @@ pub trait Reduce<T, S> {
 /// Reducerでは、ユーザーが実装したReduceによって、Storeに変更するように要請します。
 /// Storeではstateを変更できるメソッドは非公開であるので、Reducerでしか変更できません。
 pub struct Reducer<T, S> {
-    store: Arc<RwLock<Store<T>>>,
+    store: Arc<RwLock<Box<dyn Store<T>>>>,
     reduce: Box<dyn Reduce<T, S>>,
 }
 
 impl<T: Clone, S> Reducer<T, S> {
-    pub fn new(store: Arc<RwLock<Store<T>>>, reduce: Box<dyn Reduce<T, S>>) -> Self {
+    pub fn new(store: Arc<RwLock<Box<dyn Store<T>>>>, reduce: Box<dyn Reduce<T, S>>) -> Self {
         Reducer { store, reduce }
     }
 

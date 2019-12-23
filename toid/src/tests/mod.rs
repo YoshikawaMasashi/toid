@@ -6,6 +6,7 @@ use super::state_management::reducer::Reducer;
 use super::state_management::store::Store;
 use super::states::flex_state::hashmap_state::HashMapState;
 use super::states::flex_state::FlexState;
+use super::stores::default_store::DefaultStore;
 
 struct Event {
     key: String,
@@ -26,7 +27,8 @@ impl Reduce<FlexState, Event> for HashMapReduce {
 #[test]
 fn state_works() {
     let initial_state = FlexState::ManualState(Arc::new(HashMapState::new()));
-    let store = Arc::new(RwLock::new(Store::new(initial_state)));
+    let store: Box<dyn Store<FlexState>> = Box::new(DefaultStore::new(initial_state));
+    let store = Arc::new(RwLock::new(store));
     assert_eq!(
         store
             .read()

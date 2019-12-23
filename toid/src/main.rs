@@ -9,9 +9,11 @@ use toid::portaudio_outputter::PortAudioOutputter;
 use toid::state_management::reducer::Reducer;
 use toid::state_management::store::Store;
 use toid::states::music_state::MusicState;
+use toid::stores::default_store::DefaultStore;
 
 fn main() {
-    let store = Arc::new(RwLock::new(Store::new(MusicState::new())));
+    let store: Box<dyn Store<MusicState>> = Box::new(DefaultStore::new(MusicState::new()));
+    let store = Arc::new(RwLock::new(store));
 
     let sound_state_manager = MusicStateManager::new(Arc::clone(&store));
     let sound_state_manager = Arc::new(RwLock::new(sound_state_manager));

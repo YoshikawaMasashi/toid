@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::boxed::Box;
 use std::f64::consts::PI;
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -50,7 +51,7 @@ impl Reduce<MusicState, MusicStateEvent> for MusicStateReduce {
 }
 
 pub struct MusicStateManager {
-    store: Arc<RwLock<Store<MusicState>>>,
+    store: Arc<RwLock<Box<dyn Store<MusicState>>>>,
     reducer: Reducer<MusicState, MusicStateEvent>,
     wave_length: i32,
 }
@@ -61,7 +62,7 @@ fn get_hertz(pitch: f32) -> f32 {
 }
 
 impl MusicStateManager {
-    pub fn new(store: Arc<RwLock<Store<MusicState>>>) -> Self {
+    pub fn new(store: Arc<RwLock<Box<dyn Store<MusicState>>>>) -> Self {
         let reduce = MusicStateReduce {};
         let reducer = Reducer::new(Arc::clone(&store), Box::new(reduce));
         MusicStateManager {
@@ -124,6 +125,7 @@ impl MusicStateManager {
 
 #[cfg(test)]
 mod tests {
+    use super::super::stores::default_store::DefaultStore;
     use super::*;
 
     fn assert_is_close(a: f32, b: f32, delta: f32) {
@@ -135,7 +137,8 @@ mod tests {
     #[test]
     fn state_works() {
         let initial_state = MusicState::new();
-        let store = Arc::new(RwLock::new(Store::new(initial_state)));
+        let store: Box<dyn Store<MusicState>> = Box::new(DefaultStore::new(initial_state));
+        let store = Arc::new(RwLock::new(store));
 
         let state = store.read().unwrap().get_state();
         assert_eq!(state.scheduling.bpm, 120.0);
