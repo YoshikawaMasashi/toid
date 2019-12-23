@@ -1,20 +1,32 @@
+use serde::{Deserialize, Serialize};
 use std::f64::consts::PI;
 use std::sync::Arc;
 use std::sync::RwLock;
 
 use super::state_management::reducer::Reduce;
 use super::state_management::reducer::Reducer;
+use super::state_management::serialize;
 use super::state_management::store::Store;
 use super::states::music_state::melody_state::CurrentMelodyState;
 use super::states::music_state::melody_state::MelodyEvent;
 use super::states::music_state::MusicState;
 
+#[derive(Serialize, Deserialize)]
 pub enum MusicStateEvent {
     AddNewNoteOn(f32, i64),
     AddNewNoteOff(i64),
     ChangeCurrentMalodyNoteOn(f32, i64),
     ChangeCurrentMelodyNoteOff,
     ChangeCumulativeSamples(i64),
+}
+
+impl serialize::Serialize for MusicStateEvent {
+    fn serialize(&self) -> String {
+        serde_json::to_string(&self).unwrap()
+    }
+    fn deserialize(&self, serialized: String) -> Self {
+        serde_json::from_str(serialized.as_str()).unwrap()
+    }
 }
 
 pub struct MusicStateReduce {}
