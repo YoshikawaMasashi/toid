@@ -4,6 +4,7 @@ use std::f64::consts::PI;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use super::reducers::default_reducer::DefaultReducer;
 use super::state_management::reducer::Reduce;
 use super::state_management::reducer::Reducer;
 use super::state_management::serialize;
@@ -52,7 +53,7 @@ impl Reduce<MusicState, MusicStateEvent> for MusicStateReduce {
 
 pub struct MusicStateManager {
     store: Arc<RwLock<Box<dyn Store<MusicState>>>>,
-    reducer: Arc<Reducer<MusicState, MusicStateEvent>>,
+    reducer: Arc<dyn Reducer<MusicState, MusicStateEvent>>,
     wave_length: i32,
 }
 
@@ -64,7 +65,7 @@ fn get_hertz(pitch: f32) -> f32 {
 impl MusicStateManager {
     pub fn new(store: Arc<RwLock<Box<dyn Store<MusicState>>>>) -> Self {
         let reduce = MusicStateReduce {};
-        let reducer = Arc::new(Reducer::new(Arc::clone(&store), Box::new(reduce)));
+        let reducer = Arc::new(DefaultReducer::new(Arc::clone(&store), Box::new(reduce)));
         MusicStateManager {
             store,
             reducer,
@@ -72,7 +73,7 @@ impl MusicStateManager {
         }
     }
 
-    pub fn get_reducer(&self) -> Arc<Reducer<MusicState, MusicStateEvent>> {
+    pub fn get_reducer(&self) -> Arc<dyn Reducer<MusicState, MusicStateEvent>> {
         Arc::clone(&self.reducer)
     }
 
@@ -149,7 +150,7 @@ mod tests {
 
         let manager = MusicStateManager::new(Arc::clone(&store));
 
-        let reducer = Reducer::new(Arc::clone(&store), Box::new(MusicStateReduce {}));
+        let reducer = DefaultReducer::new(Arc::clone(&store), Box::new(MusicStateReduce {}));
         reducer.reduce(MusicStateEvent::AddNewNoteOn(69.0, 0));
         let state = store.read().unwrap().get_state();
         let first_note_on_pitch = match state.melody.event_seq.get(&0).unwrap() {

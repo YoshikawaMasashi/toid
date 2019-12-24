@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use super::reducers::default_reducer::DefaultReducer;
 use super::state_management::reducer::Reduce;
 use super::state_management::reducer::Reducer;
 use super::state_management::store::Store;
@@ -40,7 +41,7 @@ fn state_works() {
     );
 
     let reduce = Box::new(HashMapReduce {});
-    let reducer = Reducer::new(Arc::clone(&store), reduce);
+    let reducer = DefaultReducer::new(Arc::clone(&store), reduce);
     reducer.reduce(Event {
         key: String::from("a"),
         value: 1,
