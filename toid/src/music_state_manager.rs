@@ -52,7 +52,7 @@ impl Reduce<MusicState, MusicStateEvent> for MusicStateReduce {
 
 pub struct MusicStateManager {
     store: Arc<RwLock<Box<dyn Store<MusicState>>>>,
-    reducer: Reducer<MusicState, MusicStateEvent>,
+    reducer: Arc<Reducer<MusicState, MusicStateEvent>>,
     wave_length: i32,
 }
 
@@ -64,12 +64,16 @@ fn get_hertz(pitch: f32) -> f32 {
 impl MusicStateManager {
     pub fn new(store: Arc<RwLock<Box<dyn Store<MusicState>>>>) -> Self {
         let reduce = MusicStateReduce {};
-        let reducer = Reducer::new(Arc::clone(&store), Box::new(reduce));
+        let reducer = Arc::new(Reducer::new(Arc::clone(&store), Box::new(reduce)));
         MusicStateManager {
             store,
             reducer,
             wave_length: 512,
         }
+    }
+
+    pub fn get_reducer(&self) -> Arc<Reducer<MusicState, MusicStateEvent>> {
+        Arc::clone(&self.reducer)
     }
 
     pub fn get_wave(&self) -> Vec<f32> {
