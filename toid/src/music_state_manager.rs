@@ -26,7 +26,7 @@ impl serialize::Serialize for MusicStateEvent {
     fn serialize(&self) -> String {
         serde_json::to_string(&self).unwrap()
     }
-    fn deserialize(&self, serialized: String) -> Self {
+    fn deserialize(serialized: String) -> Self {
         serde_json::from_str(serialized.as_str()).unwrap()
     }
 }
