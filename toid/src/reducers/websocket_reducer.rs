@@ -6,7 +6,7 @@ use std::thread;
 
 use ws::connect;
 use ws::listen;
-use ws::{Builder, CloseCode, Handler, Handshake, Message, Result, Sender, Settings};
+use ws::{Handler, Handshake, Message, Result, Sender};
 
 use super::super::state_management::reducer::Reduce;
 use super::super::state_management::reducer::Reducer;
