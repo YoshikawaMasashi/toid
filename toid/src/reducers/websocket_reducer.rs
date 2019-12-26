@@ -41,7 +41,9 @@ impl<T: Clone, S: Serialize> WebSocketReducerMethods<T, S> {
     }
 
     fn send(&self, event: S) {
-        self.out.as_ref().unwrap().send(event.serialize()).unwrap();
+        if let Some(out) = self.out.as_ref() {
+            out.send(event.serialize()).unwrap();
+        }
     }
 
     fn reduce(&self, event: S) {
@@ -67,6 +69,16 @@ impl<T: Clone, S: Serialize> Reducer<T, S> for WebSocketReducer<T, S> {
 }
 
 impl<T: Clone, S: Serialize> WebSocketReducer<T, S> {
+    pub fn new(store: Arc<RwLock<Box<dyn Store<T>>>>, reduce: Box<dyn Reduce<T, S>>) -> Self {
+        let methods = WebSocketReducerMethods {
+            store: store,
+            reduce: reduce,
+            out: None,
+        };
+        let methods = Arc::new(RwLock::new(methods));
+        WebSocketReducer { methods }
+    }
+
     pub fn connect(&mut self) {
         connect("ws://127.0.0.1:3012", move |out| {
             self.methods.write().unwrap().set_sender(out);
