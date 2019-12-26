@@ -27,7 +27,7 @@ impl<T: Clone, S: Serialize> Handler for WebSocketReducerClient<T, S> {
 pub struct WebSocketReducerMethods<T, S> {
     store: Arc<RwLock<Box<dyn Store<T>>>>,
     reduce: Box<dyn Reduce<T, S>>,
-    out: Sender,
+    out: Option<Sender>,
 }
 
 impl<T: Clone, S: Serialize> WebSocketReducerMethods<T, S> {
@@ -41,7 +41,7 @@ impl<T: Clone, S: Serialize> WebSocketReducerMethods<T, S> {
     }
 
     fn send(&self, event: S) {
-        self.out.send(event.serialize()).unwrap();
+        self.out.as_ref().unwrap().send(event.serialize()).unwrap();
     }
 
     fn reduce(&self, event: S) {
@@ -49,6 +49,10 @@ impl<T: Clone, S: Serialize> WebSocketReducerMethods<T, S> {
         let state = store.get_state();
         let new_state = self.reduce.reduce(state, event);
         store.update_state(new_state);
+    }
+
+    fn set_sender(&mut self, out: Sender) {
+        self.out = Some(out);
     }
 }
 
@@ -63,9 +67,12 @@ impl<T: Clone, S: Serialize> Reducer<T, S> for WebSocketReducer<T, S> {
 }
 
 impl<T: Clone, S: Serialize> WebSocketReducer<T, S> {
-    pub fn connect(&self) {
-        connect("ws://127.0.0.1:3012", |out| WebSocketReducerClient {
-            methods: Arc::clone(&self.methods),
+    pub fn connect(&mut self) {
+        connect("ws://127.0.0.1:3012", move |out| {
+            self.methods.write().unwrap().set_sender(out);
+            WebSocketReducerClient {
+                methods: Arc::clone(&self.methods),
+            }
         })
         .unwrap();
     }
@@ -78,7 +85,7 @@ impl WebSocketReducerServer {
         WebSocketReducerServer {}
     }
 
-    pub fn run() {
+    pub fn run(&self) {
         listen("127.0.0.1:3012", |out| move |msg| out.broadcast(msg)).unwrap();
     }
 }

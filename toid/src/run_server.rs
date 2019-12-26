@@ -1,5 +1,6 @@
-use ws::listen;
+use toid::reducers::websocket_reducer::WebSocketReducerServer;
 
 fn main() {
-    listen("127.0.0.1:3012", |out| move |msg| out.broadcast(msg)).unwrap()
+    let server = WebSocketReducerServer::new();
+    server.run();
 }
