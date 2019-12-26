@@ -1,6 +1,9 @@
 use std::boxed::Box;
+use std::marker::{Send, Sync};
 use std::sync::Arc;
 use std::sync::RwLock;
+use std::thread;
+
 use ws::connect;
 use ws::listen;
 use ws::{Builder, CloseCode, Handler, Handshake, Message, Result, Sender, Settings};
@@ -25,8 +28,8 @@ impl<T: Clone, S: Serialize> Handler for WebSocketReducerClient<T, S> {
 }
 
 pub struct WebSocketReducerMethods<T, S> {
-    store: Arc<RwLock<Box<dyn Store<T>>>>,
-    reduce: Box<dyn Reduce<T, S>>,
+    store: Arc<RwLock<Box<dyn Store<T> + Sync + Send>>>,
+    reduce: Box<dyn Reduce<T, S> + Sync + Send>,
     out: Option<Sender>,
 }
 
@@ -68,8 +71,11 @@ impl<T: Clone, S: Serialize> Reducer<T, S> for WebSocketReducer<T, S> {
     }
 }
 
-impl<T: Clone, S: Serialize> WebSocketReducer<T, S> {
-    pub fn new(store: Arc<RwLock<Box<dyn Store<T>>>>, reduce: Box<dyn Reduce<T, S>>) -> Self {
+impl<T: 'static + Clone, S: 'static + Serialize> WebSocketReducer<T, S> {
+    pub fn new(
+        store: Arc<RwLock<Box<dyn Store<T> + Sync + Send>>>,
+        reduce: Box<dyn Reduce<T, S> + Sync + Send>,
+    ) -> Self {
         let methods = WebSocketReducerMethods {
             store: store,
             reduce: reduce,
@@ -80,13 +86,16 @@ impl<T: Clone, S: Serialize> WebSocketReducer<T, S> {
     }
 
     pub fn connect(&mut self) {
-        connect("ws://127.0.0.1:3012", move |out| {
-            self.methods.write().unwrap().set_sender(out);
-            WebSocketReducerClient {
-                methods: Arc::clone(&self.methods),
-            }
-        })
-        .unwrap();
+        let methods = Arc::clone(&self.methods);
+        thread::spawn(move || {
+            connect("ws://127.0.0.1:3012", move |out| {
+                methods.write().unwrap().set_sender(out);
+                WebSocketReducerClient {
+                    methods: Arc::clone(&methods),
+                }
+            })
+            .unwrap();
+        });
     }
 }
 

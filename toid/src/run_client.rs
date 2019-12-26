@@ -1,4 +1,5 @@
 use std::boxed::Box;
+use std::marker::{Send, Sync};
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -56,11 +57,14 @@ impl Reduce<NumState, NumStateEvent> for NumStateReduce {
 }
 
 fn main() {
-    let store: Box<dyn Store<NumState>> = Box::new(DefaultStore::new(NumState::new()));
+    let store: Box<dyn Store<NumState> + Send + Sync> =
+        Box::new(DefaultStore::new(NumState::new()));
     let store = Arc::new(RwLock::new(store));
 
     let reduce = Box::new(NumStateReduce::new());
-    let reducer = WebSocketReducer::new(Arc::clone(&store), reduce);
+    let mut reducer = WebSocketReducer::new(Arc::clone(&store), reduce);
+    reducer.connect();
+    let reducer = reducer;
 
     loop {
         println!("input the command: i: increment q: quit g: get number");
