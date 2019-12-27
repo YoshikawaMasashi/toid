@@ -10,6 +10,7 @@ portaudio = "0.7.0"
 ws = "0.9.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+nom = "5"
 
 [[bin]]
 name = "main"
@@ -22,3 +23,7 @@ path = "src/run_server.rs"
 [[bin]]
 name = "run_client"
 path = "src/run_client.rs"
+
+[[bin]]
+name = "sf2"
+path = "src/sf2.rs"
