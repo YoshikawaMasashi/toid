@@ -4,3 +4,4 @@
 toid/target/*
 rust-survey/*
 pytoid/target/*
+*.sf2
