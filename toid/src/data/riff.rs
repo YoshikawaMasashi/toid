@@ -14,45 +14,50 @@ pub struct RiffChank {
     data: RiffData,
 }
 
-impl RiffChank {
-    pub fn parse(i: &[u8]) -> IResult<&[u8], Self> {
-        let (i, id) = take(4u8)(i)?;
-        let id = String::from_utf8(id.to_vec()).unwrap();
-        let (i, size) = le_u32(i)?;
+fn parse_riff(i: &[u8]) -> IResult<&[u8], RiffChank> {
+    let (i, id) = take(4u8)(i)?;
+    let id = String::from_utf8(id.to_vec()).unwrap();
+    let (i, size) = le_u32(i)?;
 
-        let (i, data) = take(size)(i)?;
+    let (i, data) = take(size)(i)?;
 
-        match id.as_str() {
-            "RIFF" | "LIST" => {
-                let (mut data, chank_type) = take(4u8)(data)?;
-                let chank_type = String::from_utf8(chank_type.to_vec()).unwrap();
+    match id.as_str() {
+        "RIFF" | "LIST" => {
+            let (mut data, chank_type) = take(4u8)(data)?;
+            let chank_type = String::from_utf8(chank_type.to_vec()).unwrap();
 
-                let mut chanks = Vec::new();
-                while data.to_vec().len() > 0 {
-                    let (new_data, chank) = RiffChank::parse(data)?;
-                    data = new_data;
-                    chanks.push(chank);
-                }
-                Ok((
-                    i,
-                    RiffChank {
-                        id,
-                        chank_type: Some(chank_type),
-                        size,
-                        data: RiffData::Chanks(chanks),
-                    },
-                ))
+            let mut chanks = Vec::new();
+            while data.to_vec().len() > 0 {
+                let (new_data, chank) = parse_riff(data)?;
+                data = new_data;
+                chanks.push(chank);
             }
-            _ => Ok((
+            Ok((
                 i,
                 RiffChank {
                     id,
-                    chank_type: None,
+                    chank_type: Some(chank_type),
                     size,
-                    data: RiffData::Data(data.to_vec()),
+                    data: RiffData::Chanks(chanks),
                 },
-            )),
+            ))
         }
+        _ => Ok((
+            i,
+            RiffChank {
+                id,
+                chank_type: None,
+                size,
+                data: RiffData::Data(data.to_vec()),
+            },
+        )),
+    }
+}
+
+impl RiffChank {
+    pub fn parse(i: &[u8]) -> Self {
+        let (_, chank) = parse_riff(i).expect("Failed to parse RIFF");
+        chank
     }
 
     pub fn print(&self) {

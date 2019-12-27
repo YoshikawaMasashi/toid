@@ -9,6 +9,6 @@ fn main() {
     f.read_to_end(&mut buffer).unwrap();
     let buffer = buffer.as_slice();
 
-    let (_, chank) = riff::RiffChank::parse(buffer).expect("Failed to parse RIFF");
+    let chank = riff::RiffChank::parse(buffer);
     chank.print();
 }
