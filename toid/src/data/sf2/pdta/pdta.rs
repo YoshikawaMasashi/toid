@@ -10,15 +10,15 @@ use super::sf_preset_header::{parse_sf_preset_headers, SFPresetHeader};
 use super::sf_sample_header::{parse_sf_sample_headers, SFSampleHeader};
 
 pub struct SF2pdta {
-    phdr: Vec<Arc<SFPresetHeader>>,
-    pbag: Vec<Arc<SFBag>>,
-    pmod: Vec<Arc<SFMod>>,
-    pgen: Vec<Arc<SFGen>>,
-    inst: Vec<Arc<SFInstHeader>>,
-    ibag: Vec<Arc<SFBag>>,
-    imod: Vec<Arc<SFMod>>,
-    igen: Vec<Arc<SFGen>>,
-    shdr: Vec<Arc<SFSampleHeader>>,
+    pub phdr: Vec<Arc<SFPresetHeader>>,
+    pub pbag: Vec<Arc<SFBag>>,
+    pub pmod: Vec<Arc<SFMod>>,
+    pub pgen: Vec<Arc<SFGen>>,
+    pub inst: Vec<Arc<SFInstHeader>>,
+    pub ibag: Vec<Arc<SFBag>>,
+    pub imod: Vec<Arc<SFMod>>,
+    pub igen: Vec<Arc<SFGen>>,
+    pub shdr: Vec<Arc<SFSampleHeader>>,
 }
 
 impl fmt::Display for SF2pdta {
