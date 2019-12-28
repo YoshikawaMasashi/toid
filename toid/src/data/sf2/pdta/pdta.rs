@@ -1,4 +1,5 @@
 use std::fmt;
+use std::sync::Arc;
 
 use super::super::super::riff::{RiffChank, RiffData};
 use super::sf_bag::{parse_sf_bags, SFBag};
@@ -9,15 +10,15 @@ use super::sf_preset_header::{parse_sf_preset_headers, SFPresetHeader};
 use super::sf_sample_header::{parse_sf_sample_headers, SFSampleHeader};
 
 pub struct SF2pdta {
-    phdr: Vec<SFPresetHeader>,
-    pbag: Vec<SFBag>,
-    pmod: Vec<SFMod>,
-    pgen: Vec<SFGen>,
-    inst: Vec<SFInstHeader>,
-    ibag: Vec<SFBag>,
-    imod: Vec<SFMod>,
-    igen: Vec<SFGen>,
-    shdr: Vec<SFSampleHeader>,
+    phdr: Vec<Arc<SFPresetHeader>>,
+    pbag: Vec<Arc<SFBag>>,
+    pmod: Vec<Arc<SFMod>>,
+    pgen: Vec<Arc<SFGen>>,
+    inst: Vec<Arc<SFInstHeader>>,
+    ibag: Vec<Arc<SFBag>>,
+    imod: Vec<Arc<SFMod>>,
+    igen: Vec<Arc<SFGen>>,
+    shdr: Vec<Arc<SFSampleHeader>>,
 }
 
 impl fmt::Display for SF2pdta {
@@ -38,15 +39,15 @@ impl fmt::Display for SF2pdta {
 }
 
 pub fn convert_chank_to_sf2pdta(chank: &RiffChank) -> Result<SF2pdta, String> {
-    let mut phdr: Option<Vec<SFPresetHeader>> = None;
-    let mut pbag: Option<Vec<SFBag>> = None;
-    let mut pmod: Option<Vec<SFMod>> = None;
-    let mut pgen: Option<Vec<SFGen>> = None;
-    let mut inst: Option<Vec<SFInstHeader>> = None;
-    let mut ibag: Option<Vec<SFBag>> = None;
-    let mut imod: Option<Vec<SFMod>> = None;
-    let mut igen: Option<Vec<SFGen>> = None;
-    let mut shdr: Option<Vec<SFSampleHeader>> = None;
+    let mut phdr: Option<Vec<Arc<SFPresetHeader>>> = None;
+    let mut pbag: Option<Vec<Arc<SFBag>>> = None;
+    let mut pmod: Option<Vec<Arc<SFMod>>> = None;
+    let mut pgen: Option<Vec<Arc<SFGen>>> = None;
+    let mut inst: Option<Vec<Arc<SFInstHeader>>> = None;
+    let mut ibag: Option<Vec<Arc<SFBag>>> = None;
+    let mut imod: Option<Vec<Arc<SFMod>>> = None;
+    let mut igen: Option<Vec<Arc<SFGen>>> = None;
+    let mut shdr: Option<Vec<Arc<SFSampleHeader>>> = None;
 
     if let Some(chank_type) = &chank.chank_type {
         if chank_type == "pdta" && chank.id == "LIST" {

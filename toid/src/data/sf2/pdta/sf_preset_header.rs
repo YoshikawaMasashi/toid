@@ -2,6 +2,7 @@ use nom::bytes::complete::take;
 use nom::multi::many_m_n;
 use nom::number::streaming::{le_u16, le_u32};
 use nom::IResult;
+use std::sync::Arc;
 
 pub struct SFPresetHeader {
     pub name: String,
@@ -13,11 +14,14 @@ pub struct SFPresetHeader {
     pub morph: u32,
 }
 
-pub fn parse_sf_preset_headers(i: &[u8], preset_num: usize) -> IResult<&[u8], Vec<SFPresetHeader>> {
+pub fn parse_sf_preset_headers(
+    i: &[u8],
+    preset_num: usize,
+) -> IResult<&[u8], Vec<Arc<SFPresetHeader>>> {
     many_m_n(preset_num, preset_num, parse_sf_preset_header)(i)
 }
 
-fn parse_sf_preset_header(i: &[u8]) -> IResult<&[u8], SFPresetHeader> {
+fn parse_sf_preset_header(i: &[u8]) -> IResult<&[u8], Arc<SFPresetHeader>> {
     let (i, name) = take(20u8)(i)?;
     let name = String::from_utf8(name.to_vec()).unwrap();
     let (i, presento) = le_u16(i)?;
@@ -28,7 +32,7 @@ fn parse_sf_preset_header(i: &[u8]) -> IResult<&[u8], SFPresetHeader> {
     let (i, morph) = le_u32(i)?;
     Ok((
         i,
-        SFPresetHeader {
+        Arc::new(SFPresetHeader {
             name,
             presento,
             bank,
@@ -36,6 +40,6 @@ fn parse_sf_preset_header(i: &[u8]) -> IResult<&[u8], SFPresetHeader> {
             library,
             genre,
             morph,
-        },
+        }),
     ))
 }

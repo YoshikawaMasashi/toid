@@ -80,7 +80,10 @@ setup(
         "Operating System :: MacOS :: MacOS X",
     ],
     packages=["toid"],
-    rust_extensions=[RustExtension("toid.toid", "Cargo.toml", debug=True)],
+    rust_extensions=[
+        RustExtension("toid.toid", "Cargo.toml", debug=True),
+        RustExtension("toid.sf2", "Cargo.toml", debug=True)
+    ],
     install_requires=install_requires,
     tests_require=tests_require,
     setup_requires=setup_requires,

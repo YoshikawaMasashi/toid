@@ -6,22 +6,23 @@ use nom::IResult;
 use super::super::riff::{RiffChank, RiffData};
 
 pub struct SF2Info {
-    ifil: SFVersion,
-    isng: String,
-    inam: String,
-    irom: Option<String>,
-    iver: Option<SFVersion>,
-    icrd: Option<String>,
-    ieng: Option<String>,
-    iprd: Option<String>,
-    icop: Option<String>,
-    icmt: Option<String>,
-    isft: Option<String>,
+    pub ifil: SFVersion,
+    pub isng: String,
+    pub inam: String,
+    pub irom: Option<String>,
+    pub iver: Option<SFVersion>,
+    pub icrd: Option<String>,
+    pub ieng: Option<String>,
+    pub iprd: Option<String>,
+    pub icop: Option<String>,
+    pub icmt: Option<String>,
+    pub isft: Option<String>,
 }
 
+#[derive(Clone)]
 pub struct SFVersion {
-    major: u16,
-    minor: u16,
+    pub major: u16,
+    pub minor: u16,
 }
 
 impl fmt::Display for SF2Info {

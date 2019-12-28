@@ -8,7 +8,7 @@ use nom::IResult;
 use super::super::riff::{RiffChank, RiffData};
 
 pub struct SF2sdta {
-    smpl: Box<Vec<i16>>,
+    pub smpl: Box<Vec<i16>>,
 }
 
 impl fmt::Display for SF2sdta {

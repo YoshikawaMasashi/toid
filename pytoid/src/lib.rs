@@ -11,6 +11,8 @@ use toid::state_management::store;
 use toid::states::music_state;
 use toid::stores::default_store;
 
+pub mod sf2;
+
 #[pyclass(module = "toid")]
 struct MusicStateStore {
     store: Arc<RwLock<Box<dyn store::Store<music_state::MusicState>>>>,

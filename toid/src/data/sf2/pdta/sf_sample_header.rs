@@ -2,6 +2,7 @@ use nom::bytes::complete::take;
 use nom::multi::many_m_n;
 use nom::number::streaming::{le_i8, le_u16, le_u32, le_u8};
 use nom::IResult;
+use std::sync::Arc;
 
 pub struct SFSampleHeader {
     pub name: String,
@@ -16,11 +17,14 @@ pub struct SFSampleHeader {
     pub typee: u16,
 }
 
-pub fn parse_sf_sample_headers(i: &[u8], preset_num: usize) -> IResult<&[u8], Vec<SFSampleHeader>> {
+pub fn parse_sf_sample_headers(
+    i: &[u8],
+    preset_num: usize,
+) -> IResult<&[u8], Vec<Arc<SFSampleHeader>>> {
     many_m_n(preset_num, preset_num, parse_sf_sample_header)(i)
 }
 
-fn parse_sf_sample_header(i: &[u8]) -> IResult<&[u8], SFSampleHeader> {
+fn parse_sf_sample_header(i: &[u8]) -> IResult<&[u8], Arc<SFSampleHeader>> {
     let (i, name) = take(20u8)(i)?;
     let name = String::from_utf8(name.to_vec()).unwrap();
     let (i, start) = le_u32(i)?;
@@ -35,7 +39,7 @@ fn parse_sf_sample_header(i: &[u8]) -> IResult<&[u8], SFSampleHeader> {
 
     Ok((
         i,
-        SFSampleHeader {
+        Arc::new(SFSampleHeader {
             name,
             start,
             end,
@@ -46,6 +50,6 @@ fn parse_sf_sample_header(i: &[u8]) -> IResult<&[u8], SFSampleHeader> {
             correction,
             sample_link,
             typee,
-        },
+        }),
     ))
 }

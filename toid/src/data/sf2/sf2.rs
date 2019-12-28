@@ -1,4 +1,5 @@
 use std::fmt;
+use std::sync::Arc;
 
 use super::super::riff::{RiffChank, RiffData};
 use super::info::{convert_chank_to_sf2info, SF2Info};
@@ -6,9 +7,9 @@ use super::pdta::{convert_chank_to_sf2pdta, SF2pdta};
 use super::sdta::{convert_chank_to_sf2sdta, SF2sdta};
 
 pub struct SF2 {
-    info: SF2Info,
-    sdta: SF2sdta,
-    pdta: SF2pdta,
+    pub info: Arc<SF2Info>,
+    pub sdta: Arc<SF2sdta>,
+    pub pdta: Arc<SF2pdta>,
 }
 
 impl SF2 {
@@ -66,9 +67,13 @@ fn convert_chank_to_sf2(chank: &RiffChank) -> Result<SF2, String> {
         }
     }
 
-    Ok(SF2 {
-        info: info.expect("Failed to parse info"),
-        sdta: sdta.expect("Failed to parse sdta"),
-        pdta: pdta.expect("Failed to parse pdta"),
-    })
+    let info = info.expect("Failed to parse info");
+    let sdta = sdta.expect("Failed to parse sdta");
+    let pdta = pdta.expect("Failed to parse pdta");
+
+    let info = Arc::new(info);
+    let sdta = Arc::new(sdta);
+    let pdta = Arc::new(pdta);
+
+    Ok(SF2 { info, sdta, pdta })
 }
