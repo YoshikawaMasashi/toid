@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::Read;
 
-use toid::data::riff;
 use toid::data::sf2;
 
 fn main() {

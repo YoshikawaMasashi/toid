@@ -70,7 +70,7 @@ fn main() {
         println!("input the command: i: increment q: quit g: get number");
         let mut s = String::new();
         std::io::stdin().read_line(&mut s).unwrap();
-        let s = s.trim_right().to_owned();
+        let s = s.trim_end().to_owned();
         match s.as_str() {
             "i" => reducer.reduce(NumStateEvent::Increment),
             "q" => break,
