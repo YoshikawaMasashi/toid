@@ -1,5 +1,6 @@
 use std::boxed::Box;
 use std::fmt;
+use std::sync::Arc;
 
 use nom::multi::many_m_n;
 use nom::number::streaming::le_i16;
@@ -8,7 +9,7 @@ use nom::IResult;
 use super::super::riff::{RiffChank, RiffData};
 
 pub struct SF2sdta {
-    pub smpl: Box<Vec<i16>>,
+    pub smpl: Arc<Box<Vec<i16>>>,
 }
 
 impl fmt::Display for SF2sdta {
@@ -56,6 +57,6 @@ pub fn convert_chank_to_sf2sdta(chank: &RiffChank) -> Result<SF2sdta, String> {
     }
 
     Ok(SF2sdta {
-        smpl: smpl.expect("Failed to parse smpl"),
+        smpl: Arc::new(smpl.expect("Failed to parse smpl")),
     })
 }
