@@ -9,7 +9,7 @@ use nom::IResult;
 use super::super::riff::{RiffChank, RiffData};
 
 pub struct SF2sdta {
-    pub smpl: Arc<Box<Vec<i16>>>,
+    pub smpl: Arc<Vec<i16>>,
 }
 
 impl fmt::Display for SF2sdta {
@@ -28,14 +28,14 @@ impl fmt::Display for SF2sdta {
     }
 }
 
-fn parse_smpl(i: &[u8], num: usize) -> IResult<&[u8], Box<Vec<i16>>> {
+fn parse_smpl(i: &[u8], num: usize) -> IResult<&[u8], Vec<i16>> {
     let (_, smpl) = many_m_n(num, num, le_i16)(i)?;
-    let smpl = Box::new(smpl);
+    let smpl = smpl;
     Ok((i, (smpl)))
 }
 
 pub fn convert_chank_to_sf2sdta(chank: &RiffChank) -> Result<SF2sdta, String> {
-    let mut smpl: Option<Box<Vec<i16>>> = None;
+    let mut smpl: Option<Vec<i16>> = None;
 
     if let Some(chank_type) = &chank.chank_type {
         if chank_type == "sdta" && chank.id == "LIST" {
