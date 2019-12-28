@@ -254,8 +254,8 @@ pub struct SFGen {
 #[pymethods]
 impl SFGen {
     #[getter]
-    fn gen_per(&self) -> u16 {
-        self.sf_gen.gen_per
+    fn gen_oper(&self) -> u16 {
+        self.sf_gen.gen_oper
     }
     #[getter]
     fn gen_amount(&self) -> u16 {
