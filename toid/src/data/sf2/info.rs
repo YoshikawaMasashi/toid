@@ -6,13 +6,11 @@ use nom::IResult;
 use super::super::riff::{RiffChank, RiffData};
 
 pub struct SF2Info {
-    ifil_major: u16,
-    ifil_minor: u16,
+    ifil: SFVersion,
     isng: String,
     inam: String,
     irom: Option<String>,
-    iver_major: Option<u16>,
-    iver_minor: Option<u16>,
+    iver: Option<SFVersion>,
     icrd: Option<String>,
     ieng: Option<String>,
     iprd: Option<String>,
@@ -21,19 +19,22 @@ pub struct SF2Info {
     isft: Option<String>,
 }
 
+pub struct SFVersion {
+    major: u16,
+    minor: u16,
+}
+
 impl fmt::Display for SF2Info {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "***SF2Info***\n")?;
-        write!(f, "ifil: {} {}\n", self.ifil_major, self.ifil_minor)?;
+        write!(f, "ifil: {}\n", self.ifil)?;
         write!(f, "isng: {}\n", self.isng)?;
         write!(f, "INAM: {}\n", self.inam)?;
         if let Some(irom) = &self.irom {
             write!(f, "irom: {}\n", irom)?;
         }
-        if let Some(iver_major) = self.iver_major {
-            if let Some(iver_minor) = self.iver_minor {
-                write!(f, "iver: {} {}\n", iver_major, iver_minor)?;
-            }
+        if let Some(iver) = &self.iver {
+            write!(f, "iver: {}\n", iver)?;
         }
         if let Some(icrd) = &self.icrd {
             write!(f, "ICRD: {}\n", icrd)?;
@@ -58,20 +59,24 @@ impl fmt::Display for SF2Info {
     }
 }
 
-fn parse_sfversion(i: &[u8]) -> IResult<&[u8], (u16, u16)> {
+impl fmt::Display for SFVersion {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}.{}", self.major, self.minor)
+    }
+}
+
+fn parse_sfversion(i: &[u8]) -> IResult<&[u8], SFVersion> {
     let (i, major) = le_u16(i)?;
     let (i, minor) = le_u16(i)?;
-    Ok((i, (major, minor)))
+    Ok((i, SFVersion { major, minor }))
 }
 
 pub fn convert_chank_to_sf2info(chank: &RiffChank) -> Result<SF2Info, String> {
-    let mut ifil_major: Option<u16> = None;
-    let mut ifil_minor: Option<u16> = None;
+    let mut ifil: Option<SFVersion> = None;
     let mut isng: Option<String> = None;
     let mut inam: Option<String> = None;
     let mut irom: Option<String> = None;
-    let mut iver_major: Option<u16> = None;
-    let mut iver_minor: Option<u16> = None;
+    let mut iver: Option<SFVersion> = None;
     let mut icrd: Option<String> = None;
     let mut ieng: Option<String> = None;
     let mut iprd: Option<String> = None;
@@ -87,10 +92,8 @@ pub fn convert_chank_to_sf2info(chank: &RiffChank) -> Result<SF2Info, String> {
                         match subchank.id.as_str() {
                             "ifil" => {
                                 let i = data_in_subchank;
-                                let (_i, (ifil_major_, ifil_minor_)) =
-                                    parse_sfversion(i).expect("Invalid ifil");
-                                ifil_major = Some(ifil_major_);
-                                ifil_minor = Some(ifil_minor_);
+                                let (_i, ifil_) = parse_sfversion(i).expect("Invalid ifil");
+                                ifil = Some(ifil_);
                             }
                             "isng" => {
                                 isng = Some(
@@ -112,10 +115,8 @@ pub fn convert_chank_to_sf2info(chank: &RiffChank) -> Result<SF2Info, String> {
                             }
                             "iver" => {
                                 let i = data_in_subchank;
-                                let (_i, (iver_major_, iver_minor_)) =
-                                    parse_sfversion(i).expect("Invalid iver");
-                                iver_major = Some(iver_major_);
-                                iver_minor = Some(iver_minor_);
+                                let (_i, iver_) = parse_sfversion(i).expect("Invalid iver");
+                                iver = Some(iver_);
                             }
                             "ICRD" => {
                                 icrd = Some(
@@ -162,13 +163,11 @@ pub fn convert_chank_to_sf2info(chank: &RiffChank) -> Result<SF2Info, String> {
     }
 
     Ok(SF2Info {
-        ifil_major: ifil_major.unwrap(),
-        ifil_minor: ifil_minor.unwrap(),
-        isng: isng.unwrap(),
-        inam: inam.unwrap(),
+        ifil: ifil.expect("Failed to parse ifil_major"),
+        isng: isng.expect("Failed to parse isng"),
+        inam: inam.expect("Failed to parse inam"),
         irom,
-        iver_major,
-        iver_minor,
+        iver,
         icrd,
         ieng,
         iprd,

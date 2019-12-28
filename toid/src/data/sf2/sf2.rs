@@ -2,9 +2,11 @@ use std::fmt;
 
 use super::super::riff::{RiffChank, RiffData};
 use super::info::{convert_chank_to_sf2info, SF2Info};
+use super::sdta::{convert_chank_to_sf2sdta, SF2sdta};
 
 pub struct SF2 {
     info: SF2Info,
+    sdta: SF2sdta,
 }
 
 impl SF2 {
@@ -17,12 +19,16 @@ impl SF2 {
 impl fmt::Display for SF2 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "SF2\n")?;
-        self.info.fmt(f)
+        self.info.fmt(f)?;
+        self.sdta.fmt(f)?;
+
+        Ok(())
     }
 }
 
 fn convert_chank_to_sf2(chank: &RiffChank) -> Result<SF2, String> {
     let mut info: Option<SF2Info> = None;
+    let mut sdta: Option<SF2sdta> = None;
 
     if let Some(chank_type) = &chank.chank_type {
         if chank_type == "sfbk" && chank.id == "RIFF" {
@@ -36,6 +42,12 @@ fn convert_chank_to_sf2(chank: &RiffChank) -> Result<SF2, String> {
                                         .expect("invalid INFO chank"),
                                 );
                             }
+                            "sdta" => {
+                                sdta = Some(
+                                    convert_chank_to_sf2sdta(&subchank)
+                                        .expect("invalid sdta chank"),
+                                );
+                            }
                             _ => {}
                         }
                     }
@@ -44,9 +56,8 @@ fn convert_chank_to_sf2(chank: &RiffChank) -> Result<SF2, String> {
         }
     }
 
-    if let Some(info) = info {
-        Ok(SF2 { info })
-    } else {
-        Err(String::from("Invalid SF2 chank"))
-    }
+    Ok(SF2 {
+        info: info.expect("Failed to parse info"),
+        sdta: sdta.expect("Failed to parse sdta"),
+    })
 }

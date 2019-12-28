@@ -12,7 +12,7 @@ pub enum RiffData {
 pub struct RiffChank {
     pub id: String,
     pub chank_type: Option<String>,
-    pub size: u32,
+    pub size: usize,
     pub data: RiffData,
 }
 
@@ -69,7 +69,7 @@ fn parse_riff(i: &[u8]) -> IResult<&[u8], RiffChank> {
                 RiffChank {
                     id,
                     chank_type: Some(chank_type),
-                    size,
+                    size: size as usize,
                     data: RiffData::Chanks(chanks),
                 },
             ))
@@ -79,7 +79,7 @@ fn parse_riff(i: &[u8]) -> IResult<&[u8], RiffChank> {
             RiffChank {
                 id,
                 chank_type: None,
-                size,
+                size: size as usize,
                 data: RiffData::Data(data.to_vec()),
             },
         )),
