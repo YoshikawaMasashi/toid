@@ -1,3 +1,5 @@
+use std::fmt;
+
 use nom::bytes::complete::take;
 use nom::number::streaming::le_u32;
 use nom::IResult;
@@ -8,10 +10,40 @@ pub enum RiffData {
 }
 
 pub struct RiffChank {
-    id: String,
-    chank_type: Option<String>,
-    size: u32,
-    data: RiffData,
+    pub id: String,
+    pub chank_type: Option<String>,
+    pub size: u32,
+    pub data: RiffData,
+}
+
+impl RiffChank {
+    pub fn parse(i: &[u8]) -> Self {
+        let (_, chank) = parse_riff(i).expect("Failed to parse RIFF");
+        chank
+    }
+
+    fn fmt_(&self, f: &mut fmt::Formatter, indent: usize) -> fmt::Result {
+        let indent_str = " ".repeat(indent);
+        write!(
+            f,
+            "{}id: {}, chank_type: {:?}, size: {}",
+            indent_str, self.id, self.chank_type, self.size
+        )?;
+
+        if let RiffData::Chanks(chanks) = &self.data {
+            for chank in chanks {
+                write!(f, "\n")?;
+                chank.fmt_(f, indent + 2)?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl fmt::Display for RiffChank {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.fmt_(f, 0)
+    }
 }
 
 fn parse_riff(i: &[u8]) -> IResult<&[u8], RiffChank> {
@@ -51,30 +83,5 @@ fn parse_riff(i: &[u8]) -> IResult<&[u8], RiffChank> {
                 data: RiffData::Data(data.to_vec()),
             },
         )),
-    }
-}
-
-impl RiffChank {
-    pub fn parse(i: &[u8]) -> Self {
-        let (_, chank) = parse_riff(i).expect("Failed to parse RIFF");
-        chank
-    }
-
-    pub fn print(&self) {
-        self.print_(0);
-    }
-
-    fn print_(&self, indent: usize) {
-        let indent_str = " ".repeat(indent);
-        println!(
-            "{}id: {}, chank_type: {:?}, size: {}",
-            indent_str, self.id, self.chank_type, self.size
-        );
-
-        if let RiffData::Chanks(chanks) = &self.data {
-            for chank in chanks {
-                chank.print_(indent + 2);
-            }
-        }
     }
 }
