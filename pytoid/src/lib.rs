@@ -1,5 +1,6 @@
-use pyo3::prelude::*;
-use pyo3::wrap_pyfunction;
+use pyo3::prelude::{
+    pyclass, pymethods, pymodule, PyModule, PyObject, PyRawObject, PyResult, Python,
+};
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -8,10 +9,11 @@ use toid::portaudio_outputter;
 use toid::state_management::reducer;
 use toid::state_management::store;
 use toid::states::music_state;
+use toid::stores::default_store;
 
 #[pyclass(module = "toid")]
 struct MusicStateStore {
-    store: Arc<RwLock<store::Store<music_state::MusicState>>>,
+    store: Arc<RwLock<Box<dyn store::Store<music_state::MusicState>>>>,
 }
 
 #[pymethods]
@@ -19,9 +21,9 @@ impl MusicStateStore {
     #[new]
     fn new(obj: &PyRawObject) {
         obj.init(MusicStateStore {
-            store: Arc::new(RwLock::new(store::Store::new(
+            store: Arc::new(RwLock::new(Box::new(default_store::DefaultStore::new(
                 music_state::MusicState::new(),
-            ))),
+            )))),
         });
     }
 }
@@ -41,6 +43,12 @@ impl MusicStateManager {
                 store,
             ))),
         });
+    }
+
+    fn get_reducer(&self) -> Reducer {
+        Reducer {
+            reducer: self.manager.read().unwrap().get_reducer(),
+        }
     }
 }
 
@@ -73,35 +81,23 @@ impl PortAudioOutputter {
 
 #[pyclass(module = "toid")]
 struct Reducer {
-    reducer: reducer::Reducer<music_state::MusicState, music_state_manager::MusicStateEvent>,
+    reducer:
+        Arc<dyn reducer::Reducer<music_state::MusicState, music_state_manager::MusicStateEvent>>,
 }
 
 #[pymethods]
 impl Reducer {
-    #[new]
-    fn new(obj: &PyRawObject, store: &MusicStateStore) {
-        let store = Arc::clone(&store.store);
-        let reduce = Box::new(music_state_manager::MusicStateReduce {});
-        obj.init(Reducer {
-            reducer: reducer::Reducer::new(store, reduce),
-        });
+    fn add_new_note_on(&self, pitch: f32, samples: i64) {
+        self.reducer
+            .reduce(music_state_manager::MusicStateEvent::AddNewNoteOn(
+                pitch, samples,
+            ));
     }
-}
 
-#[pyfunction]
-fn add_new_note_on(reducer: &Reducer, pitch: f32, samples: i64) {
-    reducer
-        .reducer
-        .reduce(music_state_manager::MusicStateEvent::AddNewNoteOn(
-            pitch, samples,
-        ));
-}
-
-#[pyfunction]
-fn add_new_note_off(reducer: &Reducer, samples: i64) {
-    reducer
-        .reducer
-        .reduce(music_state_manager::MusicStateEvent::AddNewNoteOff(samples));
+    fn add_new_note_off(&self, samples: i64) {
+        self.reducer
+            .reduce(music_state_manager::MusicStateEvent::AddNewNoteOff(samples));
+    }
 }
 
 #[pymodule]
@@ -111,7 +107,5 @@ fn toid(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<PortAudioOutputter>()?;
     m.add_class::<Reducer>()?;
 
-    m.add_wrapped(wrap_pyfunction!(add_new_note_on))?;
-    m.add_wrapped(wrap_pyfunction!(add_new_note_off))?;
     Ok(())
 }
