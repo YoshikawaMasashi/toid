@@ -1,5 +1,5 @@
 use nom::multi::many_m_n;
-use nom::number::streaming::{le_u16, le_i16};
+use nom::number::streaming::{le_i16, le_u16};
 use nom::IResult;
 use std::sync::Arc;
 
