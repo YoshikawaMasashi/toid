@@ -50,6 +50,10 @@ impl SF2 {
             pdta: Arc::clone(&self.sf2.pdta),
         }
     }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{}", self.sf2))
+    }
 }
 
 #[pyclass(module = "sf2")]
@@ -258,7 +262,7 @@ impl SFGen {
         self.sf_gen.gen_oper
     }
     #[getter]
-    fn gen_amount(&self) -> u16 {
+    fn gen_amount(&self) -> i16 {
         self.sf_gen.gen_amount
     }
 }
