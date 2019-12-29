@@ -142,6 +142,14 @@ impl Generator {
         }
     }
 
+    pub fn set_sample(&mut self, sample: Arc<Sample>) {
+        self.sample = Some(Arc::clone(&sample));
+    }
+
+    pub fn set_instrument(&mut self, instrument: Arc<Instrument>) {
+        self.instrument = Some(Arc::clone(&instrument));
+    }
+
     pub fn set_oper(&mut self, generator: GeneratorEnum, amount: i16) {
         match generator {
             GeneratorEnum::StartAddrsOffset => {
@@ -384,7 +392,7 @@ pub enum GeneratorEnum {
 }
 
 impl GeneratorEnum {
-    pub fn from_id(id: i32) -> Option<GeneratorEnum> {
+    pub fn from_id(id: u16) -> Option<GeneratorEnum> {
         match id {
             0 => Some(GeneratorEnum::StartAddrsOffset),
             1 => Some(GeneratorEnum::EndAddrsOffset),
