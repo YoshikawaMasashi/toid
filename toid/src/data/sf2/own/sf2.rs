@@ -26,8 +26,11 @@ impl SF2 {
         parsed_sf2_to_own_sf2(parsed_sf2)
     }
 
-    pub fn get_sample(&self, preset_idx: usize, start: usize, end: usize) -> Vec<i16> {
-        self.presets.get(preset_idx).unwrap().get_sample(start, end)
+    pub fn get_sample(&self, preset_idx: usize, key: u8, start: usize, end: usize) -> Vec<i16> {
+        self.presets
+            .get(preset_idx)
+            .unwrap()
+            .get_sample(key, start, end)
     }
 }
 

@@ -34,11 +34,12 @@ impl SF2 {
     fn get_sample(
         &self,
         preset_idx: usize,
+        key: u8,
         start: usize,
         end: usize,
     ) -> PyResult<Py<PyArray1<i16>>> {
         let gil = pyo3::Python::acquire_gil();
-        let sample = self.sf2.get_sample(preset_idx, start, end);
+        let sample = self.sf2.get_sample(preset_idx, key, start, end);
         Ok(PyArray1::from_vec(gil.python(), sample).to_owned())
     }
 }

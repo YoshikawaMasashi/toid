@@ -42,14 +42,14 @@ impl Preset {
         self.prepare_max_vel_range_of_gen();
     }
 
-    pub fn get_sample(&self, start: usize, end: usize) -> Vec<i16> {
+    pub fn get_sample(&self, key: u8, start: usize, end: usize) -> Vec<i16> {
         let mut sample = Vec::new();
         sample.resize(end - start, 0);
 
-        let gen_set = self.get_generator_from_key_vel(64, 64);
+        let gen_set = self.get_generator_from_key_vel(key, 64);
         for gen in gen_set.iter() {
             if let Some(instrument_obj) = &gen.instrument {
-                let sample_ = instrument_obj.get_sample(start, end);
+                let sample_ = instrument_obj.get_sample(key, start, end);
 
                 for i in 0..end - start {
                     sample[i] += sample_[i];

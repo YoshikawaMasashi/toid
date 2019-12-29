@@ -25,6 +25,6 @@ fn main() {
             .len()
     );
 
-    let sample = own_sf2.get_sample(0, 0, 44100);
+    let sample = own_sf2.get_sample(0, 60, 0, 44100);
     println!("{} {} {}", sample[0], sample[1], sample[2]);
 }
