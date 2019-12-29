@@ -23,7 +23,3 @@ path = "src/run_server.rs"
 [[bin]]
 name = "run_client"
 path = "src/run_client.rs"
-
-[[bin]]
-name = "sf2"
-path = "src/sf2.rs"

@@ -1,6 +1,6 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::ops::Bound::Included;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use super::generator::InstrumentGenerator;
 
@@ -12,6 +12,8 @@ pub struct Instrument {
     max_key_range_of_gen: Option<Arc<BTreeMap<u8, HashSet<usize>>>>,
     min_vel_range_of_gen: Option<Arc<BTreeMap<u8, HashSet<usize>>>>,
     max_vel_range_of_gen: Option<Arc<BTreeMap<u8, HashSet<usize>>>>,
+
+    generator_cache: RwLock<HashMap<(u8, u8), Vec<Arc<InstrumentGenerator>>>>,
 }
 
 impl Instrument {
@@ -24,6 +26,8 @@ impl Instrument {
             max_key_range_of_gen: None,
             min_vel_range_of_gen: None,
             max_vel_range_of_gen: None,
+
+            generator_cache: RwLock::new(HashMap::new()),
         }
     }
 
@@ -134,6 +138,21 @@ impl Instrument {
     }
 
     pub fn get_generator_from_key_vel(&self, key: u8, vel: u8) -> Vec<Arc<InstrumentGenerator>> {
+        if self
+            .generator_cache
+            .read()
+            .unwrap()
+            .contains_key(&(key, vel))
+        {
+            return self
+                .generator_cache
+                .read()
+                .unwrap()
+                .get(&(key, vel))
+                .unwrap()
+                .clone();
+        }
+
         let mut gen_idx_set_for_min_key = HashSet::new();
         for (_, value) in Arc::clone(&self.min_key_range_of_gen.as_ref().unwrap())
             .range((Included(&0), Included(&key)))
@@ -177,6 +196,11 @@ impl Instrument {
         for &gen_idx in gen_idx_set.iter() {
             gen_set.push(Arc::clone(self.generators.get(gen_idx).unwrap()));
         }
+
+        self.generator_cache
+            .write()
+            .unwrap()
+            .insert((key, vel), gen_set.clone());
         gen_set
     }
 }

@@ -31,7 +31,7 @@ fn main() {
         let sf2 = sf2::own::SF2::parse(buffer);
         let sf2 = Arc::new(sf2);
 
-        // reducer.reduce(MusicStateEvent::SetSF2(sf2));
+        reducer.reduce(MusicStateEvent::SetSF2(sf2));
 
         portaudio_outputter.run();
 
