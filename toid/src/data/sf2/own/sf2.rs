@@ -20,6 +20,11 @@ impl SF2 {
     pub fn add_preset(&mut self, preset: Arc<Preset>) {
         self.presets.push(preset);
     }
+
+    pub fn parse(i: &[u8]) -> Self {
+        let parsed_sf2 = sf2::SF2::parse(i);
+        parsed_sf2_to_own_sf2(parsed_sf2)
+    }
 }
 
 fn parsed_sf2_to_own_sf2(parsed_sf2: sf2::SF2) -> SF2 {
@@ -64,7 +69,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: sf2::SF2) -> SF2 {
             let gen_amount = inst_gen_info.gen_amount;
 
             generator.set_oper(gen_oper, gen_amount);
-            if let gen_oper = GeneratorEnum::SampleID {
+            if let GeneratorEnum::SampleID = gen_oper{
                 let sample_idx = gen_amount as usize;
                 generator.set_sample(Arc::clone(samples.get(sample_idx).unwrap()));
             }
@@ -100,7 +105,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: sf2::SF2) -> SF2 {
     preset_gen_info_sections.push(parsed_sf2.pdta.pgen.len());
 
     let mut preset_generators = Vec::new();
-    for preset_gen_idx in 0..parsed_sf2.pdta.ibag.len() {
+    for preset_gen_idx in 0..parsed_sf2.pdta.pbag.len() {
         let preset_gen_info_start = preset_gen_info_sections.get(preset_gen_idx).unwrap();
         let preset_gen_info_end = preset_gen_info_sections.get(preset_gen_idx + 1).unwrap();
 
@@ -112,7 +117,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: sf2::SF2) -> SF2 {
             let gen_amount = preset_gen_info.gen_amount;
 
             generator.set_oper(gen_oper, gen_amount);
-            if let gen_oper = GeneratorEnum::Instrument {
+            if let GeneratorEnum::Instrument = gen_oper {
                 let instrument_idx = gen_amount as usize;
                 generator.set_instrument(Arc::clone(instruments.get(instrument_idx).unwrap()));
             }

@@ -327,6 +327,7 @@ impl Generator {
     }
 }
 
+#[derive(Clone, Copy)]
 pub enum GeneratorEnum {
     StartAddrsOffset,
     EndAddrsOffset,
