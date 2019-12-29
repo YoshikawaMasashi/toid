@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use super::generator::Generator;
+use super::generator::InstrumentGenerator;
 
 pub struct Instrument {
     name: String,
-    generators: Vec<Arc<Generator>>,
+    generators: Vec<Arc<InstrumentGenerator>>,
 }
 
 impl Instrument {
@@ -15,7 +15,7 @@ impl Instrument {
         }
     }
 
-    pub fn add_generator(&mut self, generator: Arc<Generator>) {
+    pub fn add_generator(&mut self, generator: Arc<InstrumentGenerator>) {
         self.generators.push(generator);
     }
 

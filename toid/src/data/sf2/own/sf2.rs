@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use super::super::parsed;
-use super::generator::{Generator, GeneratorEnum};
+use super::generator::{GeneratorEnum, InstrumentGenerator, PresetGenerator};
 use super::instrument::Instrument;
 use super::preset::Preset;
 use super::sample::{Sample, SampleType};
@@ -61,7 +61,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
         let inst_gen_info_start = inst_gen_info_sections.get(inst_gen_idx).unwrap();
         let inst_gen_info_end = inst_gen_info_sections.get(inst_gen_idx + 1).unwrap();
 
-        let mut generator = Generator::new();
+        let mut generator = InstrumentGenerator::new();
 
         for inst_gen_info_idx in *inst_gen_info_start..*inst_gen_info_end {
             let inst_gen_info = parsed_sf2.pdta.igen.get(inst_gen_info_idx).unwrap();
@@ -109,7 +109,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
         let preset_gen_info_start = preset_gen_info_sections.get(preset_gen_idx).unwrap();
         let preset_gen_info_end = preset_gen_info_sections.get(preset_gen_idx + 1).unwrap();
 
-        let mut generator = Generator::new();
+        let mut generator = PresetGenerator::new();
 
         for preset_gen_info_idx in *preset_gen_info_start..*preset_gen_info_end {
             let preset_gen_info = parsed_sf2.pdta.pgen.get(preset_gen_info_idx).unwrap();

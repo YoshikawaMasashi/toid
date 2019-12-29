@@ -8,6 +8,50 @@ pub struct Range {
     pub max: u8,
 }
 
+pub struct PresetGenerator {
+    pub generator: Generator,
+    pub instrument: Option<Arc<Instrument>>,
+}
+
+impl PresetGenerator {
+    pub fn new() -> Self {
+        PresetGenerator {
+            generator: Generator::new(),
+            instrument: None,
+        }
+    }
+
+    pub fn set_instrument(&mut self, instrument: Arc<Instrument>) {
+        self.instrument = Some(Arc::clone(&instrument));
+    }
+
+    pub fn set_oper(&mut self, generator: GeneratorEnum, amount: i16) {
+        self.generator.set_oper(generator, amount);
+    }
+}
+
+pub struct InstrumentGenerator {
+    pub generator: Generator,
+    pub sample: Option<Arc<Sample>>,
+}
+
+impl InstrumentGenerator {
+    pub fn new() -> Self {
+        InstrumentGenerator {
+            generator: Generator::new(),
+            sample: None,
+        }
+    }
+
+    pub fn set_sample(&mut self, sample: Arc<Sample>) {
+        self.sample = Some(Arc::clone(&sample));
+    }
+
+    pub fn set_oper(&mut self, generator: GeneratorEnum, amount: i16) {
+        self.generator.set_oper(generator, amount);
+    }
+}
+
 pub struct Generator {
     pub start_addrs_offset: u16,
     pub end_addrs_offset: u16,
@@ -51,7 +95,6 @@ pub struct Generator {
     pub keynum_to_vol_env_hold: f32,
     pub keynum_to_vol_env_decay: f32,
     // instrument: Option<usize>,
-    pub instrument: Option<Arc<Instrument>>,
     // reserved1: Option<()>,
     pub key_range: Range,
     pub vel_range: Range,
@@ -64,7 +107,6 @@ pub struct Generator {
     pub coarse_tune: f32,
     pub fine_tune: i16,
     // sample_id: Option<usize>,
-    pub sample: Option<Arc<Sample>>,
     pub sample_modes: u8,
     // reserved3: Option<()>,
     pub scale_tuning: u16,
@@ -118,7 +160,6 @@ impl Generator {
             release_vol_env: 0.001,
             keynum_to_vol_env_hold: 0.0,
             keynum_to_vol_env_decay: 0.0,
-            instrument: None,
             // reserved1: None,
             key_range: Range { min: 0, max: 127 },
             vel_range: Range { min: 0, max: 127 },
@@ -131,7 +172,6 @@ impl Generator {
             coarse_tune: 0.0,
             fine_tune: 0,
             // sample_id: None,
-            sample: None,
             sample_modes: 0,
             // reserved3: None,
             scale_tuning: 100,
@@ -140,14 +180,6 @@ impl Generator {
             // unused5: None,
             // end_oper: None,
         }
-    }
-
-    pub fn set_sample(&mut self, sample: Arc<Sample>) {
-        self.sample = Some(Arc::clone(&sample));
-    }
-
-    pub fn set_instrument(&mut self, instrument: Arc<Instrument>) {
-        self.instrument = Some(Arc::clone(&instrument));
     }
 
     pub fn set_oper(&mut self, generator: GeneratorEnum, amount: i16) {
