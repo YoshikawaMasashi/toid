@@ -38,6 +38,24 @@ impl Sample {
         let mut sample = Vec::new();
         sample.resize(end - start, 0);
 
+        for idx in start..end {
+            let sample_link_idx = self.calculate_idx_of_sample_access(idx);
+            sample.insert(
+                idx - start,
+                *self.sample_access.get(sample_link_idx).unwrap(),
+            );
+        }
+
         sample
+    }
+
+    fn calculate_idx_of_sample_access(&self, idx: usize) -> usize {
+        if idx < (self.loopstart - self.start) as usize {
+            self.start as usize + idx
+        } else {
+            self.loopstart as usize
+                + (idx - ((self.loopstart - self.start) as usize))
+                    % ((self.loopend - self.loopstart) as usize)
+        }
     }
 }

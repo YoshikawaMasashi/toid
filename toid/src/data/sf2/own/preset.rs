@@ -42,7 +42,25 @@ impl Preset {
         self.prepare_max_vel_range_of_gen();
     }
 
-    pub fn prepare_min_key_range_of_gen(&mut self) {
+    pub fn get_sample(&self, start: usize, end: usize) -> Vec<i16> {
+        let mut sample = Vec::new();
+        sample.resize(end - start, 0);
+
+        let gen_set = self.get_generator_from_key_vel(64, 64);
+        for gen in gen_set.iter() {
+            if let Some(instrument_obj) = &gen.instrument {
+                let sample_ = instrument_obj.get_sample(start, end);
+
+                for i in 0..end - start {
+                    sample[i] += sample_[i];
+                }
+            }
+        }
+
+        sample
+    }
+
+    fn prepare_min_key_range_of_gen(&mut self) {
         let mut min_key_range_of_gen = BTreeMap::new();
         for (gen_idx, gen) in self.generators.iter().enumerate() {
             if !min_key_range_of_gen.contains_key(&gen.generator.key_range.min) {
@@ -57,7 +75,7 @@ impl Preset {
         self.min_key_range_of_gen = Some(Arc::new(min_key_range_of_gen));
     }
 
-    pub fn prepare_max_key_range_of_gen(&mut self) {
+    fn prepare_max_key_range_of_gen(&mut self) {
         let mut max_key_range_of_gen = BTreeMap::new();
         for (gen_idx, gen) in self.generators.iter().enumerate() {
             if !max_key_range_of_gen.contains_key(&gen.generator.key_range.max) {
@@ -72,7 +90,7 @@ impl Preset {
         self.max_key_range_of_gen = Some(Arc::new(max_key_range_of_gen));
     }
 
-    pub fn prepare_min_vel_range_of_gen(&mut self) {
+    fn prepare_min_vel_range_of_gen(&mut self) {
         let mut min_vel_range_of_gen = BTreeMap::new();
         for (gen_idx, gen) in self.generators.iter().enumerate() {
             if !min_vel_range_of_gen.contains_key(&gen.generator.vel_range.min) {
@@ -87,7 +105,7 @@ impl Preset {
         self.min_vel_range_of_gen = Some(Arc::new(min_vel_range_of_gen));
     }
 
-    pub fn prepare_max_vel_range_of_gen(&mut self) {
+    fn prepare_max_vel_range_of_gen(&mut self) {
         let mut max_vel_range_of_gen = BTreeMap::new();
         for (gen_idx, gen) in self.generators.iter().enumerate() {
             if !max_vel_range_of_gen.contains_key(&gen.generator.vel_range.max) {

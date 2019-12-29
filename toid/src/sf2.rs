@@ -24,4 +24,7 @@ fn main() {
             .get_generator_from_key_vel(64, 64)
             .len()
     );
+
+    let sample = own_sf2.get_sample(0, 0, 44100);
+    println!("{} {} {}", sample[0], sample[1], sample[2]);
 }

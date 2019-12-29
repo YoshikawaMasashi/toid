@@ -29,6 +29,20 @@ pub struct SF2 {
     pub sf2: Arc<own::SF2>,
 }
 
+#[pymethods]
+impl SF2 {
+    fn get_sample(
+        &self,
+        preset_idx: usize,
+        start: usize,
+        end: usize,
+    ) -> PyResult<Py<PyArray1<i16>>> {
+        let gil = pyo3::Python::acquire_gil();
+        let sample = self.sf2.get_sample(preset_idx, start, end);
+        Ok(PyArray1::from_vec(gil.python(), sample).to_owned())
+    }
+}
+
 #[pyclass(module = "sf2")]
 pub struct SF2Preset {
     pub sf2_preset: Arc<own::preset::Preset>,

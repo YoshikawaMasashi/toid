@@ -25,6 +25,10 @@ impl SF2 {
         let parsed_sf2 = parsed::SF2::parse(i);
         parsed_sf2_to_own_sf2(parsed_sf2)
     }
+
+    pub fn get_sample(&self, preset_idx: usize, start: usize, end: usize) -> Vec<i16> {
+        self.presets.get(preset_idx).unwrap().get_sample(start, end)
+    }
 }
 
 fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
@@ -39,7 +43,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
             start: sample_header.start,
             end: sample_header.end,
             loopstart: sample_header.loopstart,
-            loopend: sample_header.end,
+            loopend: sample_header.loopend,
             sample_rate: sample_header.sample_rate,
             original_key: sample_header.original_key,
             correction: sample_header.correction,
@@ -95,6 +99,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
         for inst_gen_idx in *inst_gen_start..*inst_gen_end {
             instrument.add_generator(Arc::clone(inst_generators.get(inst_gen_idx).unwrap()));
         }
+        instrument.prepare_gen_range();
         instruments.push(Arc::new(instrument));
     }
 
