@@ -13,7 +13,7 @@ const FRAMES_PER_BUFFER: u32 = 512;
 pub struct PortAudioOutputter {
     sound_state_manager: Arc<RwLock<MusicStateManager>>,
     portaudio: pa::PortAudio,
-    stream: Option<Arc<RwLock<pa::Stream<pa::NonBlocking, pa::Output<f32>>>>>,
+    stream: Option<Arc<RwLock<pa::Stream<pa::NonBlocking, pa::Output<i16>>>>>,
 }
 
 impl PortAudioOutputter {
@@ -29,7 +29,7 @@ impl PortAudioOutputter {
 
     pub fn run(&mut self) {
         let sound_state_manager = Arc::clone(&self.sound_state_manager);
-        let callback = move |pa::OutputStreamCallbackArgs::<'static, f32> {
+        let callback = move |pa::OutputStreamCallbackArgs::<'static, i16> {
                                  buffer,
                                  frames,
                                  ..
@@ -48,7 +48,7 @@ impl PortAudioOutputter {
 
         let mut settings = self
             .portaudio
-            .default_output_stream_settings::<f32>(CHANNELS, SAMPLE_RATE, FRAMES_PER_BUFFER)
+            .default_output_stream_settings::<i16>(CHANNELS, SAMPLE_RATE, FRAMES_PER_BUFFER)
             .unwrap();
         settings.flags = pa::stream_flags::CLIP_OFF;
 

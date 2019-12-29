@@ -77,7 +77,7 @@ impl MusicStateManager {
         Arc::clone(&self.reducer)
     }
 
-    pub fn get_wave(&self) -> Vec<f32> {
+    pub fn get_wave(&self) -> Vec<i16> {
         let mut ret = Vec::new();
 
         let state = self.store.read().unwrap().get_state();
@@ -104,9 +104,9 @@ impl MusicStateManager {
                 CurrentMelodyState::On(pitch, samples) => {
                     let x = (samples as f32) * get_hertz(pitch) / 44100.0;
                     let x = x * 2.0 * (PI as f32);
-                    x.sin()
+                    (x.sin() * 30000.0) as i16
                 }
-                CurrentMelodyState::Off => 0.0,
+                CurrentMelodyState::Off => 0,
             };
             ret.push(ret_);
         }

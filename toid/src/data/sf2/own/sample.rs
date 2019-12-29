@@ -32,3 +32,12 @@ pub struct Sample {
     pub sample_link: Option<Arc<Sample>>,
     pub typee: SampleType,
 }
+
+impl Sample {
+    pub fn get_sample(&self, start: usize, end: usize) -> Vec<i16> {
+        let mut sample = Vec::new();
+        sample.resize(end - start, 0);
+
+        sample
+    }
+}
