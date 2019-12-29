@@ -3,7 +3,7 @@ use std::fmt;
 use nom::number::streaming::le_u16;
 use nom::IResult;
 
-use super::super::riff::{RiffChank, RiffData};
+use super::super::super::riff::{RiffChank, RiffData};
 
 pub struct SF2Info {
     pub ifil: SFVersion,

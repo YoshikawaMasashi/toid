@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use super::super::sf2;
+use super::super::parsed;
 use super::generator::{Generator, GeneratorEnum};
 use super::instrument::Instrument;
 use super::preset::Preset;
@@ -22,12 +22,12 @@ impl SF2 {
     }
 
     pub fn parse(i: &[u8]) -> Self {
-        let parsed_sf2 = sf2::SF2::parse(i);
+        let parsed_sf2 = parsed::SF2::parse(i);
         parsed_sf2_to_own_sf2(parsed_sf2)
     }
 }
 
-fn parsed_sf2_to_own_sf2(parsed_sf2: sf2::SF2) -> SF2 {
+fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
     let mut own_sf2 = SF2::new();
     let sample_access = Arc::clone(&parsed_sf2.sdta.smpl);
 
@@ -69,7 +69,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: sf2::SF2) -> SF2 {
             let gen_amount = inst_gen_info.gen_amount;
 
             generator.set_oper(gen_oper, gen_amount);
-            if let GeneratorEnum::SampleID = gen_oper{
+            if let GeneratorEnum::SampleID = gen_oper {
                 let sample_idx = gen_amount as usize;
                 generator.set_sample(Arc::clone(samples.get(sample_idx).unwrap()));
             }

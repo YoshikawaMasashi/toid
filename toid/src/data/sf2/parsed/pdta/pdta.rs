@@ -1,7 +1,7 @@
 use std::fmt;
 use std::sync::Arc;
 
-use super::super::super::riff::{RiffChank, RiffData};
+use super::super::super::super::riff::{RiffChank, RiffData};
 use super::sf_bag::{parse_sf_bags, SFBag};
 use super::sf_gen::{parse_sf_gens, SFGen};
 use super::sf_inst_header::{parse_sf_inst_headers, SFInstHeader};

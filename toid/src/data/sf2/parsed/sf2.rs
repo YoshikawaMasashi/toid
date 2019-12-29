@@ -1,7 +1,7 @@
 use std::fmt;
 use std::sync::Arc;
 
-use super::super::riff::{RiffChank, RiffData};
+use super::super::super::riff::{RiffChank, RiffData};
 use super::info::{convert_chank_to_sf2info, SF2Info};
 use super::pdta::{convert_chank_to_sf2pdta, SF2pdta};
 use super::sdta::{convert_chank_to_sf2sdta, SF2sdta};

@@ -6,7 +6,7 @@ use nom::multi::many_m_n;
 use nom::number::streaming::le_i16;
 use nom::IResult;
 
-use super::super::riff::{RiffChank, RiffData};
+use super::super::super::riff::{RiffChank, RiffData};
 
 pub struct SF2sdta {
     pub smpl: Arc<Vec<i16>>,

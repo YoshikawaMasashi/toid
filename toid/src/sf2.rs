@@ -2,7 +2,6 @@ use std::fs::File;
 use std::io::Read;
 
 use toid::data::sf2;
-use toid::data::sf2::own;
 
 fn main() {
     let mut f = File::open("../florestan-subset.sf2").unwrap();
@@ -14,5 +13,5 @@ fn main() {
     let sf2_data = sf2::SF2::parse(buffer);
     println!("{}", sf2_data);
     */
-    let sf2_data = own::SF2::parse(buffer);
+    let own_sf2 = sf2::own::SF2::parse(buffer);
 }
