@@ -1,34 +1,24 @@
-use serde::{Deserialize, Serialize};
 use std::boxed::Box;
 use std::f64::consts::PI;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use super::data::sf2::SF2;
 use super::reducers::default_reducer::DefaultReducer;
 use super::state_management::reducer::Reduce;
 use super::state_management::reducer::Reducer;
-use super::state_management::serialize;
 use super::state_management::store::Store;
 use super::states::music_state::melody_state::CurrentMelodyState;
 use super::states::music_state::melody_state::MelodyEvent;
 use super::states::music_state::MusicState;
 
-#[derive(Serialize, Deserialize)]
 pub enum MusicStateEvent {
     AddNewNoteOn(f32, i64),
     AddNewNoteOff(i64),
     ChangeCurrentMalodyNoteOn(f32, i64),
     ChangeCurrentMelodyNoteOff,
     ChangeCumulativeSamples(i64),
-}
-
-impl serialize::Serialize for MusicStateEvent {
-    fn serialize(&self) -> String {
-        serde_json::to_string(&self).unwrap()
-    }
-    fn deserialize(serialized: String) -> Self {
-        serde_json::from_str(serialized.as_str()).unwrap()
-    }
+    SetSF2(Arc<SF2>),
 }
 
 pub struct MusicStateReduce {}
@@ -47,6 +37,7 @@ impl Reduce<MusicState, MusicStateEvent> for MusicStateReduce {
             MusicStateEvent::ChangeCumulativeSamples(samples) => {
                 state.change_cumulative_samples(samples)
             }
+            MusicStateEvent::SetSF2(sf2) => state.set_sf2(sf2),
         }
     }
 }
@@ -102,9 +93,13 @@ impl MusicStateManager {
 
             let ret_ = match current_melody {
                 CurrentMelodyState::On(pitch, samples) => {
-                    let x = (samples as f32) * get_hertz(pitch) / 44100.0;
-                    let x = x * 2.0 * (PI as f32);
-                    (x.sin() * 30000.0) as i16
+                    if let Some(sf2) = &state.sf2.sf2 {
+                        sf2.get_sample(0, pitch as u8, samples as usize)
+                    } else {
+                        let x = (samples as f32) * get_hertz(pitch) / 44100.0;
+                        let x = x * 2.0 * (PI as f32);
+                        (x.sin() * 30000.0) as i16
+                    }
                 }
                 CurrentMelodyState::Off => 0,
             };
@@ -133,12 +128,6 @@ mod tests {
     use super::super::stores::default_store::DefaultStore;
     use super::*;
 
-    fn assert_is_close(a: f32, b: f32, delta: f32) {
-        if (a - b).abs() > delta {
-            panic!("is not close: {} {}", a, b)
-        }
-    }
-
     #[test]
     fn state_works() {
         let initial_state = MusicState::new();
@@ -161,15 +150,12 @@ mod tests {
 
         let wave = manager.get_wave();
 
-        let true_wave = [
-            0., 0.06268834, 0.12537667, 0.188065, 0.25075334, 0.3134417, 0.37613, 0.43881837,
-            0.5015067, 0.56419504,
-        ];
+        let true_wave = [0, 1879, 3751, 5608, 7444, 9250, 11019, 12746, 14422, 16042];
         for i in 0..512 {
             println!("{}", wave[i]);
         }
         for i in 0..10 {
-            assert_is_close(wave[i], true_wave[i], 0.03);
+            assert_eq!(wave[i], true_wave[i]);
         }
 
         let state = store.read().unwrap().get_state();

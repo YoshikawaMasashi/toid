@@ -1,11 +1,15 @@
 use std::sync::Arc;
 
+use super::super::data::sf2::SF2;
+
 pub mod melody_state;
 pub mod scheduling_state;
+pub mod sf2_state;
 
 pub struct MusicState {
     pub scheduling: Arc<scheduling_state::SchedulingState>,
     pub melody: Arc<melody_state::MelodyState>,
+    pub sf2: Arc<sf2_state::SF2State>,
 }
 
 impl Clone for MusicState {
@@ -13,6 +17,7 @@ impl Clone for MusicState {
         MusicState {
             scheduling: Arc::clone(&self.scheduling),
             melody: Arc::clone(&self.melody),
+            sf2: Arc::clone(&self.sf2),
         }
     }
 }
@@ -22,6 +27,7 @@ impl MusicState {
         MusicState {
             scheduling: Arc::new(scheduling_state::SchedulingState::new()),
             melody: Arc::new(melody_state::MelodyState::new()),
+            sf2: Arc::new(sf2_state::SF2State::new()),
         }
     }
 
@@ -29,6 +35,7 @@ impl MusicState {
         MusicState {
             scheduling: Arc::clone(&self.scheduling),
             melody: Arc::new(self.melody.add_new_note_on_event(pitch, samples)),
+            sf2: Arc::clone(&self.sf2),
         }
     }
 
@@ -36,6 +43,7 @@ impl MusicState {
         MusicState {
             scheduling: Arc::clone(&self.scheduling),
             melody: Arc::new(self.melody.add_new_note_off_event(samples)),
+            sf2: Arc::clone(&self.sf2),
         }
     }
 
@@ -46,6 +54,7 @@ impl MusicState {
                 self.melody
                     .change_current_melody_note_on(pitch, current_samples),
             ),
+            sf2: Arc::clone(&self.sf2),
         }
     }
 
@@ -53,6 +62,7 @@ impl MusicState {
         MusicState {
             scheduling: Arc::clone(&self.scheduling),
             melody: Arc::new(self.melody.change_current_melody_note_off()),
+            sf2: Arc::clone(&self.sf2),
         }
     }
 
@@ -63,6 +73,15 @@ impl MusicState {
                     .change_cumulative_samples(cumulative_samples),
             ),
             melody: Arc::clone(&self.melody),
+            sf2: Arc::clone(&self.sf2),
+        }
+    }
+
+    pub fn set_sf2(&self, sf2: Arc<SF2>) -> Self {
+        MusicState {
+            scheduling: Arc::clone(&self.scheduling),
+            melody: Arc::clone(&self.melody),
+            sf2: Arc::new(self.sf2.set_sf2(sf2)),
         }
     }
 }
