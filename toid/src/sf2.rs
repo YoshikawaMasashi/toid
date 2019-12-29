@@ -14,4 +14,14 @@ fn main() {
     println!("{}", sf2_data);
     */
     let own_sf2 = sf2::own::SF2::parse(buffer);
+
+    println!(
+        "{}",
+        own_sf2
+            .presets
+            .get(0)
+            .unwrap()
+            .get_generator_from_key_vel(64, 64)
+            .len()
+    );
 }

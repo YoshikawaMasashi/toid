@@ -7,7 +7,7 @@ use super::preset::Preset;
 use super::sample::{Sample, SampleType};
 
 pub struct SF2 {
-    presets: Vec<Arc<Preset>>,
+    pub presets: Vec<Arc<Preset>>,
 }
 
 impl SF2 {
@@ -112,7 +112,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
         let mut generator = Generator::new();
 
         for preset_gen_info_idx in *preset_gen_info_start..*preset_gen_info_end {
-            let preset_gen_info = parsed_sf2.pdta.igen.get(preset_gen_info_idx).unwrap();
+            let preset_gen_info = parsed_sf2.pdta.pgen.get(preset_gen_info_idx).unwrap();
             let gen_oper = GeneratorEnum::from_id(preset_gen_info.gen_oper).unwrap();
             let gen_amount = preset_gen_info.gen_amount;
 
@@ -142,6 +142,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
         for preset_gen_idx in *preset_gen_start..*preset_gen_end {
             preset.add_generator(Arc::clone(preset_generators.get(preset_gen_idx).unwrap()));
         }
+        preset.prepare_gen_range();
         own_sf2.add_preset(Arc::new(preset));
     }
 
