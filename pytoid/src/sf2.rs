@@ -8,7 +8,8 @@ use pyo3::prelude::{
 };
 use pyo3::wrap_pyfunction;
 
-use toid::data::sf2;
+use toid::data::sf2::own;
+use toid::data::sf2::parsed;
 
 #[pyfunction]
 pub fn read_sf2(path: String) -> SF2 {
@@ -17,7 +18,7 @@ pub fn read_sf2(path: String) -> SF2 {
     f.read_to_end(&mut buffer).unwrap();
     let buffer = buffer.as_slice();
 
-    let sf2_data = sf2::SF2::parse(buffer);
+    let sf2_data = own::SF2::parse(buffer);
     SF2 {
         sf2: Arc::new(sf2_data),
     }
@@ -25,40 +26,78 @@ pub fn read_sf2(path: String) -> SF2 {
 
 #[pyclass(module = "sf2")]
 pub struct SF2 {
-    pub sf2: Arc<sf2::SF2>,
+    pub sf2: Arc<own::SF2>,
+}
+
+#[pyclass(module = "sf2")]
+pub struct SF2Preset {
+    pub sf2_preset: Arc<own::preset::Preset>,
+}
+
+#[pyclass(module = "sf2")]
+pub struct SF2Generator {
+    pub sf2_generator: Arc<own::generator::Generator>,
+}
+
+#[pyclass(module = "sf2")]
+pub struct SF2Instrument {
+    pub sf2_instrument: Arc<own::instrument::Instrument>,
+}
+
+#[pyclass(module = "sf2")]
+pub struct SF2Sample {
+    pub sf2_sample: Arc<own::sample::Sample>,
+}
+
+#[pyfunction]
+pub fn read_parsed_sf2(path: String) -> ParsedSF2 {
+    let mut f = File::open(path).unwrap();
+    let mut buffer = Vec::new();
+    f.read_to_end(&mut buffer).unwrap();
+    let buffer = buffer.as_slice();
+
+    let parsed_sf2_data = parsed::SF2::parse(buffer);
+    ParsedSF2 {
+        parsed_sf2: Arc::new(parsed_sf2_data),
+    }
+}
+
+#[pyclass(module = "sf2")]
+pub struct ParsedSF2 {
+    pub parsed_sf2: Arc<parsed::SF2>,
 }
 
 #[pymethods]
-impl SF2 {
+impl ParsedSF2 {
     #[getter]
     fn info(&self) -> SF2Info {
         SF2Info {
-            info: Arc::clone(&self.sf2.info),
+            info: Arc::clone(&self.parsed_sf2.info),
         }
     }
 
     #[getter]
     fn sdta(&self) -> SF2sdta {
         SF2sdta {
-            sdta: Arc::clone(&self.sf2.sdta),
+            sdta: Arc::clone(&self.parsed_sf2.sdta),
         }
     }
 
     #[getter]
     fn pdta(&self) -> SF2pdta {
         SF2pdta {
-            pdta: Arc::clone(&self.sf2.pdta),
+            pdta: Arc::clone(&self.parsed_sf2.pdta),
         }
     }
 
     fn __str__(&self) -> PyResult<String> {
-        Ok(format!("{}", self.sf2))
+        Ok(format!("{}", self.parsed_sf2))
     }
 }
 
 #[pyclass(module = "sf2")]
 pub struct SF2Info {
-    info: Arc<sf2::info::SF2Info>,
+    info: Arc<parsed::info::SF2Info>,
 }
 
 #[pymethods]
@@ -125,7 +164,7 @@ impl SF2Info {
 
 #[pyclass(module = "sf2")]
 struct SF2sdta {
-    sdta: Arc<sf2::sdta::SF2sdta>,
+    sdta: Arc<parsed::sdta::SF2sdta>,
 }
 
 #[pymethods]
@@ -140,7 +179,7 @@ impl SF2sdta {
 
 #[pyclass(module = "sf2")]
 struct SF2pdta {
-    pdta: Arc<sf2::pdta::SF2pdta>,
+    pdta: Arc<parsed::pdta::SF2pdta>,
 }
 
 #[pymethods]
@@ -235,7 +274,7 @@ impl SF2pdta {
 
 #[pyclass(module = "sf2")]
 pub struct SFBag {
-    pub sf_bag: Arc<sf2::pdta::sf_bag::SFBag>,
+    pub sf_bag: Arc<parsed::pdta::sf_bag::SFBag>,
 }
 
 #[pymethods]
@@ -252,7 +291,7 @@ impl SFBag {
 
 #[pyclass(module = "sf2")]
 pub struct SFGen {
-    pub sf_gen: Arc<sf2::pdta::sf_gen::SFGen>,
+    pub sf_gen: Arc<parsed::pdta::sf_gen::SFGen>,
 }
 
 #[pymethods]
@@ -269,7 +308,7 @@ impl SFGen {
 
 #[pyclass(module = "sf2")]
 pub struct SFInstHeader {
-    pub sf_inst_header: Arc<sf2::pdta::sf_inst_header::SFInstHeader>,
+    pub sf_inst_header: Arc<parsed::pdta::sf_inst_header::SFInstHeader>,
 }
 
 #[pymethods]
@@ -286,7 +325,7 @@ impl SFInstHeader {
 
 #[pyclass(module = "sf2")]
 pub struct SFMod {
-    pub sf_mod: Arc<sf2::pdta::sf_mod::SFMod>,
+    pub sf_mod: Arc<parsed::pdta::sf_mod::SFMod>,
 }
 
 #[pymethods]
@@ -315,7 +354,7 @@ impl SFMod {
 
 #[pyclass(module = "sf2")]
 pub struct SFPresetHeader {
-    pub sf_preset_header: Arc<sf2::pdta::sf_preset_header::SFPresetHeader>,
+    pub sf_preset_header: Arc<parsed::pdta::sf_preset_header::SFPresetHeader>,
 }
 
 #[pymethods]
@@ -347,7 +386,7 @@ impl SFPresetHeader {
 }
 #[pyclass(module = "sf2")]
 pub struct SFSampleHeader {
-    pub sf_sample_header: Arc<sf2::pdta::sf_sample_header::SFSampleHeader>,
+    pub sf_sample_header: Arc<parsed::pdta::sf_sample_header::SFSampleHeader>,
 }
 
 #[pymethods]
@@ -395,19 +434,26 @@ impl SFSampleHeader {
 }
 #[pymodule]
 pub fn sf2(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+    // own
+    m.add_wrapped(wrap_pyfunction!(read_sf2))?;
     m.add_class::<SF2>()?;
+    m.add_class::<SF2Preset>()?;
+    m.add_class::<SF2Generator>()?;
+    m.add_class::<SF2Instrument>()?;
+    m.add_class::<SF2Sample>()?;
+
+    // parsed
+    m.add_wrapped(wrap_pyfunction!(read_parsed_sf2))?;
+    m.add_class::<ParsedSF2>()?;
     m.add_class::<SF2Info>()?;
     m.add_class::<SF2sdta>()?;
     m.add_class::<SF2pdta>()?;
-
     m.add_class::<SFBag>()?;
     m.add_class::<SFGen>()?;
     m.add_class::<SFInstHeader>()?;
     m.add_class::<SFMod>()?;
     m.add_class::<SFPresetHeader>()?;
     m.add_class::<SFSampleHeader>()?;
-
-    m.add_wrapped(wrap_pyfunction!(read_sf2))?;
 
     Ok(())
 }
