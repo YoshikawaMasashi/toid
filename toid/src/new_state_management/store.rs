@@ -11,6 +11,14 @@ pub struct Store<S, E, R> {
 }
 
 impl<S, E: Sized + Serialize<E>, R: Reducer<S, E>> Store<S, E, R> {
+    pub fn new(state: S, reducer: R) -> Self {
+        Self {
+            state: Arc::new(state),
+            reducer: Arc::new(reducer),
+            event_marker: PhantomData,
+        }
+    }
+
     pub fn get_state(&self) -> Arc<S> {
         Arc::clone(&self.state)
     }

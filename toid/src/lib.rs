@@ -4,6 +4,7 @@
 
 pub mod data;
 pub mod music_state_manager;
+pub mod new_music_store;
 pub mod new_state_management;
 pub mod portaudio_outputter;
 pub mod reducers;
