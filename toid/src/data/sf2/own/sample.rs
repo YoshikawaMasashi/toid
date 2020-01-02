@@ -35,7 +35,8 @@ pub struct Sample {
 
 impl Sample {
     pub fn get_sample(&self, key: u8, idx: usize) -> i16 {
-        let pitch_shift = (key - self.original_key) as f32 + (self.correction as f32) / 100.0;
+        let pitch_shift =
+            (key as i16 - self.original_key as i16) as f32 + (self.correction as f32) / 100.0;
         let freq_shift = f32::powf(2.0, pitch_shift / 12.0);
         let sample_link_idx = self.calculate_idx_of_sample_access(idx as f32 * freq_shift);
         self.sample_for_float_sample_link_idx(sample_link_idx)
