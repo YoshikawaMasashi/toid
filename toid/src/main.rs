@@ -6,7 +6,7 @@ use toid::new_music_store::melody_state::MelodyStateEvent;
 use toid::new_music_store::new_music_store::NewMusicStore;
 use toid::new_music_store::sf2_state::SF2StateEvent;
 use toid::new_music_store::wave_reader::WaveReader;
-use toid::portaudio_outputter::PortAudioOutputter;
+use toid::outputters::portaudio_outputter::PortAudioOutputter;
 
 fn main() {
     let store = NewMusicStore::new();

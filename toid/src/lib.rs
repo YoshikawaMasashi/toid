@@ -3,10 +3,9 @@
 //! 通常はPython3などのスクリプト言語にバインディングして使うことを想定しています。
 
 pub mod data;
-pub mod music_state_manager;
 pub mod new_music_store;
 pub mod new_state_management;
-pub mod portaudio_outputter;
+pub mod outputters;
 pub mod reducers;
 pub mod state_management;
 pub mod states;

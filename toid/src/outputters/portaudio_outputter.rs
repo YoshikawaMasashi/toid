@@ -1,8 +1,8 @@
 extern crate portaudio;
 
 // use super::music_state_manager::MusicStateManager;
-use super::new_music_store::wave_reader::WaveReader;
-use super::new_state_management::store_reader::StoreReader;
+use super::super::new_music_store::wave_reader::WaveReader;
+use super::super::new_state_management::store_reader::StoreReader;
 use portaudio as pa;
 use std::option::Option;
 use std::sync::Arc;
