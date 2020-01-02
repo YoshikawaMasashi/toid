@@ -37,6 +37,8 @@ impl Clone for MelodyEvent {
 pub struct MelodyState {
     pub event_seq: OrdMap<i64, MelodyEvent>,
     pub current_melody: CurrentMelodyState,
+    pub repeat_length: Option<i64>,
+    pub repeat_start: i64,
 }
 
 impl MelodyState {
@@ -44,6 +46,8 @@ impl MelodyState {
         MelodyState {
             event_seq: OrdMap::new(),
             current_melody: CurrentMelodyState::Off,
+            repeat_length: Some(4 * 44100),
+            repeat_start: 0,
         }
     }
 
@@ -51,6 +55,8 @@ impl MelodyState {
         MelodyState {
             event_seq: self.event_seq.update(samples, MelodyEvent::On(pitch)),
             current_melody: self.current_melody.clone(),
+            repeat_length: self.repeat_length,
+            repeat_start: self.repeat_start,
         }
     }
 
@@ -58,6 +64,8 @@ impl MelodyState {
         MelodyState {
             event_seq: self.event_seq.update(samples, MelodyEvent::Off),
             current_melody: self.current_melody.clone(),
+            repeat_length: self.repeat_length,
+            repeat_start: self.repeat_start,
         }
     }
 
@@ -65,6 +73,8 @@ impl MelodyState {
         MelodyState {
             event_seq: self.event_seq.clone(),
             current_melody: CurrentMelodyState::On(pitch, current_samples),
+            repeat_length: self.repeat_length,
+            repeat_start: self.repeat_start,
         }
     }
 
@@ -72,6 +82,8 @@ impl MelodyState {
         MelodyState {
             event_seq: self.event_seq.clone(),
             current_melody: CurrentMelodyState::Off,
+            repeat_length: self.repeat_length,
+            repeat_start: self.repeat_start,
         }
     }
 }

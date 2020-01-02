@@ -42,8 +42,14 @@ impl StoreReader<NewMusicStore, Vec<i16>> for WaveReader {
         let event_seq = melody_state.event_seq.clone();
         let mut current_melody = melody_state.current_melody.clone();
 
-        for i in current_cumulative_samples..next_cumulative_samples {
-            current_melody = match event_seq.get(&i) {
+        for current_samples in current_cumulative_samples..next_cumulative_samples {
+            let current_samples = match melody_state.repeat_length {
+                Some(repeat_length) => {
+                    (current_samples - melody_state.repeat_start) % repeat_length
+                }
+                None => current_samples,
+            };
+            current_melody = match event_seq.get(&current_samples) {
                 Some(melody_event) => match melody_event {
                     MelodyEvent::On(pitch) => CurrentMelodyState::On(*pitch, 0),
                     MelodyEvent::Off => CurrentMelodyState::Off,

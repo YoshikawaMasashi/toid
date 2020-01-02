@@ -61,6 +61,6 @@ fn main() {
         .update_state(MelodyStateEvent::AddNewNoteOn(48.0, 12 * (44100 / 4)));
 
     portaudio_outputter.run();
-    portaudio_outputter.sleep(4000);
+    portaudio_outputter.sleep(8000);
     portaudio_outputter.stop();
 }
