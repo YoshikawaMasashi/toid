@@ -40,7 +40,7 @@ impl StoreReader<NewMusicStore, Vec<i16>> for WaveReader {
         let current_cumulative_samples = scheduling_state.cumulative_samples;
         let next_cumulative_samples = current_cumulative_samples + self.wave_length;
 
-        for (melody_key, melody_store) in self.store.melody.read().unwrap().iter() {
+        for (_, melody_store) in self.store.melody.read().unwrap().iter() {
             let melody_state = melody_store.get_state();
             let event_seq = melody_state.event_seq.clone();
             let mut current_melody = melody_state.current_melody.clone();
