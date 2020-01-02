@@ -1,3 +1,4 @@
+/*
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -67,3 +68,4 @@ fn state_works() {
         1
     );
 }
+*/

@@ -1,4 +1,4 @@
-use super::super::new_state_management::store::Store;
+use super::super::state_management::store::Store;
 use super::melody_state::{MelodyState, MelodyStateEvent, MelodyStateReducer};
 use super::scheduling_state::{SchedulingState, SchedulingStateEvent, SchedulingStateReducer};
 use super::sf2_state::{SF2State, SF2StateEvent, SF2StateReducer};

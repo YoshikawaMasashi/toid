@@ -2,10 +2,10 @@ extern crate portaudio;
 
 use std::sync::Arc;
 
-use toid::new_music_store::melody_state::MelodyStateEvent;
-use toid::new_music_store::new_music_store::NewMusicStore;
-use toid::new_music_store::sf2_state::SF2StateEvent;
-use toid::new_music_store::wave_reader::WaveReader;
+use toid::music_store::melody_state::MelodyStateEvent;
+use toid::music_store::new_music_store::NewMusicStore;
+use toid::music_store::sf2_state::SF2StateEvent;
+use toid::music_store::wave_reader::WaveReader;
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 
 fn main() {

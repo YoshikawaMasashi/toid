@@ -5,8 +5,8 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 use super::super::data::sf2::SF2;
-use super::super::new_state_management::reducer::Reducer;
-use super::super::new_state_management::serialize;
+use super::super::state_management::reducer::Reducer;
+use super::super::state_management::serialize;
 
 pub struct SF2State {
     pub sf2: Option<Arc<SF2>>,

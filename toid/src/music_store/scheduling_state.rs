@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::new_state_management::reducer::Reducer;
-use super::super::new_state_management::serialize;
+use super::super::state_management::reducer::Reducer;
+use super::super::state_management::serialize;
 
 pub struct SchedulingState {
     pub bpm: f32,

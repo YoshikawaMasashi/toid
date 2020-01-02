@@ -1,7 +1,7 @@
 use std::f64::consts::PI;
 use std::sync::Arc;
 
-use super::super::new_state_management::store_reader::StoreReader;
+use super::super::state_management::store_reader::StoreReader;
 use super::melody_state::{CurrentMelodyState, MelodyEvent, MelodyStateEvent};
 use super::new_music_store::NewMusicStore;
 use super::scheduling_state::SchedulingStateEvent;
