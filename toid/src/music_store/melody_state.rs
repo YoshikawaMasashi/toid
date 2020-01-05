@@ -6,37 +6,15 @@ use serde::{Deserialize, Serialize};
 use super::super::state_management::reducer::Reducer;
 use super::super::state_management::serialize;
 
-pub enum CurrentMelodyState {
-    On(f32, i64),
-    Off,
-}
-
-impl Clone for CurrentMelodyState {
-    fn clone(&self) -> Self {
-        match self {
-            CurrentMelodyState::On(f, i) => CurrentMelodyState::On(*f, *i),
-            CurrentMelodyState::Off => CurrentMelodyState::Off,
-        }
-    }
-}
-
-pub enum MelodyEvent {
-    On(f32),
-    Off,
-}
-
-impl Clone for MelodyEvent {
-    fn clone(&self) -> Self {
-        match self {
-            MelodyEvent::On(f) => MelodyEvent::On(*f),
-            MelodyEvent::Off => MelodyEvent::Off,
-        }
-    }
+#[derive(Serialize, Deserialize, Clone, Copy)]
+pub struct NoteInfo {
+    pitch: f32,
+    duration: i64,
+    start: i64,
 }
 
 pub struct MelodyState {
-    pub event_seq: OrdMap<i64, MelodyEvent>,
-    pub current_melody: CurrentMelodyState,
+    pub notes: OrdMap<i64, NoteInfo>,
     pub repeat_length: Option<i64>,
     pub repeat_start: i64,
 }
@@ -44,56 +22,24 @@ pub struct MelodyState {
 impl MelodyState {
     pub fn new() -> Self {
         MelodyState {
-            event_seq: OrdMap::new(),
-            current_melody: CurrentMelodyState::Off,
+            notes: OrdMap::new(),
             repeat_length: Some(4 * 44100),
             repeat_start: 0,
         }
     }
 
-    pub fn add_new_note_on_event(&self, pitch: f32, samples: i64) -> Self {
+    pub fn add_note(&self, note: NoteInfo) -> Self {
         MelodyState {
-            event_seq: self.event_seq.update(samples, MelodyEvent::On(pitch)),
-            current_melody: self.current_melody.clone(),
-            repeat_length: self.repeat_length,
-            repeat_start: self.repeat_start,
-        }
-    }
-
-    pub fn add_new_note_off_event(&self, samples: i64) -> Self {
-        MelodyState {
-            event_seq: self.event_seq.update(samples, MelodyEvent::Off),
-            current_melody: self.current_melody.clone(),
-            repeat_length: self.repeat_length,
-            repeat_start: self.repeat_start,
-        }
-    }
-
-    pub fn change_current_melody_note_on(&self, pitch: f32, current_samples: i64) -> Self {
-        MelodyState {
-            event_seq: self.event_seq.clone(),
-            current_melody: CurrentMelodyState::On(pitch, current_samples),
-            repeat_length: self.repeat_length,
-            repeat_start: self.repeat_start,
-        }
-    }
-
-    pub fn change_current_melody_note_off(&self) -> Self {
-        MelodyState {
-            event_seq: self.event_seq.clone(),
-            current_melody: CurrentMelodyState::Off,
-            repeat_length: self.repeat_length,
-            repeat_start: self.repeat_start,
+            notes: self.notes.update(note.start, note),
+            repeat_length: Some(4 * 44100),
+            repeat_start: 0,
         }
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub enum MelodyStateEvent {
-    AddNewNoteOn(f32, i64),
-    AddNewNoteOff(i64),
-    ChangeCurrentMelodyNoteOn(f32, i64),
-    ChangeCurrentMelodyNoteOff,
+    AddNote(NoteInfo),
 }
 
 impl serialize::Serialize<MelodyStateEvent> for MelodyStateEvent {
@@ -118,14 +64,7 @@ pub struct MelodyStateReducer {}
 impl Reducer<MelodyState, MelodyStateEvent> for MelodyStateReducer {
     fn reduce(&self, state: Arc<MelodyState>, event: MelodyStateEvent) -> MelodyState {
         match event {
-            MelodyStateEvent::AddNewNoteOn(pitch, samples) => {
-                state.add_new_note_on_event(pitch, samples)
-            }
-            MelodyStateEvent::AddNewNoteOff(samples) => state.add_new_note_off_event(samples),
-            MelodyStateEvent::ChangeCurrentMelodyNoteOn(pitch, current_samples) => {
-                state.change_current_melody_note_on(pitch, current_samples)
-            }
-            MelodyStateEvent::ChangeCurrentMelodyNoteOff => state.change_current_melody_note_off(),
+            MelodyStateEvent::AddNote(note) => state.add_note(note),
         }
     }
 }

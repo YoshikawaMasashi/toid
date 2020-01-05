@@ -1,3 +1,4 @@
+/*
 use std::boxed::Box;
 use std::marker::{Send, Sync};
 use std::sync::Arc;
@@ -79,3 +80,6 @@ fn main() {
         }
     }
 }
+*/
+
+fn main() {}
