@@ -1,14 +1,19 @@
+use std::collections::BTreeMap;
 use std::f64::consts::PI;
+use std::ops::Bound::{Excluded, Included, Unbounded};
 use std::sync::Arc;
+use std::sync::RwLock;
 
 use super::super::state_management::store_reader::StoreReader;
-use super::melody_state::{CurrentMelodyState, MelodyEvent, MelodyStateEvent};
+use super::melody_state::{MelodyStateEvent, NoteInfo};
 use super::new_music_store::NewMusicStore;
 use super::scheduling_state::SchedulingStateEvent;
 
 pub struct WaveReader {
     store: Arc<NewMusicStore>,
-    wave_length: i64,
+    wave_length: u64,
+    played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
+    current_cumulative_samples: u64,
 }
 
 impl WaveReader {
@@ -16,6 +21,8 @@ impl WaveReader {
         WaveReader {
             store: Arc::clone(&store),
             wave_length: 512,
+            played_notes: BTreeMap::new(),
+            current_cumulative_samples: 0,
         }
     }
 }
@@ -30,71 +37,129 @@ impl StoreReader<NewMusicStore, Vec<i16>> for WaveReader {
         Arc::clone(&self.store)
     }
 
-    fn read(&self) -> Vec<i16> {
+    fn read(&mut self) -> Vec<i16> {
         let mut ret: Vec<i16> = Vec::new();
         ret.resize(self.wave_length as usize, 0);
 
-        let scheduling_state = self.store.scheduling.get_state();
-        let sf2_state = self.store.sf2.get_state();
+        // let scheduling_state = self.store.scheduling.get_state();
+        // let sf2_state = self.store.sf2.get_state();
 
-        let current_cumulative_samples = scheduling_state.cumulative_samples;
-        let next_cumulative_samples = current_cumulative_samples + self.wave_length;
+        let next_cumulative_samples = self.current_cumulative_samples + self.wave_length;
 
+        // TODO: samplesがどっちなのかちゃんと確かめる
         for (_, melody_store) in self.store.melody.read().unwrap().iter() {
+            // 付け加えるnotesをリストアップする。
+            // self.played_notesに加える。
             let melody_state = melody_store.get_state();
-            let event_seq = melody_state.event_seq.clone();
-            let mut current_melody = melody_state.current_melody.clone();
-            for (wave_idx, current_samples) in
-                (current_cumulative_samples..next_cumulative_samples).enumerate()
-            {
-                let current_samples = match melody_state.repeat_length {
-                    Some(repeat_length) => {
-                        (current_samples - melody_state.repeat_start) % repeat_length
-                    }
-                    None => current_samples,
-                };
-                current_melody = match event_seq.get(&current_samples) {
-                    Some(melody_event) => match melody_event {
-                        MelodyEvent::On(pitch) => CurrentMelodyState::On(*pitch, 0),
-                        MelodyEvent::Off => CurrentMelodyState::Off,
-                    },
-                    None => match current_melody {
-                        CurrentMelodyState::On(pitch, samples) => {
-                            CurrentMelodyState::On(pitch, samples + 1)
-                        }
-                        CurrentMelodyState::Off => CurrentMelodyState::Off,
-                    },
-                };
 
-                let addition = match current_melody {
-                    CurrentMelodyState::On(pitch, samples) => {
-                        if let Some(sf2) = &sf2_state.sf2 {
-                            sf2.get_sample(0, pitch as u8, samples as usize)
+            let current_cumulative_samples_in_repeat =
+                self.current_cumulative_samples % melody_state.repeat_length;
+            let next_cumulative_samples_in_repeat =
+                next_cumulative_samples & melody_state.repeat_length;
+
+            if current_cumulative_samples_in_repeat < next_cumulative_samples_in_repeat {
+                for (samples, new_notes) in melody_state.notes.range((
+                    Included(current_cumulative_samples_in_repeat),
+                    Excluded(next_cumulative_samples_in_repeat),
+                )) {
+                    for new_note in new_notes.iter() {
+                        let start_samples = samples - current_cumulative_samples_in_repeat
+                            + self.current_cumulative_samples;
+                        let end_samples = start_samples + new_note.duration;
+
+                        if self.played_notes.contains_key(&end_samples) {
+                            self.played_notes
+                                .get_mut(&end_samples)
+                                .unwrap()
+                                .push((start_samples, *new_note));
                         } else {
-                            let x = (samples as f32) * get_hertz(pitch) / 44100.0;
-                            let x = x * 2.0 * (PI as f32);
-                            (x.sin() * 30000.0) as i16
+                            self.played_notes
+                                .insert(end_samples, vec![(start_samples, *new_note)]);
                         }
                     }
-                    _ => 0,
-                };
-                ret[wave_idx] = ret[wave_idx].saturating_add(addition);
-            }
-
-            match current_melody {
-                CurrentMelodyState::On(pitch, samples) => melody_store
-                    .update_state(MelodyStateEvent::ChangeCurrentMelodyNoteOn(pitch, samples)),
-                CurrentMelodyState::Off => {
-                    melody_store.update_state(MelodyStateEvent::ChangeCurrentMelodyNoteOff)
                 }
-            };
+            } else {
+                for (samples, new_notes) in melody_state.notes.range((
+                    Included(current_cumulative_samples_in_repeat),
+                    Excluded(melody_state.repeat_length),
+                )) {
+                    for new_note in new_notes.iter() {
+                        let start_samples = samples - current_cumulative_samples_in_repeat
+                            + self.current_cumulative_samples;
+                        let end_samples = start_samples + new_note.duration;
+
+                        if self.played_notes.contains_key(&end_samples) {
+                            self.played_notes
+                                .get_mut(&end_samples)
+                                .unwrap()
+                                .push((start_samples, *new_note));
+                        } else {
+                            self.played_notes
+                                .insert(end_samples, vec![(start_samples, *new_note)]);
+                        }
+                    }
+                }
+                for (samples, new_notes) in melody_state
+                    .notes
+                    .range((Included(0), Excluded(next_cumulative_samples_in_repeat)))
+                {
+                    for new_note in new_notes.iter() {
+                        let start_samples = samples - current_cumulative_samples_in_repeat
+                            + self.current_cumulative_samples;
+                        let end_samples = start_samples + new_note.duration;
+
+                        if self.played_notes.contains_key(&end_samples) {
+                            self.played_notes
+                                .get_mut(&end_samples)
+                                .unwrap()
+                                .push((start_samples, *new_note));
+                        } else {
+                            self.played_notes
+                                .insert(end_samples, vec![(start_samples, *new_note)]);
+                        }
+                    }
+                }
+            }
         }
 
-        self.store
-            .scheduling
-            .update_state(SchedulingStateEvent::ChangeCumulativeSamples(
-                next_cumulative_samples,
-            ));
+        // TODO: self.played_notesのを鳴らす
+        for (&end_samples, notes) in self.played_notes.iter() {
+            for (start_samples, note) in notes.iter() {
+                let freq_samples = get_hertz(note.pitch) / 44100.0;
+                if *start_samples <= self.current_cumulative_samples {
+                    if end_samples >= next_cumulative_samples {
+                        for i in 0..self.wave_length as usize {
+                            let x = (self.current_cumulative_samples - start_samples + i as u64)
+                                as f32
+                                * freq_samples;
+                            let x = x * 2.0 * (PI as f32);
+                            let addition = (x.sin() * 30000.0) as i16;
+                            ret[i] = ret[i].saturating_add(addition);
+                        }
+                    } else {
+                        for i in 0..(end_samples - self.current_cumulative_samples) as usize {
+                            let x = (self.current_cumulative_samples - start_samples + i as u64)
+                                as f32
+                                * freq_samples;
+                            let x = x * 2.0 * (PI as f32);
+                            let addition = (x.sin() * 30000.0) as i16;
+                            ret[i] = ret[i].saturating_add(addition);
+                        }
+                    }
+                } else {
+                    if end_samples >= next_cumulative_samples {
+                    } else {
+                    }
+                }
+            }
+        }
+
+        // 使ったself.played_notesのノートを消す
+        for samples in self.current_cumulative_samples..next_cumulative_samples {
+            self.played_notes.remove(&samples);
+        }
+
+        self.current_cumulative_samples = next_cumulative_samples;
 
         ret
     }

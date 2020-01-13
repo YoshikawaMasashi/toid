@@ -7,35 +7,21 @@ use super::super::state_management::serialize;
 
 pub struct SchedulingState {
     pub bpm: f32,
-    pub cumulative_samples: i64,
 }
 
 impl SchedulingState {
     pub fn new() -> Self {
-        SchedulingState {
-            bpm: 120.0,
-            cumulative_samples: 0,
-        }
-    }
-    fn change_bpm(&self, bpm: f32) -> Self {
-        SchedulingState {
-            bpm,
-            cumulative_samples: self.cumulative_samples,
-        }
+        SchedulingState { bpm: 120.0 }
     }
 
-    fn change_cumulative_samples(&self, cumulative_samples: i64) -> Self {
-        SchedulingState {
-            bpm: self.bpm,
-            cumulative_samples,
-        }
+    fn change_bpm(&self, bpm: f32) -> Self {
+        SchedulingState { bpm }
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub enum SchedulingStateEvent {
     ChangeBPM(f32),
-    ChangeCumulativeSamples(i64),
 }
 
 impl serialize::Serialize<SchedulingStateEvent> for SchedulingStateEvent {
@@ -61,9 +47,6 @@ impl Reducer<SchedulingState, SchedulingStateEvent> for SchedulingStateReducer {
     fn reduce(&self, state: Arc<SchedulingState>, event: SchedulingStateEvent) -> SchedulingState {
         match event {
             SchedulingStateEvent::ChangeBPM(bpm) => state.change_bpm(bpm),
-            SchedulingStateEvent::ChangeCumulativeSamples(cumulative_samples) => {
-                state.change_cumulative_samples(cumulative_samples)
-            }
         }
     }
 }

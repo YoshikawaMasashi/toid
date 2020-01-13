@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use im::ordmap::OrdMap;
+use im::vector::Vector;
 use serde::{Deserialize, Serialize};
 
 use super::super::state_management::reducer::Reducer;
@@ -8,31 +9,38 @@ use super::super::state_management::serialize;
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub struct NoteInfo {
-    pitch: f32,
-    duration: i64,
-    start: i64,
+    pub pitch: f32,
+    pub duration: u64,
+    pub start: u64,
 }
 
 pub struct MelodyState {
-    pub notes: OrdMap<i64, NoteInfo>,
-    pub repeat_length: Option<i64>,
-    pub repeat_start: i64,
+    pub notes: OrdMap<u64, Vector<NoteInfo>>,
+    pub repeat_length: u64,
 }
 
 impl MelodyState {
     pub fn new() -> Self {
         MelodyState {
             notes: OrdMap::new(),
-            repeat_length: Some(4 * 44100),
-            repeat_start: 0,
+            repeat_length: 4 * 44100,
         }
     }
 
     pub fn add_note(&self, note: NoteInfo) -> Self {
-        MelodyState {
-            notes: self.notes.update(note.start, note),
-            repeat_length: Some(4 * 44100),
-            repeat_start: 0,
+        if self.notes.contains_key(&note.start) {
+            MelodyState {
+                notes: self.notes.update(
+                    note.start,
+                    self.notes[&note.start].update(self.notes[&note.start].len(), note),
+                ),
+                repeat_length: self.repeat_length,
+            }
+        } else {
+            MelodyState {
+                notes: self.notes.update(note.start, Vector::new().update(0, note)),
+                repeat_length: self.repeat_length,
+            }
         }
     }
 }

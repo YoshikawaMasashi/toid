@@ -5,19 +5,20 @@ use super::super::state_management::store_reader::StoreReader;
 use portaudio as pa;
 use std::option::Option;
 use std::sync::Arc;
+use std::sync::RwLock;
 
 const CHANNELS: i32 = 2;
 const SAMPLE_RATE: f64 = 44_100.0;
 const FRAMES_PER_BUFFER: u32 = 512;
 
 pub struct PortAudioOutputter {
-    wave_reader: Arc<WaveReader>,
+    wave_reader: Arc<RwLock<WaveReader>>,
     portaudio: pa::PortAudio,
     stream: Option<pa::Stream<pa::NonBlocking, pa::Output<i16>>>,
 }
 
 impl PortAudioOutputter {
-    pub fn new(wave_reader: Arc<WaveReader>) -> Self {
+    pub fn new(wave_reader: Arc<RwLock<WaveReader>>) -> Self {
         let portaudio = pa::PortAudio::new().unwrap();
 
         PortAudioOutputter {
@@ -35,7 +36,7 @@ impl PortAudioOutputter {
                                  ..
                              }|
               -> pa::StreamCallbackResult {
-            let waves = wave_reader.read();
+            let waves = wave_reader.write().unwrap().read();
 
             let mut idx = 0;
             for i in 0..frames {
