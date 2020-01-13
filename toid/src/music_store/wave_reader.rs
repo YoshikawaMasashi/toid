@@ -122,34 +122,27 @@ impl StoreReader<NewMusicStore, Vec<i16>> for WaveReader {
             }
         }
 
-        // TODO: self.played_notesのを鳴らす
+        // self.played_notesのを鳴らす
         for (&end_samples, notes) in self.played_notes.iter() {
             for (start_samples, note) in notes.iter() {
                 let freq_samples = get_hertz(note.pitch) / 44100.0;
-                if *start_samples <= self.current_cumulative_samples {
-                    if end_samples >= next_cumulative_samples {
-                        for i in 0..self.wave_length as usize {
-                            let x = (self.current_cumulative_samples - start_samples + i as u64)
-                                as f32
-                                * freq_samples;
-                            let x = x * 2.0 * (PI as f32);
-                            let addition = (x.sin() * 30000.0) as i16;
-                            ret[i] = ret[i].saturating_add(addition);
-                        }
-                    } else {
-                        for i in 0..(end_samples - self.current_cumulative_samples) as usize {
-                            let x = (self.current_cumulative_samples - start_samples + i as u64)
-                                as f32
-                                * freq_samples;
-                            let x = x * 2.0 * (PI as f32);
-                            let addition = (x.sin() * 30000.0) as i16;
-                            ret[i] = ret[i].saturating_add(addition);
-                        }
-                    }
+                let start_idx = if *start_samples <= self.current_cumulative_samples {
+                    0
                 } else {
-                    if end_samples >= next_cumulative_samples {
-                    } else {
-                    }
+                    (start_samples - self.current_cumulative_samples) as usize
+                };
+                let end_idx = if end_samples >= next_cumulative_samples {
+                    self.wave_length as usize
+                } else {
+                    (end_samples - self.current_cumulative_samples) as usize
+                };
+
+                for i in start_idx..end_idx {
+                    let x = (self.current_cumulative_samples - start_samples + i as u64) as f32
+                        * freq_samples;
+                    let x = x * 2.0 * (PI as f32);
+                    let addition = (x.sin() * 30000.0) as i16;
+                    ret[i] = ret[i].saturating_add(addition);
                 }
             }
         }
