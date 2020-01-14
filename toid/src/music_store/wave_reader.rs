@@ -13,7 +13,7 @@ pub struct WaveReader {
     store: Arc<NewMusicStore>,
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
-    current_cumulative_samples: u64,
+    cum_current_samples: u64,
 }
 
 impl WaveReader {
@@ -22,7 +22,7 @@ impl WaveReader {
             store: Arc::clone(&store),
             wave_length: 512,
             played_notes: BTreeMap::new(),
-            current_cumulative_samples: 0,
+            cum_current_samples: 0,
         }
     }
 }
@@ -44,78 +44,77 @@ impl StoreReader<NewMusicStore, Vec<i16>> for WaveReader {
         // let scheduling_state = self.store.scheduling.get_state();
         // let sf2_state = self.store.sf2.get_state();
 
-        let next_cumulative_samples = self.current_cumulative_samples + self.wave_length;
+        let cum_next_samples = self.cum_current_samples + self.wave_length;
 
         // TODO: samplesがどっちなのかちゃんと確かめる
+        // TODO: 命名規則、cum_ -> cumurative, rep_ -> repeat, frm_ -> frame
         for (_, melody_store) in self.store.melody.read().unwrap().iter() {
             // 付け加えるnotesをリストアップする。
             // self.played_notesに加える。
             let melody_state = melody_store.get_state();
 
-            let current_cumulative_samples_in_repeat =
-                self.current_cumulative_samples % melody_state.repeat_length;
-            let next_cumulative_samples_in_repeat =
-                next_cumulative_samples & melody_state.repeat_length;
+            let rep_current_samples = self.cum_current_samples % melody_state.repeat_length;
+            let rep_next_samples = cum_next_samples % melody_state.repeat_length;
 
-            if current_cumulative_samples_in_repeat < next_cumulative_samples_in_repeat {
-                for (samples, new_notes) in melody_state.notes.range((
-                    Included(current_cumulative_samples_in_repeat),
-                    Excluded(next_cumulative_samples_in_repeat),
-                )) {
+            if rep_current_samples < rep_next_samples {
+                for (rep_note_samples, new_notes) in melody_state
+                    .notes
+                    .range((Included(rep_current_samples), Excluded(rep_next_samples)))
+                {
                     for new_note in new_notes.iter() {
-                        let start_samples = samples - current_cumulative_samples_in_repeat
-                            + self.current_cumulative_samples;
-                        let end_samples = start_samples + new_note.duration;
+                        let cum_start_samples =
+                            rep_note_samples - rep_current_samples + self.cum_current_samples;
+                        let cum_end_samples = cum_start_samples + new_note.duration;
 
-                        if self.played_notes.contains_key(&end_samples) {
+                        if self.played_notes.contains_key(&cum_end_samples) {
                             self.played_notes
-                                .get_mut(&end_samples)
+                                .get_mut(&cum_end_samples)
                                 .unwrap()
-                                .push((start_samples, *new_note));
+                                .push((cum_start_samples, *new_note));
                         } else {
                             self.played_notes
-                                .insert(end_samples, vec![(start_samples, *new_note)]);
+                                .insert(cum_end_samples, vec![(cum_start_samples, *new_note)]);
                         }
                     }
                 }
             } else {
-                for (samples, new_notes) in melody_state.notes.range((
-                    Included(current_cumulative_samples_in_repeat),
+                for (rep_note_samples, new_notes) in melody_state.notes.range((
+                    Included(rep_current_samples),
                     Excluded(melody_state.repeat_length),
                 )) {
                     for new_note in new_notes.iter() {
-                        let start_samples = samples - current_cumulative_samples_in_repeat
-                            + self.current_cumulative_samples;
-                        let end_samples = start_samples + new_note.duration;
+                        let cum_start_samples =
+                            rep_note_samples + self.cum_current_samples - rep_current_samples;
+                        let cum_end_samples = cum_start_samples + new_note.duration;
 
-                        if self.played_notes.contains_key(&end_samples) {
+                        if self.played_notes.contains_key(&cum_end_samples) {
                             self.played_notes
-                                .get_mut(&end_samples)
+                                .get_mut(&cum_end_samples)
                                 .unwrap()
-                                .push((start_samples, *new_note));
+                                .push((cum_start_samples, *new_note));
                         } else {
                             self.played_notes
-                                .insert(end_samples, vec![(start_samples, *new_note)]);
+                                .insert(cum_end_samples, vec![(cum_start_samples, *new_note)]);
                         }
                     }
                 }
-                for (samples, new_notes) in melody_state
+                for (rep_note_samples, new_notes) in melody_state
                     .notes
-                    .range((Included(0), Excluded(next_cumulative_samples_in_repeat)))
+                    .range((Included(0), Excluded(rep_next_samples)))
                 {
                     for new_note in new_notes.iter() {
-                        let start_samples = samples - current_cumulative_samples_in_repeat
-                            + self.current_cumulative_samples;
-                        let end_samples = start_samples + new_note.duration;
+                        let cum_start_samples =
+                            rep_note_samples + self.cum_current_samples - rep_current_samples;
+                        let cum_end_samples = cum_start_samples + new_note.duration;
 
-                        if self.played_notes.contains_key(&end_samples) {
+                        if self.played_notes.contains_key(&cum_end_samples) {
                             self.played_notes
-                                .get_mut(&end_samples)
+                                .get_mut(&cum_end_samples)
                                 .unwrap()
-                                .push((start_samples, *new_note));
+                                .push((cum_start_samples, *new_note));
                         } else {
                             self.played_notes
-                                .insert(end_samples, vec![(start_samples, *new_note)]);
+                                .insert(cum_end_samples, vec![(cum_start_samples, *new_note)]);
                         }
                     }
                 }
@@ -123,23 +122,23 @@ impl StoreReader<NewMusicStore, Vec<i16>> for WaveReader {
         }
 
         // self.played_notesのを鳴らす
-        for (&end_samples, notes) in self.played_notes.iter() {
-            for (start_samples, note) in notes.iter() {
-                let freq_samples = get_hertz(note.pitch) / 44100.0;
-                let start_idx = if *start_samples <= self.current_cumulative_samples {
+        for (&cum_end_samples, notes) in self.played_notes.iter() {
+            for (cum_start_samples, note) in notes.iter() {
+                let herts_par_sample = get_hertz(note.pitch) / 44100.0;
+                let start_idx = if *cum_start_samples <= self.cum_current_samples {
                     0
                 } else {
-                    (start_samples - self.current_cumulative_samples) as usize
+                    (cum_start_samples - self.cum_current_samples) as usize
                 };
-                let end_idx = if end_samples >= next_cumulative_samples {
+                let end_idx = if cum_end_samples >= cum_next_samples {
                     self.wave_length as usize
                 } else {
-                    (end_samples - self.current_cumulative_samples) as usize
+                    (cum_end_samples - self.cum_current_samples) as usize
                 };
 
                 for i in start_idx..end_idx {
-                    let x = (self.current_cumulative_samples - start_samples + i as u64) as f32
-                        * freq_samples;
+                    let x = (self.cum_current_samples + i as u64 - cum_start_samples) as f32
+                        * herts_par_sample;
                     let x = x * 2.0 * (PI as f32);
                     let addition = (x.sin() * 30000.0) as i16;
                     ret[i] = ret[i].saturating_add(addition);
@@ -148,11 +147,11 @@ impl StoreReader<NewMusicStore, Vec<i16>> for WaveReader {
         }
 
         // 使ったself.played_notesのノートを消す
-        for samples in self.current_cumulative_samples..next_cumulative_samples {
-            self.played_notes.remove(&samples);
+        for cum_note_samples in self.cum_current_samples..cum_next_samples {
+            self.played_notes.remove(&cum_note_samples);
         }
 
-        self.current_cumulative_samples = next_cumulative_samples;
+        self.cum_current_samples = cum_next_samples;
 
         ret
     }
