@@ -80,32 +80,30 @@ fn main() {
         }));
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 48.0,
-            duration: 4 * (44100 / 4) - 1,
+            duration: 4 * (44100 / 4),
             start: 12 * (44100 / 4),
         }));
 
-        /*
         sub_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 24.0,
+            pitch: 36.0,
             duration: 4 * (44100 / 4),
             start: 0 * (44100 / 4),
         }));
         sub_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 29.0,
+            pitch: 41.0,
             duration: 4 * (44100 / 4),
             start: 4 * (44100 / 4),
         }));
         sub_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 31.0,
+            pitch: 43.0,
             duration: 4 * (44100 / 4),
             start: 8 * (44100 / 4),
         }));
         sub_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 24.0,
+            pitch: 36.0,
             duration: 4 * (44100 / 4),
             start: 12 * (44100 / 4),
         }));
-        */
     }
 
     portaudio_outputter.run();
