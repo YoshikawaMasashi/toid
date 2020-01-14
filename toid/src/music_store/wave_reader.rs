@@ -46,8 +46,6 @@ impl StoreReader<NewMusicStore, Vec<i16>> for WaveReader {
 
         let cum_next_samples = self.cum_current_samples + self.wave_length;
 
-        // TODO: samplesがどっちなのかちゃんと確かめる
-        // TODO: 命名規則、cum_ -> cumurative, rep_ -> repeat, frm_ -> frame
         for (_, melody_store) in self.store.melody.read().unwrap().iter() {
             // 付け加えるnotesをリストアップする。
             // self.played_notesに加える。
