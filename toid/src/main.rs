@@ -5,13 +5,13 @@ use std::sync::RwLock;
 
 use toid::music_store::melody_state::MelodyStateEvent;
 use toid::music_store::melody_state::NoteInfo;
-use toid::music_store::new_music_store::NewMusicStore;
+use toid::music_store::music_store::MusicStore;
 use toid::music_store::sf2_state::SF2StateEvent;
 use toid::music_store::wave_reader::WaveReader;
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 
 fn main() {
-    let store = NewMusicStore::new();
+    let store = MusicStore::new();
     let store = Arc::new(store);
 
     let wave_reader = WaveReader::new(Arc::clone(&store));

@@ -1,23 +1,21 @@
 use std::collections::BTreeMap;
 use std::f64::consts::PI;
-use std::ops::Bound::{Excluded, Included, Unbounded};
+use std::ops::Bound::{Excluded, Included};
 use std::sync::Arc;
-use std::sync::RwLock;
 
 use super::super::state_management::store_reader::StoreReader;
-use super::melody_state::{MelodyStateEvent, NoteInfo};
-use super::new_music_store::NewMusicStore;
-use super::scheduling_state::SchedulingStateEvent;
+use super::melody_state::NoteInfo;
+use super::music_store::MusicStore;
 
 pub struct WaveReader {
-    store: Arc<NewMusicStore>,
+    store: Arc<MusicStore>,
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
     cum_current_samples: u64,
 }
 
 impl WaveReader {
-    pub fn new(store: Arc<NewMusicStore>) -> Self {
+    pub fn new(store: Arc<MusicStore>) -> Self {
         WaveReader {
             store: Arc::clone(&store),
             wave_length: 512,
@@ -32,8 +30,8 @@ fn get_hertz(pitch: f32) -> f32 {
     440. * (2.0 as f32).powf((pitch - 69.) / 12.)
 }
 
-impl StoreReader<NewMusicStore, Vec<i16>> for WaveReader {
-    fn get_store(&self) -> Arc<NewMusicStore> {
+impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
+    fn get_store(&self) -> Arc<MusicStore> {
         Arc::clone(&self.store)
     }
 

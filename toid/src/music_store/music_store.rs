@@ -6,15 +6,15 @@ use super::melody_state::{MelodyState, MelodyStateEvent, MelodyStateReducer};
 use super::scheduling_state::{SchedulingState, SchedulingStateEvent, SchedulingStateReducer};
 use super::sf2_state::{SF2State, SF2StateEvent, SF2StateReducer};
 
-pub struct NewMusicStore {
+pub struct MusicStore {
     pub scheduling: Store<SchedulingState, SchedulingStateEvent, SchedulingStateReducer>,
     pub melody: RwLock<HashMap<String, Store<MelodyState, MelodyStateEvent, MelodyStateReducer>>>,
     pub sf2: Store<SF2State, SF2StateEvent, SF2StateReducer>,
 }
 
-impl NewMusicStore {
+impl MusicStore {
     pub fn new() -> Self {
-        NewMusicStore {
+        MusicStore {
             scheduling: Store::new(SchedulingState::new(), SchedulingStateReducer {}),
             melody: RwLock::new(HashMap::new()),
             sf2: Store::new(SF2State::new(), SF2StateReducer {}),
