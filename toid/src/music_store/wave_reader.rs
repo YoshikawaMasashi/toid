@@ -39,8 +39,7 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
         let mut ret: Vec<i16> = Vec::new();
         ret.resize(self.wave_length as usize, 0);
 
-        // let scheduling_state = self.store.scheduling.get_state();
-        // let sf2_state = self.store.sf2.get_state();
+        let sf2_state = self.store.sf2.get_state();
 
         let cum_next_samples = self.cum_current_samples + self.wave_length;
 
@@ -119,29 +118,61 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
         }
 
         // self.played_notesのを鳴らす
-        for (&cum_end_samples, notes) in self.played_notes.iter() {
-            for (cum_start_samples, note) in notes.iter() {
-                let herts_par_sample = get_hertz(note.pitch) / 44100.0;
-                let start_idx = if *cum_start_samples <= self.cum_current_samples {
-                    0
-                } else {
-                    (cum_start_samples - self.cum_current_samples) as usize
-                };
-                let end_idx = if cum_end_samples >= cum_next_samples {
-                    self.wave_length as usize
-                } else {
-                    (cum_end_samples - self.cum_current_samples) as usize
-                };
+        match &sf2_state.sf2 {
+            None => {
+                for (&cum_end_samples, notes) in self.played_notes.iter() {
+                    for (cum_start_samples, note) in notes.iter() {
+                        let herts_par_sample = get_hertz(note.pitch) / 44100.0;
+                        let start_idx = if *cum_start_samples <= self.cum_current_samples {
+                            0
+                        } else {
+                            (cum_start_samples - self.cum_current_samples) as usize
+                        };
+                        let end_idx = if cum_end_samples >= cum_next_samples {
+                            self.wave_length as usize
+                        } else {
+                            (cum_end_samples - self.cum_current_samples) as usize
+                        };
 
-                for i in start_idx..end_idx {
-                    let x = (self.cum_current_samples + i as u64 - cum_start_samples) as f32
-                        * herts_par_sample;
-                    let x = x * 2.0 * (PI as f32);
-                    let addition = (x.sin() * 15000.0) as i16;
-                    ret[i] = ret[i].saturating_add(addition);
+                        for i in start_idx..end_idx {
+                            let x = (self.cum_current_samples + i as u64 - cum_start_samples)
+                                as f32
+                                * herts_par_sample;
+                            let x = x * 2.0 * (PI as f32);
+                            let addition = (x.sin() * 15000.0) as i16;
+                            ret[i] = ret[i].saturating_add(addition);
+                        }
+                    }
                 }
             }
-        }
+            Some(sf2) => {
+                for (&cum_end_samples, notes) in self.played_notes.iter() {
+                    for (cum_start_samples, note) in notes.iter() {
+                        let start_idx = if *cum_start_samples <= self.cum_current_samples {
+                            0
+                        } else {
+                            (cum_start_samples - self.cum_current_samples) as usize
+                        };
+                        let end_idx = if cum_end_samples >= cum_next_samples {
+                            self.wave_length as usize
+                        } else {
+                            (cum_end_samples - self.cum_current_samples) as usize
+                        };
+
+                        let start_idx_for_sample = (self.cum_current_samples + start_idx as u64
+                            - cum_start_samples) as usize;
+                        let end_idx_for_sample = (self.cum_current_samples + end_idx as u64
+                            - cum_start_samples) as usize;
+
+                        let sample_data = sf2.get_samples(0, note.pitch as u8, start_idx_for_sample, end_idx_for_sample);
+
+                        for (i, j) in (start_idx..end_idx).enumerate() {
+                            ret[j] = ret[j].saturating_add(sample_data[i]);
+                        }
+                    }
+                }
+            }
+        };
 
         // 使ったself.played_notesのノートを消す
         for cum_note_samples in self.cum_current_samples..cum_next_samples {
