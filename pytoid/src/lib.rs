@@ -4,110 +4,107 @@ use pyo3::prelude::{
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use toid::music_state_manager;
-use toid::portaudio_outputter;
-use toid::state_management::reducer;
-use toid::state_management::store;
-use toid::states::music_state;
-use toid::stores::default_store;
+use toid::music_store::melody_state::NoteInfo;
+use toid::music_store::melody_state::{MelodyState, MelodyStateEvent, MelodyStateReducer};
+use toid::music_store::music_store;
+use toid::music_store::sf2_state::SF2StateEvent;
+use toid::music_store::wave_reader;
+use toid::outputters::portaudio_outputter;
+use toid::state_management::store::Store;
 
 pub mod sf2;
 
 #[pyclass(module = "toid")]
-struct MusicStateStore {
-    store: Arc<RwLock<Box<dyn store::Store<music_state::MusicState>>>>,
+struct MusicStore {
+    store: Arc<music_store::MusicStore>,
 }
 
 #[pymethods]
-impl MusicStateStore {
+impl MusicStore {
     #[new]
     fn new(obj: &PyRawObject) {
-        obj.init(MusicStateStore {
-            store: Arc::new(RwLock::new(Box::new(default_store::DefaultStore::new(
-                music_state::MusicState::new(),
+        obj.init(MusicStore {
+            store: Arc::new(music_store::MusicStore::new()),
+        });
+    }
+
+    fn new_melody(&self, key: String) {
+        self.store.new_melody(key);
+    }
+
+    fn load_and_set_sf2(&self, path: String) {
+        self.store
+            .sf2
+            .update_state(SF2StateEvent::LoadAndSetSF2(path));
+    }
+
+    fn get_melody(&self, key: String) -> MelodyStore {
+        MelodyStore {
+            store: Arc::clone(&self.store.melody.read().unwrap().get(&key).unwrap()),
+        }
+    }
+}
+
+#[pyclass(module = "toid")]
+struct MelodyStore {
+    store: Arc<Store<MelodyState, MelodyStateEvent, MelodyStateReducer>>,
+}
+
+#[pymethods]
+impl MelodyStore {
+    fn add_note(&self, pitch: f32, duration: u64, start: u64) {
+        self.store.update_state(MelodyStateEvent::AddNote(NoteInfo {
+            pitch,
+            duration,
+            start,
+        }));
+    }
+}
+
+#[pyclass(module = "toid")]
+struct WaveReader {
+    reader: Arc<RwLock<wave_reader::WaveReader>>,
+}
+
+#[pymethods]
+impl WaveReader {
+    #[new]
+    fn new(obj: &PyRawObject, store: &MusicStore) {
+        obj.init(WaveReader {
+            reader: Arc::new(RwLock::new(wave_reader::WaveReader::new(Arc::clone(
+                &store.store,
             )))),
         });
     }
 }
 
 #[pyclass(module = "toid")]
-struct MusicStateManager {
-    manager: Arc<RwLock<music_state_manager::MusicStateManager>>,
-}
-
-#[pymethods]
-impl MusicStateManager {
-    #[new]
-    fn new(obj: &PyRawObject, store: &MusicStateStore) {
-        let store = Arc::clone(&store.store);
-        obj.init(MusicStateManager {
-            manager: Arc::new(RwLock::new(music_state_manager::MusicStateManager::new(
-                store,
-            ))),
-        });
-    }
-
-    fn get_reducer(&self) -> Reducer {
-        Reducer {
-            reducer: self.manager.read().unwrap().get_reducer(),
-        }
-    }
-}
-
-#[pyclass(module = "toid")]
 struct PortAudioOutputter {
-    outputter: portaudio_outputter::PortAudioOutputter,
+    outputter: Arc<RwLock<portaudio_outputter::PortAudioOutputter>>,
 }
 
 #[pymethods]
 impl PortAudioOutputter {
     #[new]
-    fn new(obj: &PyRawObject, manager: &MusicStateManager) {
+    fn new(obj: &PyRawObject, reader: &WaveReader) {
         obj.init(PortAudioOutputter {
-            outputter: portaudio_outputter::PortAudioOutputter::new(Arc::clone(&manager.manager)),
+            outputter: Arc::new(RwLock::new(portaudio_outputter::PortAudioOutputter::new(
+                Arc::clone(&reader.reader),
+            ))),
         });
     }
 
-    fn run(&mut self) {
-        self.outputter.run();
-    }
-
-    fn sleep(&mut self, millseconds: i32) {
-        self.outputter.sleep(millseconds);
-    }
-
-    fn stop(&mut self) {
-        self.outputter.stop();
-    }
-}
-
-#[pyclass(module = "toid")]
-struct Reducer {
-    reducer:
-        Arc<dyn reducer::Reducer<music_state::MusicState, music_state_manager::MusicStateEvent>>,
-}
-
-#[pymethods]
-impl Reducer {
-    fn add_new_note_on(&self, pitch: f32, samples: i64) {
-        self.reducer
-            .reduce(music_state_manager::MusicStateEvent::AddNewNoteOn(
-                pitch, samples,
-            ));
-    }
-
-    fn add_new_note_off(&self, samples: i64) {
-        self.reducer
-            .reduce(music_state_manager::MusicStateEvent::AddNewNoteOff(samples));
+    fn run(&self) {
+        self.outputter.write().unwrap().run();
     }
 }
 
 #[pymodule]
 fn toid(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
-    m.add_class::<MusicStateStore>()?;
-    m.add_class::<MusicStateManager>()?;
+    m.add_class::<MusicStore>()?;
+    m.add_class::<MelodyStore>()?;
+    m.add_class::<WaveReader>()?;
     m.add_class::<PortAudioOutputter>()?;
-    m.add_class::<Reducer>()?;
 
     Ok(())
 }

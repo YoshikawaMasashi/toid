@@ -31,7 +31,7 @@ pub struct SF2 {
 
 #[pymethods]
 impl SF2 {
-    fn get_sample(
+    fn get_samples(
         &self,
         preset_idx: usize,
         key: u8,
@@ -39,7 +39,7 @@ impl SF2 {
         end: usize,
     ) -> PyResult<Py<PyArray1<i16>>> {
         let gil = pyo3::Python::acquire_gil();
-        let sample = self.sf2.get_sample(preset_idx, key, start, end);
+        let sample = self.sf2.get_samples(preset_idx, key, start, end);
         Ok(PyArray1::from_vec(gil.python(), sample).to_owned())
     }
 }

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::sync::RwLock;
 
 use super::super::state_management::store::Store;
@@ -8,7 +9,7 @@ use super::sf2_state::{SF2State, SF2StateEvent, SF2StateReducer};
 
 pub struct MusicStore {
     pub scheduling: Store<SchedulingState, SchedulingStateEvent, SchedulingStateReducer>,
-    pub melody: RwLock<HashMap<String, Store<MelodyState, MelodyStateEvent, MelodyStateReducer>>>,
+    pub melody: RwLock<HashMap<String, Arc<Store<MelodyState, MelodyStateEvent, MelodyStateReducer>>>>,
     pub sf2: Store<SF2State, SF2StateEvent, SF2StateReducer>,
 }
 
@@ -25,6 +26,6 @@ impl MusicStore {
         self.melody
             .write()
             .unwrap()
-            .insert(key, Store::new(MelodyState::new(), MelodyStateReducer {}));
+            .insert(key, Arc::new(Store::new(MelodyState::new(), MelodyStateReducer {})));
     }
 }
