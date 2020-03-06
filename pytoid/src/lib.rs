@@ -97,6 +97,10 @@ impl PortAudioOutputter {
     fn run(&self) {
         self.outputter.write().unwrap().run();
     }
+
+    fn stop(&self) {
+        self.outputter.write().unwrap().stop();
+    }
 }
 
 #[pymodule]
