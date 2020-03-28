@@ -15,11 +15,3 @@ nom = "5"
 [[bin]]
 name = "main"
 path = "src/main.rs"
-
-[[bin]]
-name = "run_server"
-path = "src/run_server.rs"
-
-[[bin]]
-name = "run_client"
-path = "src/run_client.rs"

@@ -9,7 +9,8 @@ use super::sf2_state::{SF2State, SF2StateEvent, SF2StateReducer};
 
 pub struct MusicStore {
     pub scheduling: Store<SchedulingState, SchedulingStateEvent, SchedulingStateReducer>,
-    pub melody: RwLock<HashMap<String, Arc<Store<MelodyState, MelodyStateEvent, MelodyStateReducer>>>>,
+    pub melody:
+        RwLock<HashMap<String, Arc<Store<MelodyState, MelodyStateEvent, MelodyStateReducer>>>>,
     pub sf2: Store<SF2State, SF2StateEvent, SF2StateReducer>,
 }
 
@@ -23,9 +24,9 @@ impl MusicStore {
     }
 
     pub fn new_melody(&self, key: String) {
-        self.melody
-            .write()
-            .unwrap()
-            .insert(key, Arc::new(Store::new(MelodyState::new(), MelodyStateReducer {})));
+        self.melody.write().unwrap().insert(
+            key,
+            Arc::new(Store::new(MelodyState::new(), MelodyStateReducer {})),
+        );
     }
 }

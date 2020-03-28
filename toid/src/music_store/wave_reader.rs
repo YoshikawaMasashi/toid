@@ -160,11 +160,18 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
                         };
 
                         let start_idx_for_sample = (self.cum_current_samples + start_idx as u64
-                            - cum_start_samples) as usize;
+                            - cum_start_samples)
+                            as usize;
                         let end_idx_for_sample = (self.cum_current_samples + end_idx as u64
-                            - cum_start_samples) as usize;
+                            - cum_start_samples)
+                            as usize;
 
-                        let sample_data = sf2.get_samples(0, note.pitch as u8, start_idx_for_sample, end_idx_for_sample);
+                        let sample_data = sf2.get_samples(
+                            0,
+                            note.pitch as u8,
+                            start_idx_for_sample,
+                            end_idx_for_sample,
+                        );
 
                         for (i, j) in (start_idx..end_idx).enumerate() {
                             ret[j] = ret[j].saturating_add(sample_data[i]);
