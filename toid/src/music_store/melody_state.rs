@@ -5,24 +5,25 @@ use serde::{Deserialize, Serialize};
 
 use super::super::state_management::reducer::Reducer;
 use super::super::state_management::serialize;
+use super::beat::Beat;
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub struct NoteInfo {
     pub pitch: f32,
-    pub duration: u64,
-    pub start: u64,
+    pub duration: Beat,
+    pub start: Beat,
 }
 
 pub struct MelodyState {
-    pub notes: BTreeMap<u64, Vec<NoteInfo>>,
-    pub repeat_length: u64,
+    pub notes: BTreeMap<Beat, Vec<NoteInfo>>,
+    pub repeat_length: Beat,
 }
 
 impl MelodyState {
     pub fn new() -> Self {
         MelodyState {
             notes: BTreeMap::new(),
-            repeat_length: 4 * 44100,
+            repeat_length: Beat::from(4),
         }
     }
 

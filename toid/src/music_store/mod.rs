@@ -1,3 +1,4 @@
+pub mod beat;
 pub mod melody_state;
 pub mod music_store;
 pub mod scheduling_state;
