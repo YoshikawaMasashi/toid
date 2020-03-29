@@ -103,7 +103,7 @@ impl Rem<i32> for Beat {
 
     fn rem(self, modulus: i32) -> Self {
         Self {
-            num: self.num % modulus,
+            num: self.num % modulus as i64,
         }
     }
 }
@@ -123,7 +123,7 @@ impl Rem<u32> for Beat {
 
     fn rem(self, modulus: u32) -> Self {
         Self {
-            num: self.num % modulus,
+            num: self.num % modulus as i64,
         }
     }
 }
@@ -133,18 +133,17 @@ impl Rem<u64> for Beat {
 
     fn rem(self, modulus: u64) -> Self {
         Self {
-            num: self.num % modulus,
+            num: self.num % modulus as i64,
         }
     }
 }
-
 
 impl Rem<usize> for Beat {
     type Output = Self;
 
     fn rem(self, modulus: usize) -> Self {
         Self {
-            num: self.num % modulus,
+            num: self.num % modulus as i64,
         }
     }
 }
