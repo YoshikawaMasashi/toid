@@ -4,6 +4,7 @@ use std::ops::Bound::{Excluded, Included};
 use std::sync::Arc;
 
 use super::super::state_management::store_reader::StoreReader;
+use super::beat::Beat;
 use super::melody_state::NoteInfo;
 use super::music_store::MusicStore;
 
@@ -12,6 +13,9 @@ pub struct WaveReader {
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
     cum_current_samples: u64,
+    current_bpm: f32,
+    bpm_change_samples: u64,
+    bpm_change_beats: Beat,
 }
 
 impl WaveReader {
@@ -21,6 +25,9 @@ impl WaveReader {
             wave_length: 512,
             played_notes: BTreeMap::new(),
             cum_current_samples: 0,
+            current_bpm: 120.0,
+            bpm_change_samples: 0,
+            bpm_change_beats: Beat::from(0),
         }
     }
 }

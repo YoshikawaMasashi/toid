@@ -5,9 +5,21 @@ use serde::{Deserialize, Serialize};
 
 const BEAT_LENGTH: i64 = 960;
 
+trait FromFraction<T> {
+    fn from_fraction(numerator: T, denominator: T) -> Self;
+}
+
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub struct Beat {
     num: i64,
+}
+
+impl FromFraction<i32> for Beat {
+    fn from_fraction(numerator: i32, denominator: i32) -> Self {
+        Beat {
+            num: ((numerator * BEAT_LENGTH as i32) / denominator) as i64,
+        }
+    }
 }
 
 impl From<f32> for Beat {
