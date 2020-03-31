@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 use std::f64::consts::PI;
-use std::ops::Bound::{Excluded, Included};
+use std::ops::Bound::{Excluded, Included, Unbounded};
 use std::sync::Arc;
 
 use super::super::state_management::store_reader::StoreReader;
@@ -47,8 +47,27 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
         ret.resize(self.wave_length as usize, 0);
 
         let sf2_state = self.store.sf2.get_state();
+        let scheduling_state = self.store.scheduling.get_state();
 
         let cum_next_samples = self.cum_current_samples + self.wave_length;
+
+        let cum_current_beat = Beat::from(
+            (self.cum_current_samples - self.bpm_change_samples) as f32 / 44100.0
+                * self.current_bpm
+                / 60.0,
+        ) + self.bpm_change_beats;
+        if let Some((&_, &new_bpm)) = scheduling_state
+            .bpm_schedule
+            .range((Unbounded, Included(cum_current_beat)))
+            .rev()
+            .next()
+        {
+            if new_bpm != self.current_bpm {
+                self.current_bpm = new_bpm;
+                self.bpm_change_samples = self.cum_current_samples;
+                self.bpm_change_beats = cum_current_beat;
+            }
+        }
 
         for (_, melody_store) in self.store.melody.read().unwrap().iter() {
             // 付け加えるnotesをリストアップする。
