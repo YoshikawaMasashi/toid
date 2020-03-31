@@ -14,6 +14,12 @@ pub struct Beat {
     num: i64,
 }
 
+impl Beat {
+    pub fn to_f32(self) -> f32 {
+        self.num as f32 / BEAT_LENGTH as f32
+    }
+}
+
 impl FromFraction<i32> for Beat {
     fn from_fraction(numerator: i32, denominator: i32) -> Self {
         Beat {
@@ -110,52 +116,12 @@ impl Sub for Beat {
     }
 }
 
-impl Rem<i32> for Beat {
+impl Rem<Self> for Beat {
     type Output = Self;
 
-    fn rem(self, modulus: i32) -> Self {
+    fn rem(self, modulus: Self) -> Self {
         Self {
-            num: self.num % modulus as i64,
-        }
-    }
-}
-
-impl Rem<i64> for Beat {
-    type Output = Self;
-
-    fn rem(self, modulus: i64) -> Self {
-        Self {
-            num: self.num % modulus,
-        }
-    }
-}
-
-impl Rem<u32> for Beat {
-    type Output = Self;
-
-    fn rem(self, modulus: u32) -> Self {
-        Self {
-            num: self.num % modulus as i64,
-        }
-    }
-}
-
-impl Rem<u64> for Beat {
-    type Output = Self;
-
-    fn rem(self, modulus: u64) -> Self {
-        Self {
-            num: self.num % modulus as i64,
-        }
-    }
-}
-
-impl Rem<usize> for Beat {
-    type Output = Self;
-
-    fn rem(self, modulus: usize) -> Self {
-        Self {
-            num: self.num % modulus as i64,
+            num: self.num % modulus.num,
         }
     }
 }

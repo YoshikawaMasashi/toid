@@ -3,6 +3,7 @@ extern crate portaudio;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use toid::music_store::beat::Beat;
 use toid::music_store::melody_state::MelodyStateEvent;
 use toid::music_store::melody_state::NoteInfo;
 use toid::music_store::music_store::MusicStore;
@@ -35,74 +36,74 @@ fn main() {
 
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 48.0,
-            duration: 1 * (44100 / 4),
-            start: 0 * (44100 / 4),
+            duration: Beat::from(0.5),
+            start: Beat::from(0.0),
         }));
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 50.0,
-            duration: 1 * (44100 / 4),
-            start: 1 * (44100 / 4),
+            duration: Beat::from(0.5),
+            start: Beat::from(0.5),
         }));
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 52.0,
-            duration: 1 * (44100 / 4),
-            start: 2 * (44100 / 4),
+            duration: Beat::from(0.5),
+            start: Beat::from(1.0),
         }));
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 53.0,
-            duration: 1 * (44100 / 4),
-            start: 3 * (44100 / 4),
+            duration: Beat::from(0.5),
+            start: Beat::from(1.5),
         }));
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 55.0,
-            duration: 2 * (44100 / 4),
-            start: 4 * (44100 / 4),
+            duration: Beat::from(1.0),
+            start: Beat::from(2.0),
         }));
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 57.0,
-            duration: 1 * (44100 / 4),
-            start: 6 * (44100 / 4),
+            duration: Beat::from(0.5),
+            start: Beat::from(3.0),
         }));
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 53.0,
-            duration: 1 * (44100 / 4),
-            start: 7 * (44100 / 4),
+            duration: Beat::from(0.5),
+            start: Beat::from(3.5),
         }));
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 52.0,
-            duration: 1 * (44100 / 4),
-            start: 8 * (44100 / 4),
+            duration: Beat::from(0.5),
+            start: Beat::from(4.0),
         }));
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 50.0,
-            duration: 1 * (44100 / 4),
-            start: 10 * (44100 / 4),
+            duration: Beat::from(0.5),
+            start: Beat::from(5.0),
         }));
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 48.0,
-            duration: 4 * (44100 / 4),
-            start: 12 * (44100 / 4),
+            duration: Beat::from(2.0),
+            start: Beat::from(6.0),
         }));
 
         sub_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 36.0,
-            duration: 4 * (44100 / 4),
-            start: 0 * (44100 / 4),
+            duration: Beat::from(2.0),
+            start: Beat::from(0.0),
         }));
         sub_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 41.0,
-            duration: 4 * (44100 / 4),
-            start: 4 * (44100 / 4),
+            duration: Beat::from(2.0),
+            start: Beat::from(2.0),
         }));
         sub_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 43.0,
-            duration: 4 * (44100 / 4),
-            start: 8 * (44100 / 4),
+            duration: Beat::from(2.0),
+            start: Beat::from(4.0),
         }));
         sub_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 36.0,
-            duration: 4 * (44100 / 4),
-            start: 12 * (44100 / 4),
+            duration: Beat::from(2.0),
+            start: Beat::from(6.0),
         }));
     }
 

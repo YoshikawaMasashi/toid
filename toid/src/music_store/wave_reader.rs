@@ -16,6 +16,7 @@ pub struct WaveReader {
     current_bpm: f32,
     bpm_change_samples: u64,
     bpm_change_beats: Beat,
+    cum_current_beats: Beat,
 }
 
 impl WaveReader {
@@ -28,6 +29,7 @@ impl WaveReader {
             current_bpm: 120.0,
             bpm_change_samples: 0,
             bpm_change_beats: Beat::from(0),
+            cum_current_beats: Beat::from(0),
         }
     }
 }
@@ -51,41 +53,42 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
 
         let cum_next_samples = self.cum_current_samples + self.wave_length;
 
-        let cum_current_beat = Beat::from(
-            (self.cum_current_samples - self.bpm_change_samples) as f32 / 44100.0
-                * self.current_bpm
-                / 60.0,
-        ) + self.bpm_change_beats;
         if let Some((&_, &new_bpm)) = scheduling_state
             .bpm_schedule
-            .range((Unbounded, Included(cum_current_beat)))
+            .range((Unbounded, Included(self.cum_current_beats)))
             .rev()
             .next()
         {
             if new_bpm != self.current_bpm {
                 self.current_bpm = new_bpm;
                 self.bpm_change_samples = self.cum_current_samples;
-                self.bpm_change_beats = cum_current_beat;
+                self.bpm_change_beats = self.cum_current_beats;
             }
         }
+        let cum_next_beats = self.cum_current_beats
+            + Beat::from(self.wave_length as f32 * self.current_bpm / 44100.0 / 60.0);
 
         for (_, melody_store) in self.store.melody.read().unwrap().iter() {
             // 付け加えるnotesをリストアップする。
             // self.played_notesに加える。
             let melody_state = melody_store.get_state();
 
-            let rep_current_samples = self.cum_current_samples % melody_state.repeat_length;
-            let rep_next_samples = cum_next_samples % melody_state.repeat_length;
+            let rep_current_beats = self.cum_current_beats % melody_state.repeat_length;
+            let rep_next_beats = cum_next_beats % melody_state.repeat_length;
 
-            if rep_current_samples < rep_next_samples {
-                for (rep_note_samples, new_notes) in melody_state
+            if rep_current_beats < rep_next_beats {
+                for (&rep_note_beats, new_notes) in melody_state
                     .notes
-                    .range((Included(rep_current_samples), Excluded(rep_next_samples)))
+                    .range((Included(rep_current_beats), Excluded(rep_next_beats)))
                 {
                     for new_note in new_notes.iter() {
                         let cum_start_samples =
-                            rep_note_samples - rep_current_samples + self.cum_current_samples;
-                        let cum_end_samples = cum_start_samples + new_note.duration;
+                            ((rep_note_beats - rep_current_beats).to_f32() * 44100.0 * 60.0
+                                / self.current_bpm) as u64
+                                + self.cum_current_samples;
+                        let cum_end_samples = cum_start_samples
+                            + (new_note.duration.to_f32() * 44100.0 * 60.0 / self.current_bpm)
+                                as u64;
 
                         if self.played_notes.contains_key(&cum_end_samples) {
                             self.played_notes
@@ -99,14 +102,18 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
                     }
                 }
             } else {
-                for (rep_note_samples, new_notes) in melody_state.notes.range((
-                    Included(rep_current_samples),
+                for (&rep_note_beats, new_notes) in melody_state.notes.range((
+                    Included(rep_current_beats),
                     Excluded(melody_state.repeat_length),
                 )) {
                     for new_note in new_notes.iter() {
                         let cum_start_samples =
-                            rep_note_samples + self.cum_current_samples - rep_current_samples;
-                        let cum_end_samples = cum_start_samples + new_note.duration;
+                            ((rep_note_beats - rep_current_beats).to_f32() * 44100.0 * 60.0
+                                / self.current_bpm) as u64
+                                + self.cum_current_samples;
+                        let cum_end_samples = cum_start_samples
+                            + (new_note.duration.to_f32() * 44100.0 * 60.0 / self.current_bpm)
+                                as u64;
 
                         if self.played_notes.contains_key(&cum_end_samples) {
                             self.played_notes
@@ -119,15 +126,18 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
                         }
                     }
                 }
-                for (rep_note_samples, new_notes) in melody_state
+                for (&rep_note_beats, new_notes) in melody_state
                     .notes
-                    .range((Included(0), Excluded(rep_next_samples)))
+                    .range((Included(Beat::from(0)), Excluded(rep_next_beats)))
                 {
                     for new_note in new_notes.iter() {
-                        let cum_start_samples = rep_note_samples + self.cum_current_samples
-                            - rep_next_samples
-                            + self.wave_length;
-                        let cum_end_samples = cum_start_samples + new_note.duration;
+                        let cum_start_samples =
+                            ((rep_note_beats - rep_current_beats).to_f32() * 44100.0 * 60.0
+                                / self.current_bpm) as u64
+                                + self.cum_current_samples;
+                        let cum_end_samples = cum_start_samples
+                            + (new_note.duration.to_f32() * 44100.0 * 60.0 / self.current_bpm)
+                                as u64;
 
                         if self.played_notes.contains_key(&cum_end_samples) {
                             self.played_notes
@@ -213,6 +223,7 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
         }
 
         self.cum_current_samples = cum_next_samples;
+        self.cum_current_beats = cum_next_beats;
 
         ret
     }
