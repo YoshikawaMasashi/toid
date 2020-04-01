@@ -7,6 +7,7 @@ use toid::music_store::beat::Beat;
 use toid::music_store::melody_state::MelodyStateEvent;
 use toid::music_store::melody_state::NoteInfo;
 use toid::music_store::music_store::MusicStore;
+use toid::music_store::scheduling_state::SchedulingStateEvent;
 use toid::music_store::sf2_state::SF2StateEvent;
 use toid::music_store::wave_reader::WaveReader;
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
@@ -33,6 +34,15 @@ fn main() {
         let melody_hash_map = store.melody.read().unwrap();
         let main_melody_store = melody_hash_map.get(&String::from("main")).unwrap();
         let sub_melody_store = melody_hash_map.get(&String::from("sub")).unwrap();
+        store
+            .scheduling
+            .update_state(SchedulingStateEvent::ChangeBPM(Beat::from(0), 120.0));
+        store
+            .scheduling
+            .update_state(SchedulingStateEvent::ChangeBPM(Beat::from(8), 180.0));
+        store
+            .scheduling
+            .update_state(SchedulingStateEvent::ChangeBPM(Beat::from(16), 120.0));
 
         main_melody_store.update_state(MelodyStateEvent::AddNote(NoteInfo {
             pitch: 48.0,
@@ -108,6 +118,6 @@ fn main() {
     }
 
     portaudio_outputter.run();
-    portaudio_outputter.sleep(8000);
+    portaudio_outputter.sleep(12000);
     portaudio_outputter.stop();
 }

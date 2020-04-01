@@ -23,7 +23,7 @@ impl MelodyState {
     pub fn new() -> Self {
         MelodyState {
             notes: BTreeMap::new(),
-            repeat_length: Beat::from(4),
+            repeat_length: Beat::from(8),
         }
     }
 

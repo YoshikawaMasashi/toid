@@ -114,6 +114,11 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
                         let cum_end_samples = cum_start_samples
                             + (new_note.duration.to_f32() * 44100.0 * 60.0 / self.current_bpm)
                                 as u64;
+                        /*
+                        let cum_start_samples =
+                            rep_note_samples + self.cum_current_samples - rep_current_samples;
+                        let cum_end_samples = cum_start_samples + new_note.duration;
+                        */
 
                         if self.played_notes.contains_key(&cum_end_samples) {
                             self.played_notes
@@ -132,12 +137,21 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
                 {
                     for new_note in new_notes.iter() {
                         let cum_start_samples =
-                            ((rep_note_beats - rep_current_beats).to_f32() * 44100.0 * 60.0
+                            ((melody_state.repeat_length + rep_note_beats - rep_current_beats)
+                                .to_f32()
+                                * 44100.0
+                                * 60.0
                                 / self.current_bpm) as u64
                                 + self.cum_current_samples;
                         let cum_end_samples = cum_start_samples
                             + (new_note.duration.to_f32() * 44100.0 * 60.0 / self.current_bpm)
                                 as u64;
+                        /*
+                        let cum_start_samples = rep_note_samples + self.cum_current_samples
+                            - rep_next_samples
+                            + self.wave_length;
+                        let cum_end_samples = cum_start_samples + new_note.duration;
+                        */
 
                         if self.played_notes.contains_key(&cum_end_samples) {
                             self.played_notes
