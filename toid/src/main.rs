@@ -27,7 +27,7 @@ fn main() {
     store
         .sf2
         .update_state(SF2StateEvent::LoadAndSetSF2(String::from(
-            "../florestan-subset.sf2",
+            "../resource/florestan-subset.sf2",
         )));
 
     {
