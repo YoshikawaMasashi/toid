@@ -11,6 +11,7 @@ use toid::music_store::scheduling_state::SchedulingStateEvent;
 use toid::music_store::sf2_state::SF2StateEvent;
 use toid::music_store::wave_reader::WaveReader;
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
+use toid::resource_management::resource_manager::ResourceManager;
 
 fn main() {
     let store = MusicStore::new();
@@ -24,10 +25,15 @@ fn main() {
     store.new_melody(String::from("main"));
     store.new_melody(String::from("sub"));
 
+    let mut resource_manager = ResourceManager::new();
+    resource_manager.register(String::from("../resource/sf2/sf2.toml"));
+
+    let sf2_path = resource_manager.get_path(String::from("sf2.test")).unwrap();
+
     store
         .sf2
         .update_state(SF2StateEvent::LoadAndSetSF2(String::from(
-            "../resource/sf2/florestan-subset.sf2",
+            sf2_path.to_str().unwrap(),
         )));
 
     {

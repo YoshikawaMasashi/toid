@@ -4,6 +4,6 @@
 toid/target/*
 rust-survey/*
 pytoid/target/*
-*.sf2
 *.ipynb
 toid/.vscode
+resource/

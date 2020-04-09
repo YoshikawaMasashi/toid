@@ -12,9 +12,9 @@ struct ResourceConfig {
 }
 
 pub struct ResourceUnit {
-    name: String,
-    preference_path: Box<Path>,
-    file_paths: BTreeMap<String, Box<Path>>,
+    pub name: String,
+    pub preference_path: Box<Path>,
+    pub file_paths: BTreeMap<String, Box<Path>>,
 }
 
 impl ResourceUnit {
