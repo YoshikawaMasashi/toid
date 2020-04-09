@@ -5,6 +5,7 @@
 pub mod data;
 pub mod music_store;
 pub mod outputters;
+pub mod resource_management;
 pub mod state_management;
 
 #[cfg(test)]
