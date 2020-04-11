@@ -3,13 +3,14 @@ use std::f64::consts::PI;
 use std::ops::Bound::{Excluded, Included, Unbounded};
 use std::sync::Arc;
 
+use super::super::state_management::store::Store;
 use super::super::state_management::store_reader::StoreReader;
 use super::beat::Beat;
 use super::melody_state::NoteInfo;
-use super::music_store::MusicStore;
+use super::music_state::{MusicState, MusicStateEvent, MusicStateReducer};
 
 pub struct WaveReader {
-    store: Arc<MusicStore>,
+    store: Arc<Store<MusicState, MusicStateEvent, MusicStateReducer>>,
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
     cum_current_samples: u64,
@@ -20,7 +21,7 @@ pub struct WaveReader {
 }
 
 impl WaveReader {
-    pub fn new(store: Arc<MusicStore>) -> Self {
+    pub fn new(store: Arc<Store<MusicState, MusicStateEvent, MusicStateReducer>>) -> Self {
         WaveReader {
             store: Arc::clone(&store),
             wave_length: 512,
@@ -39,8 +40,8 @@ fn get_hertz(pitch: f32) -> f32 {
     440. * (2.0 as f32).powf((pitch - 69.) / 12.)
 }
 
-impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
-    fn get_store(&self) -> Arc<MusicStore> {
+impl StoreReader<Store<MusicState, MusicStateEvent, MusicStateReducer>, Vec<i16>> for WaveReader {
+    fn get_store(&self) -> Arc<Store<MusicState, MusicStateEvent, MusicStateReducer>> {
         Arc::clone(&self.store)
     }
 
@@ -48,8 +49,9 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
         let mut ret: Vec<i16> = Vec::new();
         ret.resize(self.wave_length as usize, 0);
 
-        let sf2_state = self.store.sf2.get_state();
-        let scheduling_state = self.store.scheduling.get_state();
+        let music_state = self.store.get_state();
+        let sf2_state = &music_state.sf2;
+        let scheduling_state = &music_state.scheduling;
 
         let cum_next_samples = self.cum_current_samples + self.wave_length;
 
@@ -68,11 +70,9 @@ impl StoreReader<MusicStore, Vec<i16>> for WaveReader {
         let cum_next_beats = self.cum_current_beats
             + Beat::from(self.wave_length as f32 * self.current_bpm / 44100.0 / 60.0);
 
-        for (_, melody_store) in self.store.melody.read().unwrap().iter() {
+        for (_, melody_state) in music_state.melody_map.iter() {
             // 付け加えるnotesをリストアップする。
             // self.played_notesに加える。
-            let melody_state = melody_store.get_state();
-
             let rep_current_beats = self.cum_current_beats % melody_state.repeat_length;
             let rep_next_beats = cum_next_beats % melody_state.repeat_length;
 

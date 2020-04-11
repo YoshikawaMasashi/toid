@@ -3,7 +3,7 @@
 //! 通常はPython3などのスクリプト言語にバインディングして使うことを想定しています。
 
 pub mod data;
-pub mod music_store;
+pub mod music_state;
 pub mod outputters;
 pub mod resource_management;
 pub mod state_management;

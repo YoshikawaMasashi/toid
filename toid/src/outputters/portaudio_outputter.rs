@@ -1,6 +1,6 @@
 extern crate portaudio;
 
-use super::super::music_store::wave_reader::WaveReader;
+use super::super::music_state::wave_reader::WaveReader;
 use super::super::state_management::store_reader::StoreReader;
 use portaudio as pa;
 use std::option::Option;
