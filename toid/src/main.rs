@@ -147,7 +147,7 @@ fn main() {
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 43.0,
             duration: Beat::from(2.0),
-            start: Beat::from(2.0),
+            start: Beat::from(4.0),
         }),
     ));
     store.update_state(MusicStateEvent::MelodyStateEvent(
@@ -155,7 +155,7 @@ fn main() {
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 36.0,
             duration: Beat::from(2.0),
-            start: Beat::from(2.0),
+            start: Beat::from(6.0),
         }),
     ));
 
