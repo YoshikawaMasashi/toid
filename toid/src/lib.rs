@@ -7,6 +7,7 @@ pub mod music_state;
 pub mod outputters;
 pub mod resource_management;
 pub mod state_management;
+pub mod stores;
 
 #[cfg(test)]
 mod tests;

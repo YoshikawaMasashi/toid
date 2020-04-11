@@ -13,9 +13,11 @@ use toid::music_state::wave_reader::WaveReader;
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::resource_management::resource_manager::ResourceManager;
 use toid::state_management::store::Store;
+use toid::stores::normal_store::NormalStore;
 
 fn main() {
-    let store = Store::new(MusicState::new(), MusicStateReducer {});
+    let store = NormalStore::new(MusicState::new(), MusicStateReducer {});
+    let store = Box::new(store) as Box<dyn Store<MusicState, MusicStateEvent>>;
     let store = Arc::new(store);
 
     let wave_reader = WaveReader::new(Arc::clone(&store));
