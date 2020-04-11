@@ -11,7 +11,7 @@ impl WebSocketStoreServer {
         Self {}
     }
 
-    fn listen(&mut self, connect_address: String) {
+    pub fn listen(&mut self, connect_address: String) {
         if let Err(error) = ws::listen(connect_address, |out| WebSocketStoreServerHandler::new(out))
         {
             println!("Failed to create WebSocket due to {:?}", error);
