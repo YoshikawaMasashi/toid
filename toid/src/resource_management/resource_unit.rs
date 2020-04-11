@@ -39,7 +39,7 @@ impl ResourceUnit {
 
     pub fn check_existance(&self) -> bool {
         let mut exist_all = true;
-        for (key, path) in self.file_paths.iter() {
+        for (_key, path) in self.file_paths.iter() {
             exist_all = exist_all && path.exists();
         }
         exist_all
