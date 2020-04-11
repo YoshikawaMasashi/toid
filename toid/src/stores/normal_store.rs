@@ -13,7 +13,7 @@ pub struct NormalStore<S, E, R> {
     event_marker: PhantomData<E>,
 }
 
-impl<S, E: Sized + Serialize<E>, R: Reducer<S, E>> NormalStore<S, E, R> {
+impl<S, E, R> NormalStore<S, E, R> {
     pub fn new(state: S, reducer: R) -> Self {
         Self {
             state_holder: RwLock::new(StateHolder::new(state)),
