@@ -4,13 +4,12 @@ use std::ops::Bound::{Excluded, Included, Unbounded};
 use std::sync::Arc;
 
 use super::super::state_management::store::Store;
-use super::super::state_management::store_reader::StoreReader;
 use super::beat::Beat;
 use super::melody_state::NoteInfo;
-use super::music_state::{MusicState, MusicStateEvent, MusicStateReducer};
+use super::music_state::{MusicState, MusicStateEvent};
 
 pub struct WaveReader {
-    store: Arc<Store<MusicState, MusicStateEvent, MusicStateReducer>>,
+    store: Arc<Box<dyn Store<MusicState, MusicStateEvent>>>,
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
     cum_current_samples: u64,
@@ -21,7 +20,7 @@ pub struct WaveReader {
 }
 
 impl WaveReader {
-    pub fn new(store: Arc<Store<MusicState, MusicStateEvent, MusicStateReducer>>) -> Self {
+    pub fn new(store: Arc<Box<dyn Store<MusicState, MusicStateEvent>>>) -> Self {
         WaveReader {
             store: Arc::clone(&store),
             wave_length: 512,
@@ -40,12 +39,8 @@ fn get_hertz(pitch: f32) -> f32 {
     440. * (2.0 as f32).powf((pitch - 69.) / 12.)
 }
 
-impl StoreReader<Store<MusicState, MusicStateEvent, MusicStateReducer>, Vec<i16>> for WaveReader {
-    fn get_store(&self) -> Arc<Store<MusicState, MusicStateEvent, MusicStateReducer>> {
-        Arc::clone(&self.store)
-    }
-
-    fn read(&mut self) -> Vec<i16> {
+impl WaveReader {
+    pub fn read(&mut self) -> Vec<i16> {
         let mut ret: Vec<i16> = Vec::new();
         ret.resize(self.wave_length as usize, 0);
 
