@@ -3,6 +3,7 @@ extern crate portaudio;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use toid::high_layer_trial::num_lang::send_num_lang;
 use toid::music_state::beat::Beat;
 use toid::music_state::melody_state::MelodyStateEvent;
 use toid::music_state::melody_state::NoteInfo;
@@ -33,7 +34,6 @@ fn main() {
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&wave_reader));
 
-    player.send_event(MusicStateEvent::NewMelody(String::from("main")));
     player.send_event(MusicStateEvent::NewMelody(String::from("sub")));
 
     player.send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
@@ -50,86 +50,11 @@ fn main() {
         SchedulingStateEvent::ChangeBPM(Beat::from(16), 120.0),
     ));
 
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("main"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 48.0,
-            duration: Beat::from(0.5),
-            start: Beat::from(0.0),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("main"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 50.0,
-            duration: Beat::from(0.5),
-            start: Beat::from(0.5),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("main"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 52.0,
-            duration: Beat::from(0.5),
-            start: Beat::from(1.0),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("main"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 53.0,
-            duration: Beat::from(0.5),
-            start: Beat::from(1.5),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("main"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 55.0,
-            duration: Beat::from(1.0),
-            start: Beat::from(2.0),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("main"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 57.0,
-            duration: Beat::from(0.5),
-            start: Beat::from(3.0),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("main"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 53.0,
-            duration: Beat::from(0.5),
-            start: Beat::from(3.5),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("main"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 52.0,
-            duration: Beat::from(0.5),
-            start: Beat::from(4.0),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("main"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 50.0,
-            duration: Beat::from(0.5),
-            start: Beat::from(5.0),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("main"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 48.0,
-            duration: Beat::from(1.5),
-            start: Beat::from(6.0),
-        }),
-    ));
+    send_num_lang(
+        "12345 643 2 1".to_string(),
+        "main".to_string(),
+        Arc::clone(&player) as Arc<dyn Player<MusicState, MusicStateEvent>>,
+    );
 
     player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("sub"),

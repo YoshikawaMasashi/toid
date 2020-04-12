@@ -3,12 +3,12 @@
 //! 通常はPython3などのスクリプト言語にバインディングして使うことを想定しています。
 
 pub mod data;
+pub mod high_layer_trial;
 pub mod music_state;
 pub mod outputters;
 pub mod players;
 pub mod resource_management;
 pub mod state_management;
-// pub mod stores;
 
 #[cfg(test)]
 mod tests;
