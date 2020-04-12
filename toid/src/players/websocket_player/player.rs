@@ -10,6 +10,7 @@ use super::super::super::state_management::serialize::Serialize;
 use super::super::super::state_management::state::State;
 use super::super::super::state_management::store::Store;
 use super::super::player::Player;
+use super::send_data::SendData;
 
 pub struct SenderHolder {
     out: Option<ws::Sender>,
@@ -35,8 +36,10 @@ pub struct WebSocketPlayerHandler<S, E> {
     store: Arc<Store<S, E>>,
 }
 
-impl<S: 'static + State<E> + Send + Sync, E: 'static + Sized + Serialize<E> + Send + Sync>
-    WebSocketPlayer<S, E>
+impl<
+        S: 'static + State<E> + Serialize<S> + Send + Sync,
+        E: 'static + Sized + Serialize<E> + Send + Sync,
+    > WebSocketPlayer<S, E>
 {
     pub fn new(store: Arc<Store<S, E>>, resource_manager: Arc<ResourceManager>) -> Self {
         Self {
@@ -74,15 +77,18 @@ impl<S: State<E>, E: Sized + Serialize<E>> Player<S, E> for WebSocketPlayer<S, E
 
     fn send_event(&self, event: E) {
         if let Some(out) = &self.sender_holder.read().unwrap().out {
-            let serialized = event.serialize().unwrap();
-            out.send(serialized).unwrap();
+            let serialized_event = event.serialize().unwrap();
+            let msg = SendData::StateUpdate(serialized_event).serialize().unwrap();
+            out.send(msg).unwrap();
         } else {
             println!("sender have not been prepared yet");
         }
     }
 }
 
-impl<S: State<E>, E: Sized + Serialize<E>> ws::Handler for WebSocketPlayerHandler<S, E> {
+impl<S: State<E> + Serialize<S>, E: Sized + Serialize<E>> ws::Handler
+    for WebSocketPlayerHandler<S, E>
+{
     fn on_open(&mut self, _: ws::Handshake) -> ws::Result<()> {
         println!("connected");
         Ok(())
@@ -90,8 +96,18 @@ impl<S: State<E>, E: Sized + Serialize<E>> ws::Handler for WebSocketPlayerHandle
 
     fn on_message(&mut self, msg: ws::Message) -> ws::Result<()> {
         println!("Client got message '{}'. ", msg);
-        let event: E = E::deserialize(msg.to_string()).unwrap();
-        self.store.update_state(event);
-        Ok(())
+        let send_data: SendData = SendData::deserialize(msg.to_string()).unwrap();
+        match send_data {
+            SendData::StateUpdate(event_string) => {
+                let event: E = E::deserialize(event_string).unwrap();
+                self.store.update_state(event);
+                Ok(())
+            }
+            SendData::SyncState(state_string) => {
+                let state: S = S::deserialize(state_string).unwrap();
+                self.store.set_state(state);
+                Ok(())
+            }
+        }
     }
 }
