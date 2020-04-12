@@ -5,7 +5,7 @@
 pub mod data;
 pub mod music_state;
 pub mod outputters;
-pub mod player;
+pub mod players;
 pub mod resource_management;
 pub mod state_management;
 // pub mod stores;
