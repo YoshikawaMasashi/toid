@@ -14,7 +14,6 @@ use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::local_player::LocalPlayer;
 use toid::players::player::Player;
 use toid::resource_management::resource_manager::ResourceManager;
-use toid::state_management::serialize::Serialize;
 use toid::state_management::store::Store;
 
 fn main() {
@@ -37,10 +36,6 @@ fn main() {
     player.send_event(MusicStateEvent::NewMelody(String::from("main")));
     player.send_event(MusicStateEvent::NewMelody(String::from("sub")));
 
-    println!("{}", player.get_store().get_state().serialize().unwrap());
-    let desirialized =
-        MusicState::deserialize(player.get_store().get_state().serialize().unwrap()).unwrap();
-    /*
     player.send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
         String::from("sf2.test"),
     )));
@@ -172,5 +167,4 @@ fn main() {
     portaudio_outputter.run();
     portaudio_outputter.sleep(12000);
     portaudio_outputter.stop();
-    */
 }

@@ -54,17 +54,15 @@ impl State<MelodyStateEvent> for MelodyState {
 
 impl serialize::Serialize<MelodyState> for MelodyState {
     fn serialize(&self) -> Result<String, String> {
-        if let Ok(serialized) = serde_json::to_string(&self) {
-            Ok(serialized)
-        } else {
-            Err(String::from("error in serizalization"))
+        match serde_json::to_string(&self) {
+            Ok(serialized) => Ok(serialized),
+            Err(err) => Err(format!("error in serizalization : {}", err)),
         }
     }
     fn deserialize(serialized: String) -> Result<Self, String> {
-        if let Ok(string) = serde_json::from_str(serialized.as_str()) {
-            Ok(string)
-        } else {
-            Err(String::from("error in deserizalization"))
+        match serde_json::from_str(serialized.as_str()) {
+            Ok(deserialized) => Ok(deserialized),
+            Err(err) => Err(format!("error in deserizalization : {}", err)),
         }
     }
 }
@@ -76,17 +74,15 @@ pub enum MelodyStateEvent {
 
 impl serialize::Serialize<MelodyStateEvent> for MelodyStateEvent {
     fn serialize(&self) -> Result<String, String> {
-        if let Ok(serialized) = serde_json::to_string(&self) {
-            Ok(serialized)
-        } else {
-            Err(String::from("error in serizalization"))
+        match serde_json::to_string(&self) {
+            Ok(serialized) => Ok(serialized),
+            Err(err) => Err(format!("error in serizalization : {}", err)),
         }
     }
     fn deserialize(serialized: String) -> Result<Self, String> {
-        if let Ok(string) = serde_json::from_str(serialized.as_str()) {
-            Ok(string)
-        } else {
-            Err(String::from("error in deserizalization"))
+        match serde_json::from_str(serialized.as_str()) {
+            Ok(deserialized) => Ok(deserialized),
+            Err(err) => Err(format!("error in deserizalization : {}", err)),
         }
     }
 }
