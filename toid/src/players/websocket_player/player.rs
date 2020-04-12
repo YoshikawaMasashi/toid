@@ -64,6 +64,16 @@ impl<
             }
         });
     }
+
+    pub fn sync_state(&self) {
+        if let Some(out) = &self.sender_holder.read().unwrap().out {
+            let serialized_state = self.store.get_state().serialize().unwrap();
+            let msg = SendData::SyncState(serialized_state).serialize().unwrap();
+            out.send(msg).unwrap();
+        } else {
+            println!("sender have not been prepared yet");
+        }
+    }
 }
 
 impl<S: State<E>, E: Sized + Serialize<E>> Player<S, E> for WebSocketPlayer<S, E> {
