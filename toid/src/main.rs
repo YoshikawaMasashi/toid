@@ -28,8 +28,9 @@ fn main() {
     store.update_state(MusicStateEvent::NewMelody(String::from("main")));
     store.update_state(MusicStateEvent::NewMelody(String::from("sub")));
 
-    let mut resource_manager = ResourceManager::new();
+    let resource_manager = ResourceManager::new();
     resource_manager.register(String::from("../resource/sf2/sf2.toml"));
+    resource_manager.load_sf2(String::from("sf2.test"));
 
     let sf2_path = resource_manager.get_path(String::from("sf2.test")).unwrap();
 
