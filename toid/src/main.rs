@@ -34,8 +34,6 @@ fn main() {
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&wave_reader));
 
-    player.send_event(MusicStateEvent::NewMelody(String::from("sub")));
-
     player.send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
         String::from("sf2.test"),
     )));
@@ -52,42 +50,17 @@ fn main() {
 
     send_num_lang(
         "12345 643 2 1".to_string(),
+        0.0,
         "main".to_string(),
         Arc::clone(&player) as Arc<dyn Player<MusicState, MusicStateEvent>>,
     );
 
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("sub"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 36.0,
-            duration: Beat::from(2.0),
-            start: Beat::from(0.0),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("sub"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 41.0,
-            duration: Beat::from(2.0),
-            start: Beat::from(2.0),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("sub"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 43.0,
-            duration: Beat::from(2.0),
-            start: Beat::from(4.0),
-        }),
-    ));
-    player.send_event(MusicStateEvent::MelodyStateEvent(
-        String::from("sub"),
-        MelodyStateEvent::AddNote(NoteInfo {
-            pitch: 36.0,
-            duration: Beat::from(2.0),
-            start: Beat::from(6.0),
-        }),
-    ));
+    send_num_lang(
+        "1   4   5   1".to_string(),
+        -1.0,
+        "sub".to_string(),
+        Arc::clone(&player) as Arc<dyn Player<MusicState, MusicStateEvent>>,
+    );
 
     portaudio_outputter.run();
     portaudio_outputter.sleep(12000);
