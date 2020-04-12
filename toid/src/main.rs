@@ -38,6 +38,8 @@ fn main() {
     player.send_event(MusicStateEvent::NewMelody(String::from("sub")));
 
     println!("{}", player.get_store().get_state().serialize().unwrap());
+    let desirialized =
+        MusicState::deserialize(player.get_store().get_state().serialize().unwrap()).unwrap();
     /*
     player.send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
         String::from("sf2.test"),
