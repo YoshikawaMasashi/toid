@@ -10,7 +10,7 @@ use super::melody_state::NoteInfo;
 use super::music_state::{MusicState, MusicStateEvent};
 
 pub struct WaveReader {
-    store: Arc<Box<dyn Store<MusicState, MusicStateEvent>>>,
+    store: Arc<Store<MusicState, MusicStateEvent>>,
     resource_manager: Arc<ResourceManager>,
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
@@ -23,7 +23,7 @@ pub struct WaveReader {
 
 impl WaveReader {
     pub fn new(
-        store: Arc<Box<dyn Store<MusicState, MusicStateEvent>>>,
+        store: Arc<Store<MusicState, MusicStateEvent>>,
         resource_manager: Arc<ResourceManager>,
     ) -> Self {
         WaveReader {

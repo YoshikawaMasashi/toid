@@ -14,11 +14,9 @@ use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::player::player::Player;
 use toid::resource_management::resource_manager::ResourceManager;
 use toid::state_management::store::Store;
-use toid::stores::normal_store::NormalStore;
 
 fn main() {
-    let store = NormalStore::new(MusicState::new());
-    let store = Box::new(store) as Box<dyn Store<MusicState, MusicStateEvent>>;
+    let store = Store::new(MusicState::new());
     let store = Arc::new(store);
 
     let resource_manager = ResourceManager::new();

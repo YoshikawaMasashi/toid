@@ -8,7 +8,7 @@ pub mod outputters;
 pub mod player;
 pub mod resource_management;
 pub mod state_management;
-pub mod stores;
+// pub mod stores;
 
 #[cfg(test)]
 mod tests;
