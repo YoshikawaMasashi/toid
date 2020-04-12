@@ -6,6 +6,7 @@ use super::super::state_management::serialize;
 use super::super::state_management::state::State;
 use super::beat::Beat;
 
+#[derive(Serialize, Deserialize)]
 pub struct SchedulingState {
     pub bpm_schedule: BTreeMap<Beat, f32>,
 }
@@ -34,6 +35,23 @@ impl State<SchedulingStateEvent> for SchedulingState {
     }
 }
 
+impl serialize::Serialize<SchedulingState> for SchedulingState {
+    fn serialize(&self) -> Result<String, String> {
+        if let Ok(serialized) = serde_json::to_string(&self) {
+            Ok(serialized)
+        } else {
+            Err(String::from("error in serizalization"))
+        }
+    }
+    fn deserialize(serialized: String) -> Result<Self, String> {
+        if let Ok(string) = serde_json::from_str(serialized.as_str()) {
+            Ok(string)
+        } else {
+            Err(String::from("error in deserizalization"))
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub enum SchedulingStateEvent {
     ChangeBPM(Beat, f32),
@@ -47,7 +65,7 @@ impl serialize::Serialize<SchedulingStateEvent> for SchedulingStateEvent {
             Err(String::from("error in serizalization"))
         }
     }
-    fn deserialize(serialized: String) -> Result<SchedulingStateEvent, String> {
+    fn deserialize(serialized: String) -> Result<Self, String> {
         if let Ok(string) = serde_json::from_str(serialized.as_str()) {
             Ok(string)
         } else {

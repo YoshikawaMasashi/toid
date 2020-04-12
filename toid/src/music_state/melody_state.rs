@@ -13,6 +13,7 @@ pub struct NoteInfo {
     pub start: Beat,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct MelodyState {
     pub notes: BTreeMap<Beat, Vec<NoteInfo>>,
     pub repeat_length: Beat,
@@ -51,6 +52,23 @@ impl State<MelodyStateEvent> for MelodyState {
     }
 }
 
+impl serialize::Serialize<MelodyState> for MelodyState {
+    fn serialize(&self) -> Result<String, String> {
+        if let Ok(serialized) = serde_json::to_string(&self) {
+            Ok(serialized)
+        } else {
+            Err(String::from("error in serizalization"))
+        }
+    }
+    fn deserialize(serialized: String) -> Result<Self, String> {
+        if let Ok(string) = serde_json::from_str(serialized.as_str()) {
+            Ok(string)
+        } else {
+            Err(String::from("error in deserizalization"))
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub enum MelodyStateEvent {
     AddNote(NoteInfo),
@@ -64,7 +82,7 @@ impl serialize::Serialize<MelodyStateEvent> for MelodyStateEvent {
             Err(String::from("error in serizalization"))
         }
     }
-    fn deserialize(serialized: String) -> Result<MelodyStateEvent, String> {
+    fn deserialize(serialized: String) -> Result<Self, String> {
         if let Ok(string) = serde_json::from_str(serialized.as_str()) {
             Ok(string)
         } else {

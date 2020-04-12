@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
 
+#[derive(Serialize, Deserialize)]
 pub struct SF2State {
     pub sf2_name: Option<String>,
 }
@@ -26,6 +27,24 @@ impl State<SF2StateEvent> for SF2State {
         }
     }
 }
+
+impl serialize::Serialize<SF2State> for SF2State {
+    fn serialize(&self) -> Result<String, String> {
+        if let Ok(serialized) = serde_json::to_string(&self) {
+            Ok(serialized)
+        } else {
+            Err(String::from("error in serizalization"))
+        }
+    }
+    fn deserialize(serialized: String) -> Result<Self, String> {
+        if let Ok(string) = serde_json::from_str(serialized.as_str()) {
+            Ok(string)
+        } else {
+            Err(String::from("error in deserizalization"))
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub enum SF2StateEvent {
     SetSF2Name(String),
@@ -39,7 +58,7 @@ impl serialize::Serialize<SF2StateEvent> for SF2StateEvent {
             Err(String::from("error in serizalization"))
         }
     }
-    fn deserialize(serialized: String) -> Result<SF2StateEvent, String> {
+    fn deserialize(serialized: String) -> Result<Self, String> {
         if let Ok(string) = serde_json::from_str(serialized.as_str()) {
             Ok(string)
         } else {

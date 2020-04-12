@@ -9,6 +9,7 @@ use super::melody_state::{MelodyState, MelodyStateEvent};
 use super::scheduling_state::{SchedulingState, SchedulingStateEvent};
 use super::sf2_state::{SF2State, SF2StateEvent};
 
+#[derive(Serialize, Deserialize)]
 pub struct MusicState {
     pub scheduling: Arc<SchedulingState>,
     pub melody_map: HashMap<String, Arc<MelodyState>>,
@@ -74,6 +75,24 @@ impl State<MusicStateEvent> for MusicState {
         }
     }
 }
+
+impl serialize::Serialize<MusicState> for MusicState {
+    fn serialize(&self) -> Result<String, String> {
+        if let Ok(serialized) = serde_json::to_string(&self) {
+            Ok(serialized)
+        } else {
+            Err(String::from("error in serizalization"))
+        }
+    }
+    fn deserialize(serialized: String) -> Result<Self, String> {
+        if let Ok(string) = serde_json::from_str(serialized.as_str()) {
+            Ok(string)
+        } else {
+            Err(String::from("error in deserizalization"))
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub enum MusicStateEvent {
     NewMelody(String),
