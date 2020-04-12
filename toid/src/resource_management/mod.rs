@@ -1,2 +1,2 @@
 pub mod resource_manager;
-pub mod resource_unit;
+mod resource_unit;

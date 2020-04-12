@@ -1,10 +1,9 @@
 use std::collections::BTreeMap;
-use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::state_management::reducer::Reducer;
 use super::super::state_management::serialize;
+use super::super::state_management::state::State;
 use super::beat::Beat;
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
@@ -14,6 +13,7 @@ pub struct NoteInfo {
     pub start: Beat,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct MelodyState {
     pub notes: BTreeMap<Beat, Vec<NoteInfo>>,
     pub repeat_length: Beat,
@@ -44,6 +44,31 @@ impl MelodyState {
     }
 }
 
+impl State<MelodyStateEvent> for MelodyState {
+    fn reduce(&self, event: MelodyStateEvent) -> Self {
+        match event {
+            MelodyStateEvent::AddNote(note) => self.add_note(note),
+        }
+    }
+}
+
+impl serialize::Serialize<MelodyState> for MelodyState {
+    fn serialize(&self) -> Result<String, String> {
+        if let Ok(serialized) = serde_json::to_string(&self) {
+            Ok(serialized)
+        } else {
+            Err(String::from("error in serizalization"))
+        }
+    }
+    fn deserialize(serialized: String) -> Result<Self, String> {
+        if let Ok(string) = serde_json::from_str(serialized.as_str()) {
+            Ok(string)
+        } else {
+            Err(String::from("error in deserizalization"))
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub enum MelodyStateEvent {
     AddNote(NoteInfo),
@@ -57,21 +82,11 @@ impl serialize::Serialize<MelodyStateEvent> for MelodyStateEvent {
             Err(String::from("error in serizalization"))
         }
     }
-    fn deserialize(serialized: String) -> Result<MelodyStateEvent, String> {
+    fn deserialize(serialized: String) -> Result<Self, String> {
         if let Ok(string) = serde_json::from_str(serialized.as_str()) {
             Ok(string)
         } else {
             Err(String::from("error in deserizalization"))
-        }
-    }
-}
-
-pub struct MelodyStateReducer {}
-
-impl Reducer<MelodyState, MelodyStateEvent> for MelodyStateReducer {
-    fn reduce(&self, state: Arc<MelodyState>, event: MelodyStateEvent) -> MelodyState {
-        match event {
-            MelodyStateEvent::AddNote(note) => state.add_note(note),
         }
     }
 }

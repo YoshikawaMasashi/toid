@@ -1,9 +1,13 @@
 use std::collections::BTreeMap;
 use std::fs;
+use std::io::Read;
 use std::path::Path;
+use std::sync::Arc;
 
 use serde_derive::Deserialize;
 use toml;
+
+use super::super::data::sf2::SF2;
 
 #[derive(Deserialize)]
 struct ResourceConfig {
@@ -15,6 +19,7 @@ pub struct ResourceUnit {
     pub name: String,
     pub preference_path: Box<Path>,
     pub file_paths: BTreeMap<String, Box<Path>>,
+    pub sf2: BTreeMap<String, Arc<SF2>>,
 }
 
 impl ResourceUnit {
@@ -34,6 +39,7 @@ impl ResourceUnit {
             name: decoded_preference.name,
             preference_path: Box::<Path>::from(Path::new(&preference_path)),
             file_paths,
+            sf2: BTreeMap::new(),
         }
     }
 
@@ -43,5 +49,16 @@ impl ResourceUnit {
             exist_all = exist_all && path.exists();
         }
         exist_all
+    }
+
+    pub fn load_sf2(&mut self, key: String) {
+        let path = &self.file_paths[&key];
+        let mut f = fs::File::open(path).unwrap();
+        let mut buffer = Vec::new();
+        f.read_to_end(&mut buffer).unwrap();
+        let buffer = buffer.as_slice();
+        let sf2 = SF2::parse(buffer);
+        let sf2 = Arc::new(sf2);
+        self.sf2.insert(key, sf2);
     }
 }
