@@ -11,24 +11,25 @@ use toid::music_state::scheduling_state::SchedulingStateEvent;
 use toid::music_state::sf2_state::SF2StateEvent;
 use toid::music_state::wave_reader::WaveReader;
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
-use toid::player::player::Player;
+use toid::players::local_player::LocalPlayer;
+use toid::players::player::Player;
 use toid::resource_management::resource_manager::ResourceManager;
 use toid::state_management::store::Store;
-use toid::stores::normal_store::NormalStore;
 
 fn main() {
-    let store = NormalStore::new(MusicState::new());
-    let store = Box::new(store) as Box<dyn Store<MusicState, MusicStateEvent>>;
+    let store = Store::new(MusicState::new());
+    let store = Arc::new(store);
 
     let resource_manager = ResourceManager::new();
     resource_manager.register(String::from("../resource/sf2/sf2.toml"));
     resource_manager.load_sf2(String::from("sf2.test"));
+    let resource_manager = Arc::new(resource_manager);
 
-    let player = Player::new(store, resource_manager);
-    let player = Arc::new(player);
-
-    let wave_reader = WaveReader::new(Arc::clone(&player));
+    let wave_reader = WaveReader::new(Arc::clone(&store), Arc::clone(&resource_manager));
     let wave_reader = Arc::new(RwLock::new(wave_reader));
+
+    let player = LocalPlayer::new(Arc::clone(&store), Arc::clone(&resource_manager));
+    let player = Arc::new(player);
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&wave_reader));
 

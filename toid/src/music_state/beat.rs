@@ -1,7 +1,9 @@
 use std::cmp::Ordering;
+use std::fmt;
 use std::ops::{Add, Rem, Sub};
 
-use serde::{Deserialize, Serialize};
+use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 const BEAT_LENGTH: i64 = 960;
 
@@ -9,14 +11,56 @@ trait FromFraction<T> {
     fn from_fraction(numerator: T, denominator: T) -> Self;
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Beat {
     num: i64,
+}
+
+impl Serialize for Beat {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.get_num().to_string())
+    }
+}
+
+struct StringVisitor;
+
+impl<'de> Visitor<'de> for StringVisitor {
+    type Value = String;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("String only")
+    }
+
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> {
+        Ok(v)
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> {
+        Ok(v.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for Beat {
+    fn deserialize<D>(deserializer: D) -> Result<Beat, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let string = deserializer.deserialize_string(StringVisitor).unwrap();
+        let num: i64 = string.parse().unwrap();
+        Ok(Beat { num })
+    }
 }
 
 impl Beat {
     pub fn to_f32(self) -> f32 {
         self.num as f32 / BEAT_LENGTH as f32
+    }
+
+    pub fn get_num(self) -> i64 {
+        self.num
     }
 }
 
