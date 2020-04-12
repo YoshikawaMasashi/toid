@@ -1,10 +1,9 @@
 use std::collections::BTreeMap;
-use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::state_management::reducer::Reducer;
 use super::super::state_management::serialize;
+use super::super::state_management::state::State;
 use super::beat::Beat;
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
@@ -44,6 +43,14 @@ impl MelodyState {
     }
 }
 
+impl State<MelodyStateEvent> for MelodyState {
+    fn reduce(&self, event: MelodyStateEvent) -> Self {
+        match event {
+            MelodyStateEvent::AddNote(note) => self.add_note(note),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub enum MelodyStateEvent {
     AddNote(NoteInfo),
@@ -62,16 +69,6 @@ impl serialize::Serialize<MelodyStateEvent> for MelodyStateEvent {
             Ok(string)
         } else {
             Err(String::from("error in deserizalization"))
-        }
-    }
-}
-
-pub struct MelodyStateReducer {}
-
-impl Reducer<MelodyState, MelodyStateEvent> for MelodyStateReducer {
-    fn reduce(&self, state: Arc<MelodyState>, event: MelodyStateEvent) -> MelodyState {
-        match event {
-            MelodyStateEvent::AddNote(note) => state.add_note(note),
         }
     }
 }

@@ -6,7 +6,7 @@ use std::sync::RwLock;
 use toid::music_state::beat::Beat;
 use toid::music_state::melody_state::MelodyStateEvent;
 use toid::music_state::melody_state::NoteInfo;
-use toid::music_state::music_state::{MusicState, MusicStateEvent, MusicStateReducer};
+use toid::music_state::music_state::{MusicState, MusicStateEvent};
 use toid::music_state::scheduling_state::SchedulingStateEvent;
 use toid::music_state::sf2_state::SF2StateEvent;
 use toid::music_state::wave_reader::WaveReader;
@@ -16,7 +16,7 @@ use toid::state_management::store::Store;
 use toid::stores::normal_store::NormalStore;
 
 fn main() {
-    let store = NormalStore::new(MusicState::new(), MusicStateReducer {});
+    let store = NormalStore::new(MusicState::new());
     let store = Box::new(store) as Box<dyn Store<MusicState, MusicStateEvent>>;
     let store = Arc::new(store);
 

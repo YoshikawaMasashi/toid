@@ -5,8 +5,8 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 use super::super::data::sf2::SF2;
-use super::super::state_management::reducer::Reducer;
 use super::super::state_management::serialize;
+use super::super::state_management::state::State;
 
 pub struct SF2State {
     pub sf2: Option<Arc<SF2>>,
@@ -35,6 +35,21 @@ impl SF2State {
     }
 }
 
+impl State<SF2StateEvent> for SF2State {
+    fn reduce(&self, event: SF2StateEvent) -> Self {
+        match event {
+            SF2StateEvent::LoadAndSetSF2(path) => {
+                let mut f = File::open(path).unwrap();
+                let mut buffer = Vec::new();
+                f.read_to_end(&mut buffer).unwrap();
+                let buffer = buffer.as_slice();
+                let sf2 = SF2::parse(buffer);
+                let sf2 = Arc::new(sf2);
+                self.set_sf2(sf2)
+            }
+        }
+    }
+}
 #[derive(Serialize, Deserialize)]
 pub enum SF2StateEvent {
     LoadAndSetSF2(String),
@@ -53,24 +68,6 @@ impl serialize::Serialize<SF2StateEvent> for SF2StateEvent {
             Ok(string)
         } else {
             Err(String::from("error in deserizalization"))
-        }
-    }
-}
-
-pub struct SF2StateReducer {}
-
-impl Reducer<SF2State, SF2StateEvent> for SF2StateReducer {
-    fn reduce(&self, state: Arc<SF2State>, event: SF2StateEvent) -> SF2State {
-        match event {
-            SF2StateEvent::LoadAndSetSF2(path) => {
-                let mut f = File::open(path).unwrap();
-                let mut buffer = Vec::new();
-                f.read_to_end(&mut buffer).unwrap();
-                let buffer = buffer.as_slice();
-                let sf2 = SF2::parse(buffer);
-                let sf2 = Arc::new(sf2);
-                state.set_sf2(sf2)
-            }
         }
     }
 }

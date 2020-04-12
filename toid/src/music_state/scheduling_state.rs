@@ -1,10 +1,9 @@
 use std::collections::BTreeMap;
-use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::state_management::reducer::Reducer;
 use super::super::state_management::serialize;
+use super::super::state_management::state::State;
 use super::beat::Beat;
 
 pub struct SchedulingState {
@@ -27,6 +26,14 @@ impl SchedulingState {
     }
 }
 
+impl State<SchedulingStateEvent> for SchedulingState {
+    fn reduce(&self, event: SchedulingStateEvent) -> Self {
+        match event {
+            SchedulingStateEvent::ChangeBPM(beat, bpm) => self.change_bpm(beat, bpm),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub enum SchedulingStateEvent {
     ChangeBPM(Beat, f32),
@@ -45,16 +52,6 @@ impl serialize::Serialize<SchedulingStateEvent> for SchedulingStateEvent {
             Ok(string)
         } else {
             Err(String::from("error in deserizalization"))
-        }
-    }
-}
-
-pub struct SchedulingStateReducer {}
-
-impl Reducer<SchedulingState, SchedulingStateEvent> for SchedulingStateReducer {
-    fn reduce(&self, state: Arc<SchedulingState>, event: SchedulingStateEvent) -> SchedulingState {
-        match event {
-            SchedulingStateEvent::ChangeBPM(beat, bpm) => state.change_bpm(beat, bpm),
         }
     }
 }
