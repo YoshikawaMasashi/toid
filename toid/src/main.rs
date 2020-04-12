@@ -11,6 +11,7 @@ use toid::music_state::scheduling_state::SchedulingStateEvent;
 use toid::music_state::sf2_state::SF2StateEvent;
 use toid::music_state::wave_reader::WaveReader;
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
+use toid::player::player::Player;
 use toid::resource_management::resource_manager::ResourceManager;
 use toid::state_management::store::Store;
 use toid::stores::normal_store::NormalStore;
@@ -18,37 +19,37 @@ use toid::stores::normal_store::NormalStore;
 fn main() {
     let store = NormalStore::new(MusicState::new());
     let store = Box::new(store) as Box<dyn Store<MusicState, MusicStateEvent>>;
-    let store = Arc::new(store);
-
-    let wave_reader = WaveReader::new(Arc::clone(&store));
-    let wave_reader = Arc::new(RwLock::new(wave_reader));
-
-    let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&wave_reader));
-
-    store.update_state(MusicStateEvent::NewMelody(String::from("main")));
-    store.update_state(MusicStateEvent::NewMelody(String::from("sub")));
 
     let resource_manager = ResourceManager::new();
     resource_manager.register(String::from("../resource/sf2/sf2.toml"));
     resource_manager.load_sf2(String::from("sf2.test"));
 
-    let sf2_path = resource_manager.get_path(String::from("sf2.test")).unwrap();
+    let player = Player::new(store, resource_manager);
+    let player = Arc::new(player);
 
-    store.update_state(MusicStateEvent::SF2StateEvent(
-        SF2StateEvent::LoadAndSetSF2(String::from(sf2_path.to_str().unwrap())),
-    ));
+    let wave_reader = WaveReader::new(Arc::clone(&player));
+    let wave_reader = Arc::new(RwLock::new(wave_reader));
 
-    store.update_state(MusicStateEvent::SchedulingStateEvent(
+    let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&wave_reader));
+
+    player.send_event(MusicStateEvent::NewMelody(String::from("main")));
+    player.send_event(MusicStateEvent::NewMelody(String::from("sub")));
+
+    player.send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
+        String::from("sf2.test"),
+    )));
+
+    player.send_event(MusicStateEvent::SchedulingStateEvent(
         SchedulingStateEvent::ChangeBPM(Beat::from(0), 120.0),
     ));
-    store.update_state(MusicStateEvent::SchedulingStateEvent(
+    player.send_event(MusicStateEvent::SchedulingStateEvent(
         SchedulingStateEvent::ChangeBPM(Beat::from(8), 180.0),
     ));
-    store.update_state(MusicStateEvent::SchedulingStateEvent(
+    player.send_event(MusicStateEvent::SchedulingStateEvent(
         SchedulingStateEvent::ChangeBPM(Beat::from(16), 120.0),
     ));
 
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("main"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 48.0,
@@ -56,7 +57,7 @@ fn main() {
             start: Beat::from(0.0),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("main"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 50.0,
@@ -64,7 +65,7 @@ fn main() {
             start: Beat::from(0.5),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("main"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 52.0,
@@ -72,7 +73,7 @@ fn main() {
             start: Beat::from(1.0),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("main"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 53.0,
@@ -80,7 +81,7 @@ fn main() {
             start: Beat::from(1.5),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("main"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 55.0,
@@ -88,7 +89,7 @@ fn main() {
             start: Beat::from(2.0),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("main"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 57.0,
@@ -96,7 +97,7 @@ fn main() {
             start: Beat::from(3.0),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("main"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 53.0,
@@ -104,7 +105,7 @@ fn main() {
             start: Beat::from(3.5),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("main"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 52.0,
@@ -112,7 +113,7 @@ fn main() {
             start: Beat::from(4.0),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("main"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 50.0,
@@ -120,7 +121,7 @@ fn main() {
             start: Beat::from(5.0),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("main"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 48.0,
@@ -129,7 +130,7 @@ fn main() {
         }),
     ));
 
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("sub"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 36.0,
@@ -137,7 +138,7 @@ fn main() {
             start: Beat::from(0.0),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("sub"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 41.0,
@@ -145,7 +146,7 @@ fn main() {
             start: Beat::from(2.0),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("sub"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 43.0,
@@ -153,7 +154,7 @@ fn main() {
             start: Beat::from(4.0),
         }),
     ));
-    store.update_state(MusicStateEvent::MelodyStateEvent(
+    player.send_event(MusicStateEvent::MelodyStateEvent(
         String::from("sub"),
         MelodyStateEvent::AddNote(NoteInfo {
             pitch: 36.0,

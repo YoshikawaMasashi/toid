@@ -3,13 +3,13 @@ use std::f64::consts::PI;
 use std::ops::Bound::{Excluded, Included, Unbounded};
 use std::sync::Arc;
 
-use super::super::state_management::store::Store;
+use super::super::player::player::Player;
 use super::beat::Beat;
 use super::melody_state::NoteInfo;
 use super::music_state::{MusicState, MusicStateEvent};
 
 pub struct WaveReader {
-    store: Arc<Box<dyn Store<MusicState, MusicStateEvent>>>,
+    player: Arc<Player<MusicState, MusicStateEvent>>,
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
     cum_current_samples: u64,
@@ -20,9 +20,9 @@ pub struct WaveReader {
 }
 
 impl WaveReader {
-    pub fn new(store: Arc<Box<dyn Store<MusicState, MusicStateEvent>>>) -> Self {
+    pub fn new(player: Arc<Player<MusicState, MusicStateEvent>>) -> Self {
         WaveReader {
-            store: Arc::clone(&store),
+            player: Arc::clone(&player),
             wave_length: 512,
             played_notes: BTreeMap::new(),
             cum_current_samples: 0,
@@ -44,7 +44,7 @@ impl WaveReader {
         let mut ret: Vec<i16> = Vec::new();
         ret.resize(self.wave_length as usize, 0);
 
-        let music_state = self.store.get_state();
+        let music_state = self.player.store.get_state();
         let sf2_state = &music_state.sf2;
         let scheduling_state = &music_state.scheduling;
 
@@ -163,7 +163,7 @@ impl WaveReader {
         }
 
         // self.played_notesのを鳴らす
-        match &sf2_state.sf2 {
+        match &sf2_state.sf2_name {
             None => {
                 for (&cum_end_samples, notes) in self.played_notes.iter() {
                     for (cum_start_samples, note) in notes.iter() {
@@ -190,7 +190,12 @@ impl WaveReader {
                     }
                 }
             }
-            Some(sf2) => {
+            Some(sf2_name) => {
+                let sf2 = self
+                    .player
+                    .resource_manager
+                    .get_sf2(sf2_name.to_string())
+                    .unwrap();
                 for (&cum_end_samples, notes) in self.played_notes.iter() {
                     for (cum_start_samples, note) in notes.iter() {
                         let start_idx = if *cum_start_samples <= self.cum_current_samples {

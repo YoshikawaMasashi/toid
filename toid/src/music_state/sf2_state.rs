@@ -1,36 +1,20 @@
-use std::fs::File;
-use std::io::Read;
-use std::sync::Arc;
-
 use serde::{Deserialize, Serialize};
 
-use super::super::data::sf2::SF2;
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
 
 pub struct SF2State {
-    pub sf2: Option<Arc<SF2>>,
-}
-
-impl Clone for SF2State {
-    fn clone(&self) -> Self {
-        SF2State {
-            sf2: match &self.sf2 {
-                Some(sf2) => Some(Arc::clone(&sf2)),
-                None => None,
-            },
-        }
-    }
+    pub sf2_name: Option<String>,
 }
 
 impl SF2State {
     pub fn new() -> Self {
-        SF2State { sf2: None }
+        SF2State { sf2_name: None }
     }
 
-    pub fn set_sf2(&self, sf2: Arc<SF2>) -> Self {
+    pub fn set_sf2_name(&self, sf2_name: String) -> Self {
         SF2State {
-            sf2: Some(Arc::clone(&sf2)),
+            sf2_name: Some(sf2_name),
         }
     }
 }
@@ -38,21 +22,13 @@ impl SF2State {
 impl State<SF2StateEvent> for SF2State {
     fn reduce(&self, event: SF2StateEvent) -> Self {
         match event {
-            SF2StateEvent::LoadAndSetSF2(path) => {
-                let mut f = File::open(path).unwrap();
-                let mut buffer = Vec::new();
-                f.read_to_end(&mut buffer).unwrap();
-                let buffer = buffer.as_slice();
-                let sf2 = SF2::parse(buffer);
-                let sf2 = Arc::new(sf2);
-                self.set_sf2(sf2)
-            }
+            SF2StateEvent::SetSF2Name(sf2_name) => self.set_sf2_name(sf2_name),
         }
     }
 }
 #[derive(Serialize, Deserialize)]
 pub enum SF2StateEvent {
-    LoadAndSetSF2(String),
+    SetSF2Name(String),
 }
 
 impl serialize::Serialize<SF2StateEvent> for SF2StateEvent {
