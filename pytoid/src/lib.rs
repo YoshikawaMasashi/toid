@@ -4,19 +4,21 @@ use pyo3::prelude::{
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use toid::music_store::melody_state::NoteInfo;
-use toid::music_store::melody_state::{MelodyState, MelodyStateEvent, MelodyStateReducer};
-use toid::music_store::music_store;
-use toid::music_store::sf2_state::SF2StateEvent;
-use toid::music_store::wave_reader;
+use toid::high_layer_trial::num_lang::send_num_lang;
+use toid::music_state::music_state::{MusicState, MusicStateEvent};
+use toid::music_state::sf2_state::SF2StateEvent;
+use toid::music_state::wave_reader;
 use toid::outputters::portaudio_outputter;
+use toid::players::local_player;
+use toid::players::player::Player;
+use toid::resource_management::resource_manager;
 use toid::state_management::store::Store;
 
 pub mod sf2;
 
 #[pyclass(module = "toid")]
 struct MusicStore {
-    store: Arc<music_store::MusicStore>,
+    store: Arc<Store<MusicState, MusicStateEvent>>,
 }
 
 #[pymethods]
@@ -24,44 +26,35 @@ impl MusicStore {
     #[new]
     fn new(obj: &PyRawObject) {
         obj.init(MusicStore {
-            store: Arc::new(music_store::MusicStore::new()),
+            store: Arc::new(Store::new(MusicState::new())),
         });
-    }
-
-    fn new_melody(&self, key: String) {
-        self.store.new_melody(key);
-    }
-
-    fn load_and_set_sf2(&self, path: String) {
-        self.store
-            .sf2
-            .update_state(SF2StateEvent::LoadAndSetSF2(path));
-    }
-
-    fn get_melody(&self, key: String) -> MelodyStore {
-        MelodyStore {
-            store: Arc::clone(&self.store.melody.read().unwrap().get(&key).unwrap()),
-        }
     }
 }
 
 #[pyclass(module = "toid")]
-struct MelodyStore {
-    store: Arc<Store<MelodyState, MelodyStateEvent, MelodyStateReducer>>,
+struct ResourceManager {
+    manager: Arc<resource_manager::ResourceManager>,
 }
 
 #[pymethods]
-impl MelodyStore {
-    fn add_note(&self, pitch: f32, duration: u64, start: u64) {
-        self.store.update_state(MelodyStateEvent::AddNote(NoteInfo {
-            pitch,
-            duration,
-            start,
-        }));
+impl ResourceManager {
+    #[new]
+    fn new(obj: &PyRawObject) {
+        obj.init(ResourceManager {
+            manager: Arc::new(resource_manager::ResourceManager::new()),
+        });
+    }
+
+    fn register(&self, path: String) {
+        self.manager.register(path);
+    }
+
+    fn load_sf2(&self, name: String) {
+        self.manager.load_sf2(name);
     }
 }
 
-#[pyclass(module = "toid")]
+#[pyclass]
 struct WaveReader {
     reader: Arc<RwLock<wave_reader::WaveReader>>,
 }
@@ -69,12 +62,47 @@ struct WaveReader {
 #[pymethods]
 impl WaveReader {
     #[new]
-    fn new(obj: &PyRawObject, store: &MusicStore) {
+    fn new(obj: &PyRawObject, store: &MusicStore, resource_manager: &ResourceManager) {
         obj.init(WaveReader {
-            reader: Arc::new(RwLock::new(wave_reader::WaveReader::new(Arc::clone(
-                &store.store,
-            )))),
-        });
+            reader: Arc::new(RwLock::new(wave_reader::WaveReader::new(
+                Arc::clone(&store.store),
+                Arc::clone(&resource_manager.manager),
+            ))),
+        })
+    }
+}
+
+#[pyclass]
+struct LocalPlayer {
+    player: Arc<local_player::LocalPlayer<MusicState, MusicStateEvent>>,
+}
+
+#[pymethods]
+impl LocalPlayer {
+    #[new]
+    fn new(obj: &PyRawObject, store: &MusicStore, resource_manager: &ResourceManager) {
+        obj.init(LocalPlayer {
+            player: Arc::new(local_player::LocalPlayer::new(
+                Arc::clone(&store.store),
+                Arc::clone(&resource_manager.manager),
+            )),
+        })
+    }
+
+    fn set_sf2_name(&self, name: String) {
+        self.player
+            .send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
+                name,
+            )));
+    }
+
+    fn send_num_lang(&self, melody_string: String, octave: f32, name: String) {
+        send_num_lang(
+            melody_string,
+            octave,
+            name,
+            Arc::clone(&self.player) as Arc<dyn Player<MusicState, MusicStateEvent>>,
+        );
     }
 }
 
@@ -106,8 +134,9 @@ impl PortAudioOutputter {
 #[pymodule]
 fn toid(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<MusicStore>()?;
-    m.add_class::<MelodyStore>()?;
+    m.add_class::<ResourceManager>()?;
     m.add_class::<WaveReader>()?;
+    m.add_class::<LocalPlayer>()?;
     m.add_class::<PortAudioOutputter>()?;
 
     Ok(())

@@ -7,3 +7,4 @@ pytoid/target/*
 *.ipynb
 toid/.vscode
 resource/
+*.pyc

@@ -4,34 +4,29 @@ import toid
 
 if __name__ == "__main__":
     store = toid.MusicStore()
-    wave_reader = toid.WaveReader(store)
+    resource_manager = toid.ResourceManager()
+    resource_manager.register("../resource/sf2/sf2.toml")
+    resource_manager.load_sf2("sf2.test")
+
+    wave_reader = toid.WaveReader(store, resource_manager)
+
+    player = toid.LocalPlayer(store, resource_manager)
     portaudio_outputter = toid.PortAudioOutputter(wave_reader)
 
-    store.new_melody("main")
-    store.new_melody("sub")
+    player.set_sf2_name("sf2.test")
 
-    store.load_and_set_sf2("../florestan-subset.sf2")
+    player.send_num_lang(
+        "12345 643 2 1",
+        0.0,
+        "main",
+    )
 
-    main_melody_store = store.get_melody("main")
-    sub_melody_store = store.get_melody("sub")
+    player.send_num_lang(
+        "1   4   5   1",
+        -1.0,
+        "sub",
+    )
 
     portaudio_outputter.run()
-
-    main_melody_store.add_note(48.0, 1 * (44100 // 4), 0 * (44100 // 4))
-    main_melody_store.add_note(50.0, 1 * (44100 // 4), 1 * (44100 // 4))
-    main_melody_store.add_note(52.0, 1 * (44100 // 4), 2 * (44100 // 4))
-    main_melody_store.add_note(53.0, 1 * (44100 // 4), 3 * (44100 // 4))
-    main_melody_store.add_note(55.0, 2 * (44100 // 4), 4 * (44100 // 4))
-    main_melody_store.add_note(57.0, 1 * (44100 // 4), 6 * (44100 // 4))
-    main_melody_store.add_note(53.0, 1 * (44100 // 4), 7 * (44100 // 4))
-    main_melody_store.add_note(52.0, 1 * (44100 // 4), 8 * (44100 // 4))
-    main_melody_store.add_note(50.0, 1 * (44100 // 4), 10 * (44100 // 4))
-    main_melody_store.add_note(48.0, 4 * (44100 // 4), 12 * (44100 // 4))
-
-    sub_melody_store.add_note(36.0, 4 * (44100 // 4), 0 * (44100 // 4))
-    sub_melody_store.add_note(41.0, 4 * (44100 // 4), 4 * (44100 // 4))
-    sub_melody_store.add_note(43.0, 4 * (44100 // 4), 8 * (44100 // 4))
-    sub_melody_store.add_note(36.0, 4 * (44100 // 4), 12 * (44100 // 4))
-
-    time.sleep(16)
+    time.sleep(12)
     portaudio_outputter.stop()

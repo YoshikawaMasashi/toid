@@ -22,9 +22,9 @@ fn main() {
     let store = Arc::new(store);
 
     let resource_manager = ResourceManager::new();
+    let resource_manager = Arc::new(resource_manager);
     resource_manager.register(String::from("../resource/sf2/sf2.toml"));
     resource_manager.load_sf2(String::from("sf2.test"));
-    let resource_manager = Arc::new(resource_manager);
 
     let wave_reader = WaveReader::new(Arc::clone(&store), Arc::clone(&resource_manager));
     let wave_reader = Arc::new(RwLock::new(wave_reader));
