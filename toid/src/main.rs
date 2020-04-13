@@ -5,8 +5,6 @@ use std::sync::RwLock;
 
 use toid::high_layer_trial::num_lang::send_num_lang;
 use toid::music_state::beat::Beat;
-use toid::music_state::melody_state::MelodyStateEvent;
-use toid::music_state::melody_state::NoteInfo;
 use toid::music_state::music_state::{MusicState, MusicStateEvent};
 use toid::music_state::scheduling_state::SchedulingStateEvent;
 use toid::music_state::sf2_state::SF2StateEvent;
@@ -26,13 +24,16 @@ fn main() {
     resource_manager.register(String::from("../resource/sf2/sf2.toml"));
     resource_manager.load_sf2(String::from("sf2.test"));
 
-    let wave_reader = WaveReader::new(Arc::clone(&store), Arc::clone(&resource_manager));
+    let wave_reader = WaveReader::new();
     let wave_reader = Arc::new(RwLock::new(wave_reader));
 
     let player = LocalPlayer::new(Arc::clone(&store), Arc::clone(&resource_manager));
     let player = Arc::new(player);
 
-    let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&wave_reader));
+    let mut portaudio_outputter = PortAudioOutputter::new(
+        Arc::clone(&wave_reader),
+        Arc::clone(&player) as Arc<dyn Player<MusicState, MusicStateEvent>>,
+    );
 
     player.send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
         String::from("sf2.test"),
