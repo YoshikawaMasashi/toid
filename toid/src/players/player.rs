@@ -10,4 +10,5 @@ pub trait Player<S, E, R: StoreReader<O, RE, S, E>, O, RE> {
     fn get_resource_manager(&self) -> Arc<ResourceManager>;
     fn get_reader(&self) -> Arc<RwLock<R>>;
     fn send_event(&self, event: E);
+    fn send_reader_event(&self, event: RE);
 }

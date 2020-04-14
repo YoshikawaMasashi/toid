@@ -37,16 +37,19 @@ pub struct WebSocketPlayer<S, E, R, O, RE> {
     reader_event_marker: PhantomData<RE>,
 }
 
-pub struct WebSocketPlayerHandler<S, E> {
+pub struct WebSocketPlayerHandler<S, E, R, O, RE> {
     store: Arc<Store<S, E>>,
+    reader: Arc<RwLock<R>>,
+    out_marker: PhantomData<O>,
+    reader_event_marker: PhantomData<RE>,
 }
 
 impl<
         S: 'static + State<E> + Serialize<S> + Send + Sync,
         E: 'static + Sized + Serialize<E> + Send + Sync,
-        R: 'static + StoreReader<O, RE, S, E>,
+        R: 'static + StoreReader<O, RE, S, E> + Send + Sync,
         O,
-        RE,
+        RE: 'static + Sized + Serialize<RE> + Send + Sync,
     > WebSocketPlayer<S, E, R, O, RE>
 {
     pub fn new() -> Self {
@@ -63,11 +66,15 @@ impl<
     pub fn connect(&mut self, connect_address: String) {
         let store = Arc::clone(&self.store);
         let sender_holder = Arc::clone(&self.sender_holder);
+        let reader = Arc::clone(&self.reader);
         thread::spawn(move || {
             if let Err(error) = ws::connect(connect_address, |out| {
                 sender_holder.write().unwrap().set_sender(out);
-                let handler: WebSocketPlayerHandler<S, E> = WebSocketPlayerHandler {
+                let handler: WebSocketPlayerHandler<S, E, R, O, RE> = WebSocketPlayerHandler {
                     store: Arc::clone(&store),
+                    reader: Arc::clone(&reader),
+                    out_marker: PhantomData,
+                    reader_event_marker: PhantomData,
                 };
                 handler
             }) {
@@ -87,8 +94,13 @@ impl<
     }
 }
 
-impl<S: State<E>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE>
-    Player<S, E, R, O, RE> for WebSocketPlayer<S, E, R, O, RE>
+impl<
+        S: State<E>,
+        E: Sized + Serialize<E>,
+        R: StoreReader<O, RE, S, E>,
+        O,
+        RE: Sized + Serialize<E>,
+    > Player<S, E, R, O, RE> for WebSocketPlayer<S, E, R, O, RE>
 {
     fn get_store(&self) -> Arc<Store<S, E>> {
         Arc::clone(&self.store)
@@ -111,10 +123,25 @@ impl<S: State<E>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE>
             println!("sender have not been prepared yet");
         }
     }
+
+    fn send_reader_event(&self, event: RE) {
+        if let Some(out) = &self.sender_holder.read().unwrap().out {
+            let serialized_event = event.serialize().unwrap();
+            let msg = SendData::ApplyReader(serialized_event).serialize().unwrap();
+            out.send(msg).unwrap();
+        } else {
+            println!("sender have not been prepared yet");
+        }
+    }
 }
 
-impl<S: State<E> + Serialize<S>, E: Sized + Serialize<E>> ws::Handler
-    for WebSocketPlayerHandler<S, E>
+impl<
+        S: State<E> + Serialize<S>,
+        E: Sized + Serialize<E>,
+        R: StoreReader<O, RE, S, E>,
+        O,
+        RE: Sized + Serialize<RE>,
+    > ws::Handler for WebSocketPlayerHandler<S, E, R, O, RE>
 {
     fn on_open(&mut self, _: ws::Handshake) -> ws::Result<()> {
         println!("connected");
@@ -133,6 +160,11 @@ impl<S: State<E> + Serialize<S>, E: Sized + Serialize<E>> ws::Handler
             SendData::SyncState(state_string) => {
                 let state: S = S::deserialize(state_string).unwrap();
                 self.store.set_state(state);
+                Ok(())
+            }
+            SendData::ApplyReader(event_string) => {
+                let event: RE = RE::deserialize(event_string).unwrap();
+                self.reader.write().unwrap().apply(event);
                 Ok(())
             }
         }

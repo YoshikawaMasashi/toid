@@ -49,4 +49,8 @@ impl<S: State<E>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE>
     fn send_event(&self, event: E) {
         self.store.update_state(event);
     }
+
+    fn send_reader_event(&self, event: RE) {
+        self.reader.write().unwrap().apply(event);
+    }
 }
