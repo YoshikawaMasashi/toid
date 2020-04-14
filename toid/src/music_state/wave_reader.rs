@@ -243,6 +243,7 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
     fn apply(&mut self, event: WaveReaderEvent) {
         match event {
             WaveReaderEvent::MoveStart => {
+                self.played_notes = BTreeMap::new();
                 self.cum_current_samples = 0;
                 self.current_bpm = 120.0;
                 self.bpm_change_samples = 0;

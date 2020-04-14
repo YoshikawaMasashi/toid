@@ -57,6 +57,8 @@ fn main() {
     );
 
     portaudio_outputter.run();
+    portaudio_outputter.sleep(2250);
+    player.send_reader_event(WaveReaderEvent::MoveStart);
     portaudio_outputter.sleep(12000);
     portaudio_outputter.stop();
 }
