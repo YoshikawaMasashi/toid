@@ -17,14 +17,6 @@ pub struct MusicState {
 }
 
 impl MusicState {
-    pub fn new() -> Self {
-        Self {
-            scheduling: Arc::new(SchedulingState::new()),
-            melody_map: HashMap::new(),
-            sf2: Arc::new(SF2State::new()),
-        }
-    }
-
     fn new_melody(&self, key: String) -> Self {
         let mut new_melody_map = self.melody_map.clone();
         new_melody_map.insert(key, Arc::new(MelodyState::new()));
@@ -66,6 +58,14 @@ impl MusicState {
 }
 
 impl State<MusicStateEvent> for MusicState {
+    fn new() -> Self {
+        Self {
+            scheduling: Arc::new(SchedulingState::new()),
+            melody_map: HashMap::new(),
+            sf2: Arc::new(SF2State::new()),
+        }
+    }
+
     fn reduce(&self, event: MusicStateEvent) -> Self {
         match event {
             MusicStateEvent::NewMelody(key) => self.new_melody(key),

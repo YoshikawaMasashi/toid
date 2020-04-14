@@ -9,10 +9,6 @@ pub struct SF2State {
 }
 
 impl SF2State {
-    pub fn new() -> Self {
-        SF2State { sf2_name: None }
-    }
-
     pub fn set_sf2_name(&self, sf2_name: String) -> Self {
         SF2State {
             sf2_name: Some(sf2_name),
@@ -21,6 +17,10 @@ impl SF2State {
 }
 
 impl State<SF2StateEvent> for SF2State {
+    fn new() -> Self {
+        SF2State { sf2_name: None }
+    }
+
     fn reduce(&self, event: SF2StateEvent) -> Self {
         match event {
             SF2StateEvent::SetSF2Name(sf2_name) => self.set_sf2_name(sf2_name),

@@ -5,13 +5,12 @@ use std::sync::Arc;
 
 use super::super::resource_management::resource_manager::ResourceManager;
 use super::super::state_management::store::Store;
+use super::super::state_management::store_reader::StoreReader;
 use super::beat::Beat;
 use super::melody_state::NoteInfo;
 use super::music_state::{MusicState, MusicStateEvent};
 
 pub struct WaveReader {
-    store: Arc<Store<MusicState, MusicStateEvent>>,
-    resource_manager: Arc<ResourceManager>,
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
     cum_current_samples: u64,
@@ -21,14 +20,14 @@ pub struct WaveReader {
     cum_current_beats: Beat,
 }
 
-impl WaveReader {
-    pub fn new(
-        store: Arc<Store<MusicState, MusicStateEvent>>,
-        resource_manager: Arc<ResourceManager>,
-    ) -> Self {
+fn get_hertz(pitch: f32) -> f32 {
+    // A4 -> 69 440hz
+    440. * (2.0 as f32).powf((pitch - 69.) / 12.)
+}
+
+impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for WaveReader {
+    fn new() -> Self {
         WaveReader {
-            store,
-            resource_manager,
             wave_length: 512,
             played_notes: BTreeMap::new(),
             cum_current_samples: 0,
@@ -38,19 +37,16 @@ impl WaveReader {
             cum_current_beats: Beat::from(0),
         }
     }
-}
 
-fn get_hertz(pitch: f32) -> f32 {
-    // A4 -> 69 440hz
-    440. * (2.0 as f32).powf((pitch - 69.) / 12.)
-}
-
-impl WaveReader {
-    pub fn read(&mut self) -> Vec<i16> {
+    fn read(
+        &mut self,
+        store: Arc<Store<MusicState, MusicStateEvent>>,
+        resource_manager: Arc<ResourceManager>,
+    ) -> Vec<i16> {
         let mut ret: Vec<i16> = Vec::new();
         ret.resize(self.wave_length as usize, 0);
 
-        let music_state = self.store.get_state();
+        let music_state = store.get_state();
         let sf2_state = &music_state.sf2;
         let scheduling_state = &music_state.scheduling;
 
@@ -197,7 +193,7 @@ impl WaveReader {
                 }
             }
             Some(sf2_name) => {
-                let sf2 = self.resource_manager.get_sf2(sf2_name.to_string()).unwrap();
+                let sf2 = resource_manager.get_sf2(sf2_name.to_string()).unwrap();
                 for (&cum_end_samples, notes) in self.played_notes.iter() {
                     for (cum_start_samples, note) in notes.iter() {
                         let start_idx = if *cum_start_samples <= self.cum_current_samples {
@@ -243,4 +239,21 @@ impl WaveReader {
 
         ret
     }
+
+    fn apply(&mut self, event: WaveReaderEvent) {
+        match event {
+            WaveReaderEvent::MoveStart => {
+                self.played_notes = BTreeMap::new();
+                self.cum_current_samples = 0;
+                self.current_bpm = 120.0;
+                self.bpm_change_samples = 0;
+                self.bpm_change_beats = Beat::from(0);
+                self.cum_current_beats = Beat::from(0);
+            }
+        }
+    }
+}
+
+pub enum WaveReaderEvent {
+    MoveStart,
 }

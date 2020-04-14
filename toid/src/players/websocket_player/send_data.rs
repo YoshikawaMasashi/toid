@@ -6,6 +6,7 @@ use super::super::super::state_management::serialize;
 pub enum SendData {
     StateUpdate(String),
     SyncState(String),
+    ApplyReader(String),
 }
 
 impl serialize::Serialize<SendData> for SendData {
