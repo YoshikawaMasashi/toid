@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::marker::{Send, Sync};
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -9,6 +10,7 @@ use super::super::super::resource_management::resource_manager::ResourceManager;
 use super::super::super::state_management::serialize::Serialize;
 use super::super::super::state_management::state::State;
 use super::super::super::state_management::store::Store;
+use super::super::super::state_management::store_reader::StoreReader;
 use super::super::player::Player;
 use super::send_data::SendData;
 
@@ -26,10 +28,13 @@ impl SenderHolder {
     }
 }
 
-pub struct WebSocketPlayer<S, E> {
+pub struct WebSocketPlayer<S, E, R, O, RE> {
     store: Arc<Store<S, E>>,
     resource_manager: Arc<ResourceManager>,
     sender_holder: Arc<RwLock<SenderHolder>>,
+    reader: Arc<RwLock<R>>,
+    out_marker: PhantomData<O>,
+    reader_event_marker: PhantomData<RE>,
 }
 
 pub struct WebSocketPlayerHandler<S, E> {
@@ -39,13 +44,19 @@ pub struct WebSocketPlayerHandler<S, E> {
 impl<
         S: 'static + State<E> + Serialize<S> + Send + Sync,
         E: 'static + Sized + Serialize<E> + Send + Sync,
-    > WebSocketPlayer<S, E>
+        R: 'static + StoreReader<O, RE, S, E>,
+        O,
+        RE,
+    > WebSocketPlayer<S, E, R, O, RE>
 {
-    pub fn new(store: Arc<Store<S, E>>, resource_manager: Arc<ResourceManager>) -> Self {
+    pub fn new() -> Self {
         Self {
-            store: store,
-            resource_manager: resource_manager,
+            store: Arc::new(Store::new(S::new())),
+            resource_manager: Arc::new(ResourceManager::new()),
+            reader: Arc::new(RwLock::new(R::new())),
             sender_holder: Arc::new(RwLock::new(SenderHolder::new())),
+            out_marker: PhantomData,
+            reader_event_marker: PhantomData,
         }
     }
 
@@ -76,13 +87,19 @@ impl<
     }
 }
 
-impl<S: State<E>, E: Sized + Serialize<E>> Player<S, E> for WebSocketPlayer<S, E> {
+impl<S: State<E>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE>
+    Player<S, E, R, O, RE> for WebSocketPlayer<S, E, R, O, RE>
+{
     fn get_store(&self) -> Arc<Store<S, E>> {
         Arc::clone(&self.store)
     }
 
     fn get_resource_manager(&self) -> Arc<ResourceManager> {
         Arc::clone(&self.resource_manager)
+    }
+
+    fn get_reader(&self) -> Arc<RwLock<R>> {
+        Arc::clone(&self.reader)
     }
 
     fn send_event(&self, event: E) {

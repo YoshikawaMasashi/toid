@@ -12,12 +12,6 @@ pub struct SchedulingState {
 }
 
 impl SchedulingState {
-    pub fn new() -> Self {
-        let mut bpm_schedule = BTreeMap::new();
-        bpm_schedule.insert(Beat::from(0), 120.0);
-        SchedulingState { bpm_schedule }
-    }
-
     fn change_bpm(&self, change: Beat, bpm: f32) -> Self {
         let mut new_bpm_schedule = self.bpm_schedule.clone();
         new_bpm_schedule.insert(change, bpm);
@@ -28,6 +22,12 @@ impl SchedulingState {
 }
 
 impl State<SchedulingStateEvent> for SchedulingState {
+    fn new() -> Self {
+        let mut bpm_schedule = BTreeMap::new();
+        bpm_schedule.insert(Beat::from(0), 120.0);
+        SchedulingState { bpm_schedule }
+    }
+
     fn reduce(&self, event: SchedulingStateEvent) -> Self {
         match event {
             SchedulingStateEvent::ChangeBPM(beat, bpm) => self.change_bpm(beat, bpm),

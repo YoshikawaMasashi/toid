@@ -20,13 +20,6 @@ pub struct MelodyState {
 }
 
 impl MelodyState {
-    pub fn new() -> Self {
-        MelodyState {
-            notes: BTreeMap::new(),
-            repeat_length: Beat::from(8),
-        }
-    }
-
     pub fn add_note(&self, note: NoteInfo) -> Self {
         let mut new_notes = self.notes.clone();
         let mut new_note_vec;
@@ -45,6 +38,13 @@ impl MelodyState {
 }
 
 impl State<MelodyStateEvent> for MelodyState {
+    fn new() -> Self {
+        MelodyState {
+            notes: BTreeMap::new(),
+            repeat_length: Beat::from(8),
+        }
+    }
+
     fn reduce(&self, event: MelodyStateEvent) -> Self {
         match event {
             MelodyStateEvent::AddNote(note) => self.add_note(note),

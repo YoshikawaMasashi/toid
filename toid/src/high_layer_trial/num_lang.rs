@@ -4,6 +4,7 @@ use super::super::music_state::beat::Beat;
 use super::super::music_state::melody_state::MelodyStateEvent;
 use super::super::music_state::melody_state::NoteInfo;
 use super::super::music_state::music_state::{MusicState, MusicStateEvent};
+use super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::players::player::Player;
 
 fn parse_num_lang(s: String, octave: f32) -> Vec<NoteInfo> {
@@ -60,7 +61,7 @@ pub fn send_num_lang(
     melody_string: String,
     octave: f32,
     melody_name: String,
-    player: Arc<dyn Player<MusicState, MusicStateEvent>>,
+    player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
 ) {
     player.send_event(MusicStateEvent::NewMelody(melody_name.clone()));
     let note_infos = parse_num_lang(melody_string, octave);

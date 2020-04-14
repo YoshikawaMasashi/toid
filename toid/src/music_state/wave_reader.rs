@@ -20,8 +20,13 @@ pub struct WaveReader {
     cum_current_beats: Beat,
 }
 
-impl WaveReader {
-    pub fn new() -> Self {
+fn get_hertz(pitch: f32) -> f32 {
+    // A4 -> 69 440hz
+    440. * (2.0 as f32).powf((pitch - 69.) / 12.)
+}
+
+impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for WaveReader {
+    fn new() -> Self {
         WaveReader {
             wave_length: 512,
             played_notes: BTreeMap::new(),
@@ -32,14 +37,7 @@ impl WaveReader {
             cum_current_beats: Beat::from(0),
         }
     }
-}
 
-fn get_hertz(pitch: f32) -> f32 {
-    // A4 -> 69 440hz
-    440. * (2.0 as f32).powf((pitch - 69.) / 12.)
-}
-
-impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for WaveReader {
     fn read(
         &mut self,
         store: Arc<Store<MusicState, MusicStateEvent>>,

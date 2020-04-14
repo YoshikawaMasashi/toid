@@ -1,34 +1,30 @@
 extern crate portaudio;
 
 use super::super::music_state::music_state::{MusicState, MusicStateEvent};
-use super::super::music_state::wave_reader::WaveReader;
+use super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::players::player::Player;
 use super::super::state_management::store_reader::StoreReader;
 use portaudio as pa;
 use std::option::Option;
 use std::sync::Arc;
-use std::sync::RwLock;
 
 const CHANNELS: i32 = 2;
 const SAMPLE_RATE: f64 = 44_100.0;
 const FRAMES_PER_BUFFER: u32 = 512;
 
 pub struct PortAudioOutputter {
-    wave_reader: Arc<RwLock<WaveReader>>,
-    player: Arc<dyn Player<MusicState, MusicStateEvent>>,
+    player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
     portaudio: pa::PortAudio,
     stream: Option<pa::Stream<pa::NonBlocking, pa::Output<i16>>>,
 }
 
 impl PortAudioOutputter {
     pub fn new(
-        wave_reader: Arc<RwLock<WaveReader>>,
-        player: Arc<dyn Player<MusicState, MusicStateEvent>>,
+        player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
     ) -> Self {
         let portaudio = pa::PortAudio::new().unwrap();
 
         PortAudioOutputter {
-            wave_reader,
             player,
             portaudio,
             stream: None,
@@ -36,7 +32,7 @@ impl PortAudioOutputter {
     }
 
     pub fn run(&mut self) {
-        let wave_reader = Arc::clone(&self.wave_reader);
+        let wave_reader = Arc::clone(&self.player.get_reader());
         let store = Arc::clone(&self.player.get_store());
         let resource_manager = Arc::clone(&self.player.get_resource_manager());
         let callback = move |pa::OutputStreamCallbackArgs::<'static, i16> {
