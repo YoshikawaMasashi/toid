@@ -11,6 +11,7 @@ use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::local_player::LocalPlayer;
 use toid::players::player::Player;
+use toid::resource_management::resource_manager::ResourceManagerEvent;
 
 fn main() {
     let player = LocalPlayer::new();
@@ -19,9 +20,8 @@ fn main() {
     player
         .get_resource_manager()
         .register(String::from("../resource/sf2/sf2.toml"));
-    player
-        .get_resource_manager()
-        .load_sf2(String::from("sf2.test"));
+
+    player.send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.test")));
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
         as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>);
