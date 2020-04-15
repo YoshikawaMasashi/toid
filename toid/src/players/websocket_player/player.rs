@@ -6,7 +6,9 @@ use std::thread;
 
 use ws;
 
-use super::super::super::resource_management::resource_manager::ResourceManager;
+use super::super::super::resource_management::resource_manager::{
+    ResourceManager, ResourceManagerEvent,
+};
 use super::super::super::state_management::serialize::Serialize;
 use super::super::super::state_management::state::State;
 use super::super::super::state_management::store::Store;
@@ -42,6 +44,7 @@ pub struct WebSocketPlayerHandler<S, E, R, O, RE> {
     reader: Arc<RwLock<R>>,
     out_marker: PhantomData<O>,
     reader_event_marker: PhantomData<RE>,
+    resource_manager: Arc<ResourceManager>,
 }
 
 impl<
@@ -67,6 +70,7 @@ impl<
         let store = Arc::clone(&self.store);
         let sender_holder = Arc::clone(&self.sender_holder);
         let reader = Arc::clone(&self.reader);
+        let resource_manager = Arc::clone(&self.resource_manager);
         thread::spawn(move || {
             if let Err(error) = ws::connect(connect_address, |out| {
                 sender_holder.write().unwrap().set_sender(out);
@@ -75,6 +79,7 @@ impl<
                     reader: Arc::clone(&reader),
                     out_marker: PhantomData,
                     reader_event_marker: PhantomData,
+                    resource_manager: Arc::clone(&resource_manager),
                 };
                 handler
             }) {
@@ -133,6 +138,18 @@ impl<
             println!("sender have not been prepared yet");
         }
     }
+
+    fn send_resource_event(&self, event: ResourceManagerEvent) {
+        if let Some(out) = &self.sender_holder.read().unwrap().out {
+            let serialized_event = event.serialize().unwrap();
+            let msg = SendData::ApplyResourceManager(serialized_event)
+                .serialize()
+                .unwrap();
+            out.send(msg).unwrap();
+        } else {
+            println!("sender have not been prepared yet");
+        }
+    }
 }
 
 impl<
@@ -165,6 +182,12 @@ impl<
             SendData::ApplyReader(event_string) => {
                 let event: RE = RE::deserialize(event_string).unwrap();
                 self.reader.write().unwrap().apply(event);
+                Ok(())
+            }
+            SendData::ApplyResourceManager(event_string) => {
+                let event: ResourceManagerEvent =
+                    ResourceManagerEvent::deserialize(event_string).unwrap();
+                self.resource_manager.apply(event);
                 Ok(())
             }
         }

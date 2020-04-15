@@ -3,7 +3,10 @@ use std::path::Path;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use serde::{Deserialize, Serialize};
+
 use super::super::data::sf2::SF2;
+use super::super::state_management::serialize;
 use super::resource_unit::ResourceUnit;
 
 pub struct ResourceManager {
@@ -48,7 +51,7 @@ impl ResourceManager {
         }
     }
 
-    pub fn load_sf2(&self, name: String) {
+    fn load_sf2(&self, name: String) {
         if let Some(dot_idx) = name.find('.') {
             let (first, last) = name.split_at(dot_idx);
             let last = last.split_at(1).1;
@@ -78,6 +81,32 @@ impl ResourceManager {
             Ok(sf2)
         } else {
             Err(String::from("invalid name"))
+        }
+    }
+
+    pub fn apply(&self, event: ResourceManagerEvent) {
+        match event {
+            ResourceManagerEvent::LoadSF2(name) => self.load_sf2(name),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub enum ResourceManagerEvent {
+    LoadSF2(String),
+}
+
+impl serialize::Serialize<ResourceManagerEvent> for ResourceManagerEvent {
+    fn serialize(&self) -> Result<String, String> {
+        match serde_json::to_string(&self) {
+            Ok(serialized) => Ok(serialized),
+            Err(err) => Err(format!("error in serizalization : {}", err)),
+        }
+    }
+    fn deserialize(serialized: String) -> Result<Self, String> {
+        match serde_json::from_str(serialized.as_str()) {
+            Ok(deserialized) => Ok(deserialized),
+            Err(err) => Err(format!("error in deserizalization : {}", err)),
         }
     }
 }

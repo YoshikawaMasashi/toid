@@ -7,6 +7,7 @@ pub enum SendData {
     StateUpdate(String),
     SyncState(String),
     ApplyReader(String),
+    ApplyResourceManager(String),
 }
 
 impl serialize::Serialize<SendData> for SendData {

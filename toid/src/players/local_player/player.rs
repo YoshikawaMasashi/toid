@@ -2,7 +2,9 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use super::super::super::resource_management::resource_manager::ResourceManager;
+use super::super::super::resource_management::resource_manager::{
+    ResourceManager, ResourceManagerEvent,
+};
 use super::super::super::state_management::serialize::Serialize;
 use super::super::super::state_management::state::State;
 use super::super::super::state_management::store::Store;
@@ -52,5 +54,9 @@ impl<S: State<E>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE>
 
     fn send_reader_event(&self, event: RE) {
         self.reader.write().unwrap().apply(event);
+    }
+
+    fn send_resource_event(&self, event: ResourceManagerEvent) {
+        self.resource_manager.apply(event);
     }
 }
