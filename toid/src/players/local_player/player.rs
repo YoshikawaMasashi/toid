@@ -57,6 +57,8 @@ impl<S: State<E>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE>
     }
 
     fn send_resource_event(&self, event: ResourceManagerEvent) {
-        self.resource_manager.apply(event);
+        if let Err(error) = self.resource_manager.apply(event) {
+            println!("send resource event error !: {}", error);
+        }
     }
 }

@@ -21,9 +21,10 @@ impl SF2 {
         self.presets.push(preset);
     }
 
-    pub fn parse(i: &[u8]) -> Self {
-        let parsed_sf2 = parsed::SF2::parse(i);
-        parsed_sf2_to_own_sf2(parsed_sf2)
+    pub fn parse(i: &[u8]) -> Result<Self, String> {
+        let parsed_sf2 = parsed::SF2::parse(i)?;
+        let sf2 = parsed_sf2_to_own_sf2(parsed_sf2);
+        Ok(sf2)
     }
 
     pub fn get_sample(&self, preset_idx: usize, key: u8, idx: usize) -> i16 {

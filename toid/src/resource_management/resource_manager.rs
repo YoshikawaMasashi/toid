@@ -51,7 +51,7 @@ impl ResourceManager {
         }
     }
 
-    fn load_sf2(&self, name: String) {
+    fn load_sf2(&self, name: String) -> Result<(), String> {
         if let Some(dot_idx) = name.find('.') {
             let (first, last) = name.split_at(dot_idx);
             let last = last.split_at(1).1;
@@ -60,7 +60,10 @@ impl ResourceManager {
                 .unwrap()
                 .get_mut(first)
                 .unwrap()
-                .load_sf2(last.to_string());
+                .load_sf2(last.to_string())?;
+            Ok(())
+        } else {
+            Err(format!("invalid name {}", name).to_string())
         }
     }
 
@@ -84,10 +87,11 @@ impl ResourceManager {
         }
     }
 
-    pub fn apply(&self, event: ResourceManagerEvent) {
+    pub fn apply(&self, event: ResourceManagerEvent) -> Result<(), String> {
         match event {
-            ResourceManagerEvent::LoadSF2(name) => self.load_sf2(name),
+            ResourceManagerEvent::LoadSF2(name) => self.load_sf2(name)?,
         }
+        Ok(())
     }
 }
 

@@ -51,14 +51,15 @@ impl ResourceUnit {
         exist_all
     }
 
-    pub fn load_sf2(&mut self, key: String) {
+    pub fn load_sf2(&mut self, key: String) -> Result<(), String> {
         let path = &self.file_paths[&key];
         let mut f = fs::File::open(path).unwrap();
         let mut buffer = Vec::new();
         f.read_to_end(&mut buffer).unwrap();
         let buffer = buffer.as_slice();
-        let sf2 = SF2::parse(buffer);
+        let sf2 = SF2::parse(buffer)?;
         let sf2 = Arc::new(sf2);
         self.sf2.insert(key, sf2);
+        Ok(())
     }
 }

@@ -13,9 +13,10 @@ pub struct SF2 {
 }
 
 impl SF2 {
-    pub fn parse(i: &[u8]) -> Self {
-        let chank = RiffChank::parse(i);
-        convert_chank_to_sf2(&chank).expect("Failed to conver to sf2")
+    pub fn parse(i: &[u8]) -> Result<Self, String> {
+        let chank = RiffChank::parse(i)?;
+        let sf2 = convert_chank_to_sf2(&chank);
+        sf2
     }
 }
 
@@ -42,22 +43,13 @@ fn convert_chank_to_sf2(chank: &RiffChank) -> Result<SF2, String> {
                     if let Some(subchank_type) = &subchank.chank_type {
                         match subchank_type.as_str() {
                             "INFO" => {
-                                info = Some(
-                                    convert_chank_to_sf2info(&subchank)
-                                        .expect("invalid INFO chank"),
-                                );
+                                info = Some(convert_chank_to_sf2info(&subchank)?);
                             }
                             "sdta" => {
-                                sdta = Some(
-                                    convert_chank_to_sf2sdta(&subchank)
-                                        .expect("invalid sdta chank"),
-                                );
+                                sdta = Some(convert_chank_to_sf2sdta(&subchank)?);
                             }
                             "pdta" => {
-                                pdta = Some(
-                                    convert_chank_to_sf2pdta(&subchank)
-                                        .expect("invalid pdta chank"),
-                                );
+                                pdta = Some(convert_chank_to_sf2pdta(&subchank)?);
                             }
                             _ => {}
                         }
@@ -67,9 +59,18 @@ fn convert_chank_to_sf2(chank: &RiffChank) -> Result<SF2, String> {
         }
     }
 
-    let info = info.expect("Failed to parse info");
-    let sdta = sdta.expect("Failed to parse sdta");
-    let pdta = pdta.expect("Failed to parse pdta");
+    let info = match info {
+        Some(info) => info,
+        None => return Err("Failed to parse info".to_string()),
+    };
+    let sdta = match sdta {
+        Some(sdta) => sdta,
+        None => return Err("Failed to parse sdta".to_string()),
+    };
+    let pdta = match pdta {
+        Some(pdta) => pdta,
+        None => return Err("Failed to parse pdta".to_string()),
+    };
 
     let info = Arc::new(info);
     let sdta = Arc::new(sdta);

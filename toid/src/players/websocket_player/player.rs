@@ -187,7 +187,9 @@ impl<
             SendData::ApplyResourceManager(event_string) => {
                 let event: ResourceManagerEvent =
                     ResourceManagerEvent::deserialize(event_string).unwrap();
-                self.resource_manager.apply(event);
+                if let Err(error) = self.resource_manager.apply(event) {
+                    println!("send resource event error !: {}", error);
+                }
                 Ok(())
             }
         }
