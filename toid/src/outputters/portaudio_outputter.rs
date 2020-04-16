@@ -21,17 +21,17 @@ pub struct PortAudioOutputter {
 impl PortAudioOutputter {
     pub fn new(
         player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
-    ) -> Self {
-        let portaudio = pa::PortAudio::new().unwrap();
+    ) -> Result<Self, String> {
+        let portaudio = pa::PortAudio::new().map_err(|e| e.to_string())?;
 
-        PortAudioOutputter {
+        Ok(PortAudioOutputter {
             player,
             portaudio,
             stream: None,
-        }
+        })
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> Result<(), String> {
         let wave_reader = Arc::clone(&self.player.get_reader());
         let store = Arc::clone(&self.player.get_store());
         let resource_manager = Arc::clone(&self.player.get_resource_manager());
@@ -41,10 +41,15 @@ impl PortAudioOutputter {
                                  ..
                              }|
               -> pa::StreamCallbackResult {
-            let waves = wave_reader
-                .write()
-                .unwrap()
-                .read(Arc::clone(&store), Arc::clone(&resource_manager));
+            let waves = match wave_reader.write() {
+                Ok(mut wave_reader) => {
+                    wave_reader.read(Arc::clone(&store), Arc::clone(&resource_manager))
+                }
+                Err(_) => {
+                    // TODO: rethinking
+                    return pa::StreamCallbackResult::Abort;
+                }
+            };
 
             let mut idx = 0;
             for i in 0..frames {
@@ -58,22 +63,31 @@ impl PortAudioOutputter {
         let mut settings = self
             .portaudio
             .default_output_stream_settings::<i16>(CHANNELS, SAMPLE_RATE, FRAMES_PER_BUFFER)
-            .unwrap();
+            .map_err(|e| e.to_string())?;
         settings.flags = pa::stream_flags::CLIP_OFF;
 
         let mut stream = self
             .portaudio
             .open_non_blocking_stream(settings, callback)
-            .unwrap();
+            .map_err(|e| e.to_string())?;
 
-        stream.start().unwrap();
+        stream.start().map_err(|e| e.to_string())?;
         self.stream = Some(stream);
+
+        Ok(())
     }
 
-    pub fn stop(&mut self) {
-        Option::as_mut(&mut self.stream).unwrap().stop().unwrap();
-        Option::as_mut(&mut self.stream).unwrap().close().unwrap();
+    pub fn stop(&mut self) -> Result<(), String> {
+        Option::as_mut(&mut self.stream)
+            .ok_or("as_mut failed")?
+            .stop()
+            .map_err(|e| e.to_string())?;
+        Option::as_mut(&mut self.stream)
+            .ok_or("as_mut failed")?
+            .close()
+            .map_err(|e| e.to_string())?;
         self.stream = None;
+        Ok(())
     }
 
     pub fn sleep(&mut self, millseconds: i32) {

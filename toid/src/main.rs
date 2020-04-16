@@ -24,7 +24,8 @@ fn main() {
     player.send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.test")));
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
-        as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>);
+        as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>)
+    .unwrap();
 
     player.send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
         String::from("sf2.test"),
@@ -56,9 +57,9 @@ fn main() {
             as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
     );
 
-    portaudio_outputter.run();
+    portaudio_outputter.run().unwrap();
     portaudio_outputter.sleep(2250);
     player.send_reader_event(WaveReaderEvent::MoveStart);
     portaudio_outputter.sleep(12000);
-    portaudio_outputter.stop();
+    portaudio_outputter.stop().unwrap();
 }
