@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Rem, Sub};
 
-use serde::de::Visitor;
+use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 const BEAT_LENGTH: i64 = 960;
@@ -48,9 +48,11 @@ impl<'de> Deserialize<'de> for Beat {
     where
         D: Deserializer<'de>,
     {
-        let string = deserializer.deserialize_string(StringVisitor).unwrap();
-        let num: i64 = string.parse().unwrap();
-        Ok(Beat { num })
+        let string = deserializer.deserialize_string(StringVisitor)?;
+        match string.parse().map_err(Error::custom) {
+            Ok(num) => Ok(Beat { num }),
+            Err(e) => Err(e),
+        }
     }
 }
 

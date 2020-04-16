@@ -46,26 +46,27 @@ impl Preset {
         self.prepare_max_vel_range_of_gen();
     }
 
-    pub fn get_sample(&self, key: u8, idx: usize) -> i16 {
+    pub fn get_sample(&self, key: u8, idx: usize) -> Result<i16, String> {
         let mut sample = 0;
 
         let gen_set = self.get_generator_from_key_vel(key, 64);
         for gen in gen_set.iter() {
             if let Some(instrument_obj) = &gen.instrument {
-                sample += instrument_obj.get_sample(key, idx);
+                sample += instrument_obj.get_sample(key, idx)?;
             }
         }
 
-        sample
+        Ok(sample)
     }
-    pub fn get_samples(&self, key: u8, start: usize, end: usize) -> Vec<i16> {
+
+    pub fn get_samples(&self, key: u8, start: usize, end: usize) -> Result<Vec<i16>, String> {
         let mut sample = Vec::new();
         sample.resize(end - start, 0);
 
         let gen_set = self.get_generator_from_key_vel(key, 64);
         for gen in gen_set.iter() {
             if let Some(instrument_obj) = &gen.instrument {
-                let sample_ = instrument_obj.get_samples(key, start, end);
+                let sample_ = instrument_obj.get_samples(key, start, end)?;
 
                 for i in 0..end - start {
                     sample[i] += sample_[i];
@@ -73,19 +74,22 @@ impl Preset {
             }
         }
 
-        sample
+        Ok(sample)
     }
 
     fn prepare_min_key_range_of_gen(&mut self) {
-        let mut min_key_range_of_gen = BTreeMap::new();
+        let mut min_key_range_of_gen: BTreeMap<u8, HashSet<usize>> = BTreeMap::new();
         for (gen_idx, gen) in self.generators.iter().enumerate() {
-            if !min_key_range_of_gen.contains_key(&gen.generator.key_range.min) {
-                min_key_range_of_gen.insert(gen.generator.key_range.min, HashSet::new());
+            match min_key_range_of_gen.get_mut(&gen.generator.key_range.min) {
+                Some(set) => {
+                    set.insert(gen_idx);
+                }
+                None => {
+                    let mut set = HashSet::new();
+                    set.insert(gen_idx);
+                    min_key_range_of_gen.insert(gen.generator.key_range.min, set);
+                }
             }
-            min_key_range_of_gen
-                .get_mut(&gen.generator.key_range.min)
-                .unwrap()
-                .insert(gen_idx);
         }
 
         self.min_key_range_of_gen = Some(Arc::new(min_key_range_of_gen));

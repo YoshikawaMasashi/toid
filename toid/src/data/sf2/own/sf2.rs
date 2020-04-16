@@ -27,11 +27,17 @@ impl SF2 {
         Ok(sf2)
     }
 
-    pub fn get_sample(&self, preset_idx: usize, key: u8, idx: usize) -> i16 {
+    pub fn get_sample(&self, preset_idx: usize, key: u8, idx: usize) -> Result<i16, String> {
         self.presets.get(preset_idx).unwrap().get_sample(key, idx)
     }
 
-    pub fn get_samples(&self, preset_idx: usize, key: u8, start: usize, end: usize) -> Vec<i16> {
+    pub fn get_samples(
+        &self,
+        preset_idx: usize,
+        key: u8,
+        start: usize,
+        end: usize,
+    ) -> Result<Vec<i16>, String> {
         self.presets
             .get(preset_idx)
             .unwrap()

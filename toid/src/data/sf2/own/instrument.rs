@@ -46,24 +46,24 @@ impl Instrument {
         self.prepare_max_vel_range_of_gen();
     }
 
-    pub fn get_sample(&self, key: u8, idx: usize) -> i16 {
+    pub fn get_sample(&self, key: u8, idx: usize) -> Result<i16, String> {
         let mut sample = 0;
 
-        let gen_set = self.get_generator_from_key_vel(key, 64);
+        let gen_set = self.get_generator_from_key_vel(key, 64)?;
         for gen in gen_set.iter() {
             if let Some(sample_obj) = &gen.sample {
                 sample += sample_obj.get_sample(key, idx);
             }
         }
 
-        sample
+        Ok(sample)
     }
 
-    pub fn get_samples(&self, key: u8, start: usize, end: usize) -> Vec<i16> {
+    pub fn get_samples(&self, key: u8, start: usize, end: usize) -> Result<Vec<i16>, String> {
         let mut sample = Vec::new();
         sample.resize(end - start, 0);
 
-        let gen_set = self.get_generator_from_key_vel(key, 64);
+        let gen_set = self.get_generator_from_key_vel(key, 64)?;
         for gen in gen_set.iter() {
             if let Some(sample_obj) = &gen.sample {
                 let sample_ = sample_obj.get_samples(key, start, end);
@@ -74,108 +74,121 @@ impl Instrument {
             }
         }
 
-        sample
+        Ok(sample)
     }
 
     fn prepare_min_key_range_of_gen(&mut self) {
-        let mut min_key_range_of_gen = BTreeMap::new();
+        let mut min_key_range_of_gen: BTreeMap<u8, HashSet<usize>> = BTreeMap::new();
         for (gen_idx, gen) in self.generators.iter().enumerate() {
-            if !min_key_range_of_gen.contains_key(&gen.generator.key_range.min) {
-                min_key_range_of_gen.insert(gen.generator.key_range.min, HashSet::new());
+            match min_key_range_of_gen.get_mut(&gen.generator.key_range.min) {
+                Some(set) => {
+                    set.insert(gen_idx);
+                }
+                None => {
+                    let mut set = HashSet::new();
+                    set.insert(gen_idx);
+                    min_key_range_of_gen.insert(gen.generator.key_range.min, set);
+                }
             }
-            min_key_range_of_gen
-                .get_mut(&gen.generator.key_range.min)
-                .unwrap()
-                .insert(gen_idx);
         }
 
         self.min_key_range_of_gen = Some(Arc::new(min_key_range_of_gen));
     }
 
     fn prepare_max_key_range_of_gen(&mut self) {
-        let mut max_key_range_of_gen = BTreeMap::new();
+        let mut max_key_range_of_gen: BTreeMap<u8, HashSet<usize>> = BTreeMap::new();
         for (gen_idx, gen) in self.generators.iter().enumerate() {
-            if !max_key_range_of_gen.contains_key(&gen.generator.key_range.max) {
-                max_key_range_of_gen.insert(gen.generator.key_range.max, HashSet::new());
-            }
-            max_key_range_of_gen
-                .get_mut(&gen.generator.key_range.max)
-                .unwrap()
-                .insert(gen_idx);
+            match max_key_range_of_gen.get_mut(&gen.generator.key_range.max) {
+                Some(set) => {
+                    set.insert(gen_idx);
+                }
+                None => {
+                    let mut set = HashSet::new();
+                    set.insert(gen_idx);
+                    max_key_range_of_gen.insert(gen.generator.key_range.max, set);
+                }
+            };
         }
 
         self.max_key_range_of_gen = Some(Arc::new(max_key_range_of_gen));
     }
 
     fn prepare_min_vel_range_of_gen(&mut self) {
-        let mut min_vel_range_of_gen = BTreeMap::new();
+        let mut min_vel_range_of_gen: BTreeMap<u8, HashSet<usize>> = BTreeMap::new();
         for (gen_idx, gen) in self.generators.iter().enumerate() {
-            if !min_vel_range_of_gen.contains_key(&gen.generator.vel_range.min) {
-                min_vel_range_of_gen.insert(gen.generator.vel_range.min, HashSet::new());
+            match min_vel_range_of_gen.get_mut(&gen.generator.vel_range.min) {
+                Some(set) => {
+                    set.insert(gen_idx);
+                }
+                None => {
+                    let mut set = HashSet::new();
+                    set.insert(gen_idx);
+                    min_vel_range_of_gen.insert(gen.generator.vel_range.min, set);
+                }
             }
-            min_vel_range_of_gen
-                .get_mut(&gen.generator.vel_range.min)
-                .unwrap()
-                .insert(gen_idx);
         }
 
         self.min_vel_range_of_gen = Some(Arc::new(min_vel_range_of_gen));
     }
 
     fn prepare_max_vel_range_of_gen(&mut self) {
-        let mut max_vel_range_of_gen = BTreeMap::new();
+        let mut max_vel_range_of_gen: BTreeMap<u8, HashSet<usize>> = BTreeMap::new();
         for (gen_idx, gen) in self.generators.iter().enumerate() {
-            if !max_vel_range_of_gen.contains_key(&gen.generator.vel_range.max) {
-                max_vel_range_of_gen.insert(gen.generator.vel_range.max, HashSet::new());
+            match max_vel_range_of_gen.get_mut(&gen.generator.vel_range.max) {
+                Some(set) => {
+                    set.insert(gen_idx);
+                }
+                None => {
+                    let mut set = HashSet::new();
+                    set.insert(gen_idx);
+                    max_vel_range_of_gen.insert(gen.generator.vel_range.max, set);
+                }
             }
-            max_vel_range_of_gen
-                .get_mut(&gen.generator.vel_range.max)
-                .unwrap()
-                .insert(gen_idx);
         }
 
         self.max_vel_range_of_gen = Some(Arc::new(max_vel_range_of_gen));
     }
 
-    pub fn get_generator_from_key_vel(&self, key: u8, vel: u8) -> Vec<Arc<InstrumentGenerator>> {
-        if self
-            .generator_cache
-            .read()
-            .unwrap()
-            .contains_key(&(key, vel))
-        {
-            return self
-                .generator_cache
-                .read()
-                .unwrap()
-                .get(&(key, vel))
-                .unwrap()
-                .clone();
-        }
+    pub fn get_generator_from_key_vel(
+        &self,
+        key: u8,
+        vel: u8,
+    ) -> Result<Vec<Arc<InstrumentGenerator>>, String> {
+        match self.generator_cache.read() {
+            Ok(generator_cache) => match generator_cache.get(&(key, vel)) {
+                Some(instgen_vec) => {
+                    return Ok(instgen_vec.clone());
+                }
+                None => {}
+            },
+            Err(e) => {
+                return Err(e.to_string());
+            }
+        };
 
         let mut gen_idx_set_for_min_key = HashSet::new();
-        for (_, value) in Arc::clone(&self.min_key_range_of_gen.as_ref().unwrap())
+        for (_, value) in Arc::clone(self.min_key_range_of_gen.as_ref().ok_or("as_ref failed")?)
             .range((Included(&0), Included(&key)))
         {
             gen_idx_set_for_min_key = gen_idx_set_for_min_key.union(value).cloned().collect();
         }
 
         let mut gen_idx_set_for_max_key = HashSet::new();
-        for (_, value) in Arc::clone(&self.max_key_range_of_gen.as_ref().unwrap())
+        for (_, value) in Arc::clone(self.max_key_range_of_gen.as_ref().ok_or("as_ref failed")?)
             .range((Included(&key), Included(&127)))
         {
             gen_idx_set_for_max_key = gen_idx_set_for_max_key.union(value).cloned().collect();
         }
 
         let mut gen_idx_set_for_min_vel = HashSet::new();
-        for (_, value) in Arc::clone(&self.min_vel_range_of_gen.as_ref().unwrap())
+        for (_, value) in Arc::clone(self.min_vel_range_of_gen.as_ref().ok_or("as_ref failed")?)
             .range((Included(&0), Included(&vel)))
         {
             gen_idx_set_for_min_vel = gen_idx_set_for_min_vel.union(value).cloned().collect();
         }
 
         let mut gen_idx_set_for_max_vel = HashSet::new();
-        for (_, value) in Arc::clone(&self.max_vel_range_of_gen.as_ref().unwrap())
+        for (_, value) in Arc::clone(self.max_vel_range_of_gen.as_ref().ok_or("as_ref failed")?)
             .range((Included(&vel), Included(&127)))
         {
             gen_idx_set_for_max_vel = gen_idx_set_for_max_vel.union(value).cloned().collect();
@@ -194,13 +207,15 @@ impl Instrument {
 
         let mut gen_set = Vec::new();
         for &gen_idx in gen_idx_set.iter() {
-            gen_set.push(Arc::clone(self.generators.get(gen_idx).unwrap()));
+            gen_set.push(Arc::clone(
+                self.generators.get(gen_idx).ok_or("get failed")?,
+            ));
         }
 
         self.generator_cache
             .write()
-            .unwrap()
+            .map_err(|e| e.to_string())?
             .insert((key, vel), gen_set.clone());
-        gen_set
+        Ok(gen_set)
     }
 }

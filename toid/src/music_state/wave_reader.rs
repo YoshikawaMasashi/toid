@@ -220,9 +220,16 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                             start_idx_for_sample,
                             end_idx_for_sample,
                         );
-
-                        for (i, j) in (start_idx..end_idx).enumerate() {
-                            ret[j] = ret[j].saturating_add(sample_data[i]);
+                        match sample_data {
+                            Ok(sample_data) => {
+                                for (i, j) in (start_idx..end_idx).enumerate() {
+                                    ret[j] = ret[j].saturating_add(sample_data[i]);
+                                }
+                            }
+                            Err(e) => {
+                                // TODO:
+                                println!("error {}", e);
+                            }
                         }
                     }
                 }
