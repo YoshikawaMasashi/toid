@@ -17,9 +17,9 @@ impl fmt::Display for SF2sdta {
         write!(
             f,
             "smpl: {} {} {} ... length {} \n",
-            self.smpl.get(0).unwrap(),
-            self.smpl.get(1).unwrap(),
-            self.smpl.get(2).unwrap(),
+            self.smpl.get(0).ok_or(fmt::Error {})?,
+            self.smpl.get(1).ok_or(fmt::Error {})?,
+            self.smpl.get(2).ok_or(fmt::Error {})?,
             self.smpl.len()
         )?;
 

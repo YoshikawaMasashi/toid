@@ -23,7 +23,8 @@ pub fn parse_sf_preset_headers(
 
 fn parse_sf_preset_header(i: &[u8]) -> IResult<&[u8], Arc<SFPresetHeader>> {
     let (i, name) = take(20u8)(i)?;
-    let name = String::from_utf8(name.to_vec()).unwrap();
+    let name = String::from_utf8(name.to_vec())
+        .map_err(|_| nom::Err::Error((i, nom::error::ErrorKind::NoneOf)))?;
     let (i, presento) = le_u16(i)?;
     let (i, bank) = le_u16(i)?;
     let (i, bag_index) = le_u16(i)?;
