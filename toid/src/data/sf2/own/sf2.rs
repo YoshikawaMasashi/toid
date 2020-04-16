@@ -23,12 +23,14 @@ impl SF2 {
 
     pub fn parse(i: &[u8]) -> Result<Self, String> {
         let parsed_sf2 = parsed::SF2::parse(i)?;
-        let sf2 = parsed_sf2_to_own_sf2(parsed_sf2);
-        Ok(sf2)
+        parsed_sf2_to_own_sf2(parsed_sf2)
     }
 
     pub fn get_sample(&self, preset_idx: usize, key: u8, idx: usize) -> Result<i16, String> {
-        self.presets.get(preset_idx).unwrap().get_sample(key, idx)
+        self.presets
+            .get(preset_idx)
+            .ok_or("get failed")?
+            .get_sample(key, idx)
     }
 
     pub fn get_samples(
@@ -40,12 +42,12 @@ impl SF2 {
     ) -> Result<Vec<i16>, String> {
         self.presets
             .get(preset_idx)
-            .unwrap()
+            .ok_or("get failed")?
             .get_samples(key, start, end)
     }
 }
 
-fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
+fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> Result<SF2, String> {
     let mut own_sf2 = SF2::new();
     let sample_access = Arc::clone(&parsed_sf2.sdta.smpl);
 
@@ -62,7 +64,7 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
             original_key: sample_header.original_key,
             correction: sample_header.correction,
             sample_link: None,
-            typee: SampleType::from_flg(sample_header.typee).unwrap(),
+            typee: SampleType::from_flg(sample_header.typee).ok_or("from_flg failed")?,
         };
         let sample = Arc::new(sample);
         samples.push(sample);
@@ -76,20 +78,28 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
 
     let mut inst_generators = Vec::new();
     for inst_gen_idx in 0..parsed_sf2.pdta.ibag.len() {
-        let inst_gen_info_start = inst_gen_info_sections.get(inst_gen_idx).unwrap();
-        let inst_gen_info_end = inst_gen_info_sections.get(inst_gen_idx + 1).unwrap();
+        let inst_gen_info_start = inst_gen_info_sections
+            .get(inst_gen_idx)
+            .ok_or("get failed")?;
+        let inst_gen_info_end = inst_gen_info_sections
+            .get(inst_gen_idx + 1)
+            .ok_or("get failed")?;
 
         let mut generator = InstrumentGenerator::new();
 
         for inst_gen_info_idx in *inst_gen_info_start..*inst_gen_info_end {
-            let inst_gen_info = parsed_sf2.pdta.igen.get(inst_gen_info_idx).unwrap();
-            let gen_oper = GeneratorEnum::from_id(inst_gen_info.gen_oper).unwrap();
+            let inst_gen_info = parsed_sf2
+                .pdta
+                .igen
+                .get(inst_gen_info_idx)
+                .ok_or("get failed")?;
+            let gen_oper = GeneratorEnum::from_id(inst_gen_info.gen_oper).ok_or("get failed")?;
             let gen_amount = inst_gen_info.gen_amount;
 
             generator.set_oper(gen_oper, gen_amount);
             if let GeneratorEnum::SampleID = gen_oper {
                 let sample_idx = gen_amount as usize;
-                generator.set_sample(Arc::clone(samples.get(sample_idx).unwrap()));
+                generator.set_sample(Arc::clone(samples.get(sample_idx).ok_or("get failed")?));
             }
         }
 
@@ -105,13 +115,15 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
 
     let mut instruments = Vec::new();
     for (inst_idx, inst) in parsed_sf2.pdta.inst.iter().enumerate() {
-        let inst_gen_start = inst_gen_sections.get(inst_idx).unwrap();
-        let inst_gen_end = inst_gen_sections.get(inst_idx + 1).unwrap();
+        let inst_gen_start = inst_gen_sections.get(inst_idx).ok_or("get failed")?;
+        let inst_gen_end = inst_gen_sections.get(inst_idx + 1).ok_or("get failed")?;
 
         let mut instrument = Instrument::new();
         instrument.set_name(inst.name.clone());
         for inst_gen_idx in *inst_gen_start..*inst_gen_end {
-            instrument.add_generator(Arc::clone(inst_generators.get(inst_gen_idx).unwrap()));
+            instrument.add_generator(Arc::clone(
+                inst_generators.get(inst_gen_idx).ok_or("get failed")?,
+            ));
         }
         instrument.prepare_gen_range();
         instruments.push(Arc::new(instrument));
@@ -125,20 +137,31 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
 
     let mut preset_generators = Vec::new();
     for preset_gen_idx in 0..parsed_sf2.pdta.pbag.len() {
-        let preset_gen_info_start = preset_gen_info_sections.get(preset_gen_idx).unwrap();
-        let preset_gen_info_end = preset_gen_info_sections.get(preset_gen_idx + 1).unwrap();
+        let preset_gen_info_start = preset_gen_info_sections
+            .get(preset_gen_idx)
+            .ok_or("get failed")?;
+        let preset_gen_info_end = preset_gen_info_sections
+            .get(preset_gen_idx + 1)
+            .ok_or("get failed")?;
 
         let mut generator = PresetGenerator::new();
 
         for preset_gen_info_idx in *preset_gen_info_start..*preset_gen_info_end {
-            let preset_gen_info = parsed_sf2.pdta.pgen.get(preset_gen_info_idx).unwrap();
-            let gen_oper = GeneratorEnum::from_id(preset_gen_info.gen_oper).unwrap();
+            let preset_gen_info = parsed_sf2
+                .pdta
+                .pgen
+                .get(preset_gen_info_idx)
+                .ok_or("get failed")?;
+            let gen_oper =
+                GeneratorEnum::from_id(preset_gen_info.gen_oper).ok_or("from id failed")?;
             let gen_amount = preset_gen_info.gen_amount;
 
             generator.set_oper(gen_oper, gen_amount);
             if let GeneratorEnum::Instrument = gen_oper {
                 let instrument_idx = gen_amount as usize;
-                generator.set_instrument(Arc::clone(instruments.get(instrument_idx).unwrap()));
+                generator.set_instrument(Arc::clone(
+                    instruments.get(instrument_idx).ok_or("get failed")?,
+                ));
             }
         }
 
@@ -153,17 +176,21 @@ fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> SF2 {
     preset_gen_sections.push(parsed_sf2.pdta.pbag.len());
 
     for (preset_idx, phdr) in parsed_sf2.pdta.phdr.iter().enumerate() {
-        let preset_gen_start = preset_gen_sections.get(preset_idx).unwrap();
-        let preset_gen_end = preset_gen_sections.get(preset_idx + 1).unwrap();
+        let preset_gen_start = preset_gen_sections.get(preset_idx).ok_or("get failed")?;
+        let preset_gen_end = preset_gen_sections
+            .get(preset_idx + 1)
+            .ok_or("get failed")?;
 
         let mut preset = Preset::new();
         preset.set_name(phdr.name.clone());
         for preset_gen_idx in *preset_gen_start..*preset_gen_end {
-            preset.add_generator(Arc::clone(preset_generators.get(preset_gen_idx).unwrap()));
+            preset.add_generator(Arc::clone(
+                preset_generators.get(preset_gen_idx).ok_or("get failed")?,
+            ));
         }
         preset.prepare_gen_range();
         own_sf2.add_preset(Arc::new(preset));
     }
 
-    own_sf2
+    Ok(own_sf2)
 }
