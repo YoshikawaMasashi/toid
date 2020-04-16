@@ -52,7 +52,7 @@ impl Instrument {
         let gen_set = self.get_generator_from_key_vel(key, 64)?;
         for gen in gen_set.iter() {
             if let Some(sample_obj) = &gen.sample {
-                sample += sample_obj.get_sample(key, idx);
+                sample += sample_obj.get_sample(key, idx)?;
             }
         }
 
@@ -66,7 +66,7 @@ impl Instrument {
         let gen_set = self.get_generator_from_key_vel(key, 64)?;
         for gen in gen_set.iter() {
             if let Some(sample_obj) = &gen.sample {
-                let sample_ = sample_obj.get_samples(key, start, end);
+                let sample_ = sample_obj.get_samples(key, start, end)?;
 
                 for i in 0..end - start {
                     sample[i] += sample_[i];
