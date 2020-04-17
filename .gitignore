@@ -6,5 +6,4 @@ rust-survey/*
 pytoid/target/*
 *.ipynb
 toid/.vscode
-resource/
 *.pyc
