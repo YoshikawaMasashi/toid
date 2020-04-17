@@ -34,7 +34,7 @@ pub struct Sample {
 }
 
 impl Sample {
-    pub fn get_sample(&self, key: u8, idx: usize) -> i16 {
+    pub fn get_sample(&self, key: u8, idx: usize) -> Result<i16, String> {
         let pitch_shift =
             (key as i16 - self.original_key as i16) as f32 + (self.correction as f32) / 100.0;
         let freq_shift = f32::powf(2.0, pitch_shift / 12.0);
@@ -42,7 +42,7 @@ impl Sample {
         self.sample_for_float_sample_link_idx(sample_link_idx)
     }
 
-    pub fn get_samples(&self, key: u8, start: usize, end: usize) -> Vec<i16> {
+    pub fn get_samples(&self, key: u8, start: usize, end: usize) -> Result<Vec<i16>, String> {
         let mut sample = Vec::new();
         sample.resize(end - start, 0);
 
@@ -53,11 +53,11 @@ impl Sample {
             let sample_link_idx = self.calculate_idx_of_sample_access(idx as f32 * freq_shift);
             sample.insert(
                 idx - start,
-                self.sample_for_float_sample_link_idx(sample_link_idx),
+                self.sample_for_float_sample_link_idx(sample_link_idx)?,
             );
         }
 
-        sample
+        Ok(sample)
     }
 
     fn calculate_idx_of_sample_access(&self, idx: f32) -> f32 {
@@ -70,13 +70,13 @@ impl Sample {
         }
     }
 
-    fn sample_for_float_sample_link_idx(&self, idx: f32) -> i16 {
+    fn sample_for_float_sample_link_idx(&self, idx: f32) -> Result<i16, String> {
         let floor_idx = idx.floor() as usize;
         let ceil_idx = floor_idx + 1;
         let ratio = 1.0 - (idx % 1.0);
 
-        let floor_sample = *self.sample_access.get(floor_idx).unwrap() as f32;
-        let ceil_sample = *self.sample_access.get(ceil_idx).unwrap() as f32;
-        (floor_sample * ratio + ceil_sample * (1.0 - ratio)) as i16
+        let floor_sample = *self.sample_access.get(floor_idx).ok_or("get faild")? as f32;
+        let ceil_sample = *self.sample_access.get(ceil_idx).ok_or("get faild")? as f32;
+        Ok((floor_sample * ratio + ceil_sample * (1.0 - ratio)) as i16)
     }
 }

@@ -20,15 +20,16 @@ impl ResourceManager {
         }
     }
 
-    pub fn register(&self, path: String) {
-        let new_unit = ResourceUnit::new(path);
+    pub fn register(&self, path: String) -> Result<(), String> {
+        let new_unit = ResourceUnit::new(path)?;
         if new_unit.check_existance() {
             self.units
                 .write()
-                .unwrap()
+                .map_err(|_| "RwLock Error")?
                 .insert(new_unit.name.clone(), new_unit);
+            Ok(())
         } else {
-            panic!("check existance error!")
+            Err("check existance error!".to_string())
         }
     }
 
@@ -39,28 +40,31 @@ impl ResourceManager {
             Ok(self
                 .units
                 .read()
-                .unwrap()
+                .map_err(|_| "RwLock Error")?
                 .get(first)
-                .unwrap()
+                .ok_or("get Error")?
                 .file_paths
                 .get(last)
-                .unwrap()
+                .ok_or("get Error")?
                 .clone())
         } else {
             Err(String::from("invalid name"))
         }
     }
 
-    fn load_sf2(&self, name: String) {
+    fn load_sf2(&self, name: String) -> Result<(), String> {
         if let Some(dot_idx) = name.find('.') {
             let (first, last) = name.split_at(dot_idx);
             let last = last.split_at(1).1;
             self.units
                 .write()
-                .unwrap()
+                .map_err(|_| "RwLock Error")?
                 .get_mut(first)
-                .unwrap()
-                .load_sf2(last.to_string());
+                .ok_or("get Error")?
+                .load_sf2(last.to_string())?;
+            Ok(())
+        } else {
+            Err(format!("invalid name {}", name).to_string())
         }
     }
 
@@ -71,12 +75,12 @@ impl ResourceManager {
             let sf2 = Arc::clone(
                 self.units
                     .read()
-                    .unwrap()
+                    .map_err(|_| "RwLock Error")?
                     .get(first)
-                    .unwrap()
+                    .ok_or("get Error")?
                     .sf2
                     .get(last)
-                    .unwrap(),
+                    .ok_or("get Error")?,
             );
             Ok(sf2)
         } else {
@@ -84,10 +88,11 @@ impl ResourceManager {
         }
     }
 
-    pub fn apply(&self, event: ResourceManagerEvent) {
+    pub fn apply(&self, event: ResourceManagerEvent) -> Result<(), String> {
         match event {
-            ResourceManagerEvent::LoadSF2(name) => self.load_sf2(name),
+            ResourceManagerEvent::LoadSF2(name) => self.load_sf2(name)?,
         }
+        Ok(())
     }
 }
 

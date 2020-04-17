@@ -46,7 +46,13 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
         let mut ret: Vec<i16> = Vec::new();
         ret.resize(self.wave_length as usize, 0);
 
-        let music_state = store.get_state();
+        let music_state = match store.get_state() {
+            Ok(music_state) => music_state,
+            Err(e) => {
+                println!("get_state Error {}", e);
+                return ret;
+            }
+        };
         let sf2_state = &music_state.sf2;
         let scheduling_state = &music_state.scheduling;
 
@@ -88,10 +94,14 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                                 as u64;
 
                         if self.played_notes.contains_key(&cum_end_samples) {
-                            self.played_notes
-                                .get_mut(&cum_end_samples)
-                                .unwrap()
-                                .push((cum_start_samples, *new_note));
+                            match self.played_notes.get_mut(&cum_end_samples) {
+                                Some(notes_in_cum_end_samples) => {
+                                    notes_in_cum_end_samples.push((cum_start_samples, *new_note));
+                                }
+                                None => {
+                                    println!("get_mut failed");
+                                }
+                            };
                         } else {
                             self.played_notes
                                 .insert(cum_end_samples, vec![(cum_start_samples, *new_note)]);
@@ -111,17 +121,16 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                         let cum_end_samples = cum_start_samples
                             + (new_note.duration.to_f32() * 44100.0 * 60.0 / self.current_bpm)
                                 as u64;
-                        /*
-                        let cum_start_samples =
-                            rep_note_samples + self.cum_current_samples - rep_current_samples;
-                        let cum_end_samples = cum_start_samples + new_note.duration;
-                        */
 
                         if self.played_notes.contains_key(&cum_end_samples) {
-                            self.played_notes
-                                .get_mut(&cum_end_samples)
-                                .unwrap()
-                                .push((cum_start_samples, *new_note));
+                            match self.played_notes.get_mut(&cum_end_samples) {
+                                Some(notes_in_cum_end_samples) => {
+                                    notes_in_cum_end_samples.push((cum_start_samples, *new_note));
+                                }
+                                None => {
+                                    println!("get_mut failed");
+                                }
+                            };
                         } else {
                             self.played_notes
                                 .insert(cum_end_samples, vec![(cum_start_samples, *new_note)]);
@@ -143,18 +152,16 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                         let cum_end_samples = cum_start_samples
                             + (new_note.duration.to_f32() * 44100.0 * 60.0 / self.current_bpm)
                                 as u64;
-                        /*
-                        let cum_start_samples = rep_note_samples + self.cum_current_samples
-                            - rep_next_samples
-                            + self.wave_length;
-                        let cum_end_samples = cum_start_samples + new_note.duration;
-                        */
 
                         if self.played_notes.contains_key(&cum_end_samples) {
-                            self.played_notes
-                                .get_mut(&cum_end_samples)
-                                .unwrap()
-                                .push((cum_start_samples, *new_note));
+                            match self.played_notes.get_mut(&cum_end_samples) {
+                                Some(notes_in_cum_end_samples) => {
+                                    notes_in_cum_end_samples.push((cum_start_samples, *new_note));
+                                }
+                                None => {
+                                    println!("get_mut failed");
+                                }
+                            };
                         } else {
                             self.played_notes
                                 .insert(cum_end_samples, vec![(cum_start_samples, *new_note)]);
@@ -193,37 +200,52 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                 }
             }
             Some(sf2_name) => {
-                let sf2 = resource_manager.get_sf2(sf2_name.to_string()).unwrap();
-                for (&cum_end_samples, notes) in self.played_notes.iter() {
-                    for (cum_start_samples, note) in notes.iter() {
-                        let start_idx = if *cum_start_samples <= self.cum_current_samples {
-                            0
-                        } else {
-                            (cum_start_samples - self.cum_current_samples) as usize
-                        };
-                        let end_idx = if cum_end_samples >= cum_next_samples {
-                            self.wave_length as usize
-                        } else {
-                            (cum_end_samples - self.cum_current_samples) as usize
-                        };
+                let sf2 = resource_manager.get_sf2(sf2_name.to_string());
+                match sf2 {
+                    Ok(sf2) => {
+                        for (&cum_end_samples, notes) in self.played_notes.iter() {
+                            for (cum_start_samples, note) in notes.iter() {
+                                let start_idx = if *cum_start_samples <= self.cum_current_samples {
+                                    0
+                                } else {
+                                    (cum_start_samples - self.cum_current_samples) as usize
+                                };
+                                let end_idx = if cum_end_samples >= cum_next_samples {
+                                    self.wave_length as usize
+                                } else {
+                                    (cum_end_samples - self.cum_current_samples) as usize
+                                };
 
-                        let start_idx_for_sample = (self.cum_current_samples + start_idx as u64
-                            - cum_start_samples)
-                            as usize;
-                        let end_idx_for_sample = (self.cum_current_samples + end_idx as u64
-                            - cum_start_samples)
-                            as usize;
+                                let start_idx_for_sample = (self.cum_current_samples
+                                    + start_idx as u64
+                                    - cum_start_samples)
+                                    as usize;
+                                let end_idx_for_sample = (self.cum_current_samples + end_idx as u64
+                                    - cum_start_samples)
+                                    as usize;
 
-                        let sample_data = sf2.get_samples(
-                            0,
-                            note.pitch as u8,
-                            start_idx_for_sample,
-                            end_idx_for_sample,
-                        );
-
-                        for (i, j) in (start_idx..end_idx).enumerate() {
-                            ret[j] = ret[j].saturating_add(sample_data[i]);
+                                let sample_data = sf2.get_samples(
+                                    0,
+                                    note.pitch as u8,
+                                    start_idx_for_sample,
+                                    end_idx_for_sample,
+                                );
+                                match sample_data {
+                                    Ok(sample_data) => {
+                                        for (i, j) in (start_idx..end_idx).enumerate() {
+                                            ret[j] = ret[j].saturating_add(sample_data[i]);
+                                        }
+                                    }
+                                    Err(e) => {
+                                        // TODO:
+                                        println!("error {}", e);
+                                    }
+                                }
+                            }
                         }
+                    }
+                    Err(e) => {
+                        println!("sf2 error {}", e);
                     }
                 }
             }

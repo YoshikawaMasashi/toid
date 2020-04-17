@@ -48,15 +48,21 @@ impl<S: State<E>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE>
         Arc::clone(&self.reader)
     }
 
-    fn send_event(&self, event: E) {
-        self.store.update_state(event);
+    fn send_event(&self, event: E) -> Result<(), String> {
+        self.store.update_state(event)?;
+        Ok(())
     }
 
-    fn send_reader_event(&self, event: RE) {
-        self.reader.write().unwrap().apply(event);
+    fn send_reader_event(&self, event: RE) -> Result<(), String> {
+        self.reader
+            .write()
+            .map_err(|_| "rwlock error")?
+            .apply(event);
+        Ok(())
     }
 
-    fn send_resource_event(&self, event: ResourceManagerEvent) {
-        self.resource_manager.apply(event);
+    fn send_resource_event(&self, event: ResourceManagerEvent) -> Result<(), String> {
+        self.resource_manager.apply(event)?;
+        Ok(())
     }
 }

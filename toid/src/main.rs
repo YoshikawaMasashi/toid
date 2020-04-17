@@ -19,26 +19,38 @@ fn main() {
 
     player
         .get_resource_manager()
-        .register(String::from("../resource/sf2/sf2.toml"));
+        .register(String::from("../resource/sf2/sf2.toml"))
+        .unwrap();
 
-    player.send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.test")));
+    player
+        .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.test")))
+        .unwrap();
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
-        as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>);
+        as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>)
+    .unwrap();
 
-    player.send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
-        String::from("sf2.test"),
-    )));
+    player
+        .send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
+            String::from("sf2.test"),
+        )))
+        .unwrap();
 
-    player.send_event(MusicStateEvent::SchedulingStateEvent(
-        SchedulingStateEvent::ChangeBPM(Beat::from(0), 120.0),
-    ));
-    player.send_event(MusicStateEvent::SchedulingStateEvent(
-        SchedulingStateEvent::ChangeBPM(Beat::from(8), 180.0),
-    ));
-    player.send_event(MusicStateEvent::SchedulingStateEvent(
-        SchedulingStateEvent::ChangeBPM(Beat::from(16), 120.0),
-    ));
+    player
+        .send_event(MusicStateEvent::SchedulingStateEvent(
+            SchedulingStateEvent::ChangeBPM(Beat::from(0), 120.0),
+        ))
+        .unwrap();
+    player
+        .send_event(MusicStateEvent::SchedulingStateEvent(
+            SchedulingStateEvent::ChangeBPM(Beat::from(8), 180.0),
+        ))
+        .unwrap();
+    player
+        .send_event(MusicStateEvent::SchedulingStateEvent(
+            SchedulingStateEvent::ChangeBPM(Beat::from(16), 120.0),
+        ))
+        .unwrap();
 
     send_num_lang(
         "12345 643 2 1".to_string(),
@@ -46,7 +58,8 @@ fn main() {
         "main".to_string(),
         Arc::clone(&player)
             as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
-    );
+    )
+    .unwrap();
 
     send_num_lang(
         "1   4   5   1".to_string(),
@@ -54,11 +67,14 @@ fn main() {
         "sub".to_string(),
         Arc::clone(&player)
             as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
-    );
+    )
+    .unwrap();
 
-    portaudio_outputter.run();
+    portaudio_outputter.run().unwrap();
     portaudio_outputter.sleep(2250);
-    player.send_reader_event(WaveReaderEvent::MoveStart);
+    player
+        .send_reader_event(WaveReaderEvent::MoveStart)
+        .unwrap();
     portaudio_outputter.sleep(12000);
-    portaudio_outputter.stop();
+    portaudio_outputter.stop().unwrap();
 }

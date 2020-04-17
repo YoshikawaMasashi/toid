@@ -62,13 +62,14 @@ pub fn send_num_lang(
     octave: f32,
     melody_name: String,
     player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
-) {
-    player.send_event(MusicStateEvent::NewMelody(melody_name.clone()));
+) -> Result<(), String> {
+    player.send_event(MusicStateEvent::NewMelody(melody_name.clone()))?;
     let note_infos = parse_num_lang(melody_string, octave);
     for &note_info in note_infos.iter() {
         player.send_event(MusicStateEvent::MelodyStateEvent(
             melody_name.clone(),
             MelodyStateEvent::AddNote(note_info),
-        ));
+        ))?;
     }
+    Ok(())
 }

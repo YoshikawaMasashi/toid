@@ -23,9 +23,11 @@ pub struct ResourceUnit {
 }
 
 impl ResourceUnit {
-    pub fn new(preference_path: String) -> ResourceUnit {
-        let preference_toml = fs::read_to_string(preference_path.clone()).unwrap();
-        let decoded_preference: ResourceConfig = toml::from_str(preference_toml.as_str()).unwrap();
+    pub fn new(preference_path: String) -> Result<ResourceUnit, String> {
+        let preference_toml =
+            fs::read_to_string(preference_path.clone()).map_err(|_| "read error")?;
+        let decoded_preference: ResourceConfig =
+            toml::from_str(preference_toml.as_str()).map_err(|e| e.to_string())?;
 
         let mut file_paths: BTreeMap<String, Box<Path>> = BTreeMap::new();
         for (key, file) in decoded_preference.paths.iter() {
@@ -35,12 +37,12 @@ impl ResourceUnit {
             );
         }
 
-        ResourceUnit {
+        Ok(ResourceUnit {
             name: decoded_preference.name,
             preference_path: Box::<Path>::from(Path::new(&preference_path)),
             file_paths,
             sf2: BTreeMap::new(),
-        }
+        })
     }
 
     pub fn check_existance(&self) -> bool {
@@ -51,14 +53,15 @@ impl ResourceUnit {
         exist_all
     }
 
-    pub fn load_sf2(&mut self, key: String) {
+    pub fn load_sf2(&mut self, key: String) -> Result<(), String> {
         let path = &self.file_paths[&key];
-        let mut f = fs::File::open(path).unwrap();
+        let mut f = fs::File::open(path).map_err(|_| "file open error")?;
         let mut buffer = Vec::new();
-        f.read_to_end(&mut buffer).unwrap();
+        f.read_to_end(&mut buffer).map_err(|_| "read error")?;
         let buffer = buffer.as_slice();
-        let sf2 = SF2::parse(buffer);
+        let sf2 = SF2::parse(buffer)?;
         let sf2 = Arc::new(sf2);
         self.sf2.insert(key, sf2);
+        Ok(())
     }
 }
