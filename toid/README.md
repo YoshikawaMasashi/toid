@@ -1,5 +1,5 @@
 # toid
 
 ```
-$ cargo run --bin main
+$ cargo run
 ```
