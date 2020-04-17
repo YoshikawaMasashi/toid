@@ -18,7 +18,7 @@ pub fn read_sf2(path: String) -> SF2 {
     f.read_to_end(&mut buffer).unwrap();
     let buffer = buffer.as_slice();
 
-    let sf2_data = own::SF2::parse(buffer);
+    let sf2_data = own::SF2::parse(buffer).unwrap();
     SF2 {
         sf2: Arc::new(sf2_data),
     }
@@ -39,7 +39,7 @@ impl SF2 {
         end: usize,
     ) -> PyResult<Py<PyArray1<i16>>> {
         let gil = pyo3::Python::acquire_gil();
-        let sample = self.sf2.get_samples(preset_idx, key, start, end);
+        let sample = self.sf2.get_samples(preset_idx, key, start, end).unwrap();
         Ok(PyArray1::from_vec(gil.python(), sample).to_owned())
     }
 }
@@ -71,7 +71,7 @@ pub fn read_parsed_sf2(path: String) -> ParsedSF2 {
     f.read_to_end(&mut buffer).unwrap();
     let buffer = buffer.as_slice();
 
-    let parsed_sf2_data = parsed::SF2::parse(buffer);
+    let parsed_sf2_data = parsed::SF2::parse(buffer).unwrap();
     ParsedSF2 {
         parsed_sf2: Arc::new(parsed_sf2_data),
     }
