@@ -28,16 +28,30 @@ impl<S: State<E>, E: Sized + Serialize<E>> Store<S, E> {
         }
     }
 
-    pub fn get_state(&self) -> Arc<S> {
-        Arc::clone(&self.state_holder.read().unwrap().get_state())
+    pub fn get_state(&self) -> Result<Arc<S>, String> {
+        Ok(Arc::clone(
+            &self
+                .state_holder
+                .read()
+                .map_err(|_| "RwLock Error")?
+                .get_state(),
+        ))
     }
 
-    pub fn update_state(&self, event: E) {
-        let new_state = self.get_state().reduce(event);
-        self.state_holder.write().unwrap().set_state(new_state);
+    pub fn update_state(&self, event: E) -> Result<(), String> {
+        let new_state = self.get_state()?.reduce(event);
+        self.state_holder
+            .write()
+            .map_err(|_| "RwLock Error")?
+            .set_state(new_state);
+        Ok(())
     }
 
-    pub fn set_state(&self, state: S) {
-        self.state_holder.write().unwrap().set_state(state);
+    pub fn set_state(&self, state: S) -> Result<(), String> {
+        self.state_holder
+            .write()
+            .map_err(|_| "RwLock Error")?
+            .set_state(state);
+        Ok(())
     }
 }

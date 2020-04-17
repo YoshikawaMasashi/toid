@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::marker::PhantomData;
 use std::marker::{Send, Sync};
 use std::sync::Arc;
@@ -73,7 +74,7 @@ impl<
         let resource_manager = Arc::clone(&self.resource_manager);
         thread::spawn(move || {
             if let Err(error) = ws::connect(connect_address, |out| {
-                sender_holder.write().unwrap().set_sender(out);
+                sender_holder.write().unwrap().set_sender(out); // TODO: remove unwrap
                 let handler: WebSocketPlayerHandler<S, E, R, O, RE> = WebSocketPlayerHandler {
                     store: Arc::clone(&store),
                     reader: Arc::clone(&reader),
@@ -88,13 +89,15 @@ impl<
         });
     }
 
-    pub fn sync_state(&self) {
-        if let Some(out) = &self.sender_holder.read().unwrap().out {
-            let serialized_state = self.store.get_state().serialize().unwrap();
-            let msg = SendData::SyncState(serialized_state).serialize().unwrap();
-            out.send(msg).unwrap();
-        } else {
-            println!("sender have not been prepared yet");
+    pub fn sync_state(&self) -> Result<(), String> {
+        match &self.sender_holder.read().map_err(|_| "rwlock error")?.out {
+            Some(out) => {
+                let serialized_state = self.store.get_state()?.serialize()?;
+                let msg = SendData::SyncState(serialized_state).serialize()?;
+                out.send(msg).map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            None => Err("sender have not been prepared yet".to_string()),
         }
     }
 }
@@ -119,35 +122,39 @@ impl<
         Arc::clone(&self.reader)
     }
 
-    fn send_event(&self, event: E) {
-        if let Some(out) = &self.sender_holder.read().unwrap().out {
-            let serialized_event = event.serialize().unwrap();
-            let msg = SendData::StateUpdate(serialized_event).serialize().unwrap();
-            out.send(msg).unwrap();
-        } else {
-            println!("sender have not been prepared yet");
+    fn send_event(&self, event: E) -> Result<(), String> {
+        match &self.sender_holder.read().map_err(|_| "rwlock error")?.out {
+            Some(out) => {
+                let serialized_event = event.serialize()?;
+                let msg = SendData::StateUpdate(serialized_event).serialize()?;
+                out.send(msg).map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            None => Err("sender have not been prepared yet".to_string()),
         }
     }
 
-    fn send_reader_event(&self, event: RE) {
-        if let Some(out) = &self.sender_holder.read().unwrap().out {
-            let serialized_event = event.serialize().unwrap();
-            let msg = SendData::ApplyReader(serialized_event).serialize().unwrap();
-            out.send(msg).unwrap();
-        } else {
-            println!("sender have not been prepared yet");
+    fn send_reader_event(&self, event: RE) -> Result<(), String> {
+        match &self.sender_holder.read().map_err(|_| "rwlock error")?.out {
+            Some(out) => {
+                let serialized_event = event.serialize()?;
+                let msg = SendData::ApplyReader(serialized_event).serialize()?;
+                out.send(msg).map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            None => Err("sender have not been prepared yet".to_string()),
         }
     }
 
-    fn send_resource_event(&self, event: ResourceManagerEvent) {
-        if let Some(out) = &self.sender_holder.read().unwrap().out {
-            let serialized_event = event.serialize().unwrap();
-            let msg = SendData::ApplyResourceManager(serialized_event)
-                .serialize()
-                .unwrap();
-            out.send(msg).unwrap();
-        } else {
-            println!("sender have not been prepared yet");
+    fn send_resource_event(&self, event: ResourceManagerEvent) -> Result<(), String> {
+        match &self.sender_holder.read().map_err(|_| "rwlock error")?.out {
+            Some(out) => {
+                let serialized_event = event.serialize()?;
+                let msg = SendData::ApplyResourceManager(serialized_event).serialize()?;
+                out.send(msg).map_err(|e| e.to_string())?;
+                Ok(())
+            }
+            None => Err("sender have not been prepared yet".to_string()),
         }
     }
 }
@@ -167,26 +174,54 @@ impl<
 
     fn on_message(&mut self, msg: ws::Message) -> ws::Result<()> {
         println!("Client got message '{}'. ", msg);
-        let send_data: SendData = SendData::deserialize(msg.to_string()).unwrap();
+        let send_data: SendData =
+            SendData::deserialize(msg.to_string()).map_err(|e| ws::Error {
+                kind: ws::ErrorKind::Internal,
+                details: Cow::from(e),
+            })?;
         match send_data {
             SendData::StateUpdate(event_string) => {
-                let event: E = E::deserialize(event_string).unwrap();
-                self.store.update_state(event);
+                let event: E = E::deserialize(event_string).map_err(|e| ws::Error {
+                    kind: ws::ErrorKind::Internal,
+                    details: Cow::from(e),
+                })?;
+                self.store.update_state(event).map_err(|e| ws::Error {
+                    kind: ws::ErrorKind::Internal,
+                    details: Cow::from(e),
+                })?;
                 Ok(())
             }
             SendData::SyncState(state_string) => {
-                let state: S = S::deserialize(state_string).unwrap();
-                self.store.set_state(state);
+                let state: S = S::deserialize(state_string).map_err(|e| ws::Error {
+                    kind: ws::ErrorKind::Internal,
+                    details: Cow::from(e),
+                })?;
+                self.store.set_state(state).map_err(|e| ws::Error {
+                    kind: ws::ErrorKind::Internal,
+                    details: Cow::from(e),
+                })?;
                 Ok(())
             }
             SendData::ApplyReader(event_string) => {
-                let event: RE = RE::deserialize(event_string).unwrap();
-                self.reader.write().unwrap().apply(event);
+                let event: RE = RE::deserialize(event_string).map_err(|e| ws::Error {
+                    kind: ws::ErrorKind::Internal,
+                    details: Cow::from(e),
+                })?;
+                self.reader
+                    .write()
+                    .map_err(|_| ws::Error {
+                        kind: ws::ErrorKind::Internal,
+                        details: Cow::from("RwLock Error"),
+                    })?
+                    .apply(event);
                 Ok(())
             }
             SendData::ApplyResourceManager(event_string) => {
-                let event: ResourceManagerEvent =
-                    ResourceManagerEvent::deserialize(event_string).unwrap();
+                let event: ResourceManagerEvent = ResourceManagerEvent::deserialize(event_string)
+                    .map_err(|e| ws::Error {
+                    kind: ws::ErrorKind::Internal,
+                    details: Cow::from(e),
+                })?;
                 if let Err(error) = self.resource_manager.apply(event) {
                     println!("send resource event error !: {}", error);
                 }

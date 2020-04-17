@@ -46,7 +46,13 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
         let mut ret: Vec<i16> = Vec::new();
         ret.resize(self.wave_length as usize, 0);
 
-        let music_state = store.get_state();
+        let music_state = match store.get_state() {
+            Ok(music_state) => music_state,
+            Err(e) => {
+                println!("get_state Error {}", e);
+                return ret;
+            }
+        };
         let sf2_state = &music_state.sf2;
         let scheduling_state = &music_state.scheduling;
 
