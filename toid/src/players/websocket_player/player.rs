@@ -107,7 +107,7 @@ impl<
         E: Sized + Serialize<E>,
         R: StoreReader<O, RE, S, E>,
         O,
-        RE: Sized + Serialize<E>,
+        RE: Sized + Serialize<RE>,
     > Player<S, E, R, O, RE> for WebSocketPlayer<S, E, R, O, RE>
 {
     fn get_store(&self) -> Arc<Store<S, E>> {

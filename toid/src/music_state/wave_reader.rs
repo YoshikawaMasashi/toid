@@ -3,12 +3,15 @@ use std::f64::consts::PI;
 use std::ops::Bound::{Excluded, Included, Unbounded};
 use std::sync::Arc;
 
+use serde::{Deserialize, Serialize};
+
 use super::super::resource_management::resource_manager::ResourceManager;
 use super::super::state_management::store::Store;
 use super::super::state_management::store_reader::StoreReader;
 use super::beat::Beat;
 use super::melody_state::NoteInfo;
 use super::music_state::{MusicState, MusicStateEvent};
+use super::super::state_management::serialize;
 
 pub struct WaveReader {
     wave_length: u64,
@@ -276,6 +279,23 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub enum WaveReaderEvent {
     MoveStart,
+}
+
+
+impl serialize::Serialize<WaveReaderEvent> for WaveReaderEvent {
+    fn serialize(&self) -> Result<String, String> {
+        match serde_json::to_string(&self) {
+            Ok(serialized) => Ok(serialized),
+            Err(err) => Err(format!("error in serizalization : {}", err)),
+        }
+    }
+    fn deserialize(serialized: String) -> Result<Self, String> {
+        match serde_json::from_str(serialized.as_str()) {
+            Ok(deserialized) => Ok(deserialized),
+            Err(err) => Err(format!("error in deserizalization : {}", err)),
+        }
+    }
 }
