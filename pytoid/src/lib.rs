@@ -1,5 +1,5 @@
 use pyo3::prelude::{
-    pyclass, pymethods, pymodule, PyModule, PyObject, PyRawObject, PyRef, PyResult, Python,
+    pyclass, pymethods, pymodule, PyModule, PyObject, PyRawObject, PyResult, Python,
 };
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -12,7 +12,6 @@ use toid::outputters::portaudio_outputter;
 use toid::players::local_player;
 use toid::players::player::Player;
 use toid::resource_management::resource_manager::ResourceManagerEvent;
-use toid::state_management::store::Store;
 
 pub mod sf2;
 
