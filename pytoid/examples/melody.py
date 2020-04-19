@@ -12,8 +12,8 @@ if __name__ == "__main__":
 
     # player.send_num_lang("12345 643 2 1", 0.0, "main",)
     # player.send_num_lang("1   4   5   1", -1.0, "sub",)
-    player['main'] = "12345 643 2 1"
-    player['sub'] = "1   4   5   1", -1.0
+    player['main'] = '12345 643 2 1'
+    player['sub'] = '1   4   5   1', -1.0
 
     portaudio_outputter.run()
     time.sleep(12)
