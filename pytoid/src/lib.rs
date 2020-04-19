@@ -2,17 +2,17 @@ use pyo3::prelude::{
     pyclass, pymethods, pymodule, PyModule, PyObject, PyRawObject, PyResult, Python,
 };
 use std::sync::Arc;
-use std::sync::RwLock;
 
 use toid::high_layer_trial::num_lang::send_num_lang;
 use toid::music_state::music_state::{MusicState, MusicStateEvent};
 use toid::music_state::sf2_state::SF2StateEvent;
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
-use toid::outputters::portaudio_outputter;
 use toid::players::local_player;
 use toid::players::player::Player;
 use toid::resource_management::resource_manager::ResourceManagerEvent;
 
+mod outputters;
+use outputters::portaudio_outputter::PortAudioOutputter;
 pub mod sf2;
 
 #[pyclass(module = "toid")]
@@ -78,31 +78,6 @@ impl LocalPlayer {
                     dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>,
                 >),
         }
-    }
-}
-
-#[pyclass(module = "toid")]
-struct PortAudioOutputter {
-    outputter: Arc<RwLock<portaudio_outputter::PortAudioOutputter>>,
-}
-
-#[pymethods]
-impl PortAudioOutputter {
-    #[new]
-    fn new(obj: &PyRawObject, player: &ToidPlayerHolder) {
-        obj.init(PortAudioOutputter {
-            outputter: Arc::new(RwLock::new(
-                portaudio_outputter::PortAudioOutputter::new(Arc::clone(&player.player)).unwrap(),
-            )),
-        });
-    }
-
-    fn run(&self) {
-        self.outputter.write().unwrap().run().unwrap();
-    }
-
-    fn stop(&self) {
-        self.outputter.write().unwrap().stop().unwrap();
     }
 }
 
