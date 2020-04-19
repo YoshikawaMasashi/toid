@@ -4,7 +4,7 @@ use std::sync::RwLock;
 
 use toid::outputters::portaudio_outputter;
 
-use super::super::ToidPlayerHolder;
+use super::super::players::toid_player_holder::ToidPlayerHolder;
 
 #[pyclass(module = "toid")]
 pub struct PortAudioOutputter {
