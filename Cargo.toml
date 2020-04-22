@@ -4,6 +4,7 @@ license = "MIT"
 version = "0.0.0-alpha"
 authors = ["masashi yoshikawa <earnest.marshi@gmail.com>"]
 description = "live coding tool"
+edition = "2018"
 
 [dependencies]
 im = "14.0.0"
