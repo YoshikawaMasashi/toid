@@ -1,5 +1,0 @@
-# toid
-
-```
-$ cargo run
-```

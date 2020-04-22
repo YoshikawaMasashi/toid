@@ -19,7 +19,7 @@ fn main() {
 
     player
         .get_resource_manager()
-        .register(String::from("../resource/sf2/sf2.toml"))
+        .register(String::from("./toid-sample-resource/sf2/sf2.toml"))
         .unwrap();
 
     player

@@ -1,0 +1,3 @@
+[submodule "toid-sample-resource"]
+	path = toid-sample-resource
+	url = https://github.com/YoshikawaMasashi/toid-sample-resource.git
