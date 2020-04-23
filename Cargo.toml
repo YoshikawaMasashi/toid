@@ -9,13 +9,9 @@ edition = "2018"
 [dependencies]
 im = "14.0.0"
 portaudio = "0.7.0"
-ws = "0.9.1"
+ws = { version = "0.9.1", features = ["ssl"] }
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
 nom = "5.1.1"
 toml = "0.4.2"
 serde_derive = "1.0.106"
-
-[[bin]]
-name = "main"
-path = "src/main.rs"
