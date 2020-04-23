@@ -15,7 +15,7 @@ fn main() {
     std::io::stdin().read_line(&mut ip).unwrap();
     println!("ip: {}", ip);
     let ip = ip;
-    let connect_address = format!("ws://{}:3012", ip).replace("\n", "");
+    let connect_address = format!("ws://play:password@{}:3012", ip).replace("\n", "");
 
     let mut player = WebSocketPlayer::new();
     player.connect(connect_address);
