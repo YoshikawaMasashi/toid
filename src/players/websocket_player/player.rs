@@ -233,6 +233,10 @@ impl<
         }
     }
 
+    fn on_close(&mut self, _: ws::CloseCode, reason: &str) {
+        println!("Closed WebSocket. reason: {}", reason);
+    }
+
     fn upgrade_ssl_client(
         &mut self,
         sock: TcpStream,
