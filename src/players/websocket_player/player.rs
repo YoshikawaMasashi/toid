@@ -5,7 +5,10 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::thread;
 
+use openssl::ssl::{SslConnector, SslMethod, SslStream, SslVerifyMode};
+use url;
 use ws;
+use ws::util::TcpStream;
 
 use super::super::super::resource_management::resource_manager::{
     ResourceManager, ResourceManagerEvent,
@@ -228,5 +231,28 @@ impl<
                 Ok(())
             }
         }
+    }
+
+    fn upgrade_ssl_client(
+        &mut self,
+        sock: TcpStream,
+        _: &url::Url,
+    ) -> ws::Result<SslStream<TcpStream>> {
+        let mut builder = SslConnector::builder(SslMethod::tls()).map_err(|e| {
+            ws::Error::new(
+                ws::ErrorKind::Internal,
+                format!("Failed to upgrade client to SSL: {}", e),
+            )
+        })?;
+        builder.set_verify(SslVerifyMode::empty());
+
+        let connector = builder.build();
+        connector
+            .configure()
+            .unwrap()
+            .use_server_name_indication(false)
+            .verify_hostname(false)
+            .connect("", sock)
+            .map_err(From::from)
     }
 }

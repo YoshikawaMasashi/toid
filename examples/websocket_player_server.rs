@@ -10,5 +10,5 @@ fn main() {
     println!("connect_address: ws://{}", connect_address);
 
     let mut server = WebSocketPlayerServer::new();
-    server.listen(connect_address);
+    server.listen(connect_address, None, None);
 }

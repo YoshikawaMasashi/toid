@@ -22,6 +22,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8aac770f1885fd7e387acedd76065302551364496e46b3dd00860b2f8359b9d"
 
 [[package]]
+name = "base64"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d5ca2cd0adc3f48f9e9ea5a6bbdf9ccc0bfade884847e484d452414c7ccffb3"
+
+[[package]]
 name = "bitflags"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -640,13 +646,16 @@ dependencies = [
 name = "toid"
 version = "0.0.0-alpha"
 dependencies = [
+ "base64",
  "im",
  "nom",
+ "openssl",
  "portaudio",
  "serde",
  "serde_derive",
  "serde_json",
  "toml",
+ "url",
  "ws",
 ]
 
