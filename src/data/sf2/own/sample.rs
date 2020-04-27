@@ -46,7 +46,8 @@ impl Sample {
         let mut sample = Vec::new();
         sample.resize(end - start, 0);
 
-        let pitch_shift = (key as i16 - self.original_key as i16) as f32 + (self.correction as f32) / 100.0;
+        let pitch_shift =
+            (key as i16 - self.original_key as i16) as f32 + (self.correction as f32) / 100.0;
         let freq_shift = f32::powf(2.0, pitch_shift / 12.0);
 
         for idx in start..end {

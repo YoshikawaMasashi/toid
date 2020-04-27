@@ -7,14 +7,19 @@ use super::super::music_state::music_state::{MusicState, MusicStateEvent};
 use super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::players::player::Player;
 
-fn parse_num_lang(s: String, octave: f32) -> Vec<NoteInfo> {
+fn parse_num_lang(s: String, octave: f32, key: f32) -> Vec<NoteInfo> {
     let mut ret: Vec<NoteInfo> = vec![];
     let mut now: Beat = Beat::from(0);
     let length_unit: Beat = Beat::from(0.5);
-    let pitch_offset: f32 = octave * 12.0;
+    let pitch_offset: f32 = octave * 12.0 + key;
 
     for c in s.chars() {
         match c {
+            '0' => ret.push(NoteInfo {
+                pitch: 47.0 + pitch_offset,
+                duration: length_unit,
+                start: now,
+            }),
             '1' => ret.push(NoteInfo {
                 pitch: 48.0 + pitch_offset,
                 duration: length_unit,
@@ -50,6 +55,16 @@ fn parse_num_lang(s: String, octave: f32) -> Vec<NoteInfo> {
                 duration: length_unit,
                 start: now,
             }),
+            '8' => ret.push(NoteInfo {
+                pitch: 60.0 + pitch_offset,
+                duration: length_unit,
+                start: now,
+            }),
+            '9' => ret.push(NoteInfo {
+                pitch: 62.0 + pitch_offset,
+                duration: length_unit,
+                start: now,
+            }),
             _ => {}
         }
         now = now + length_unit;
@@ -60,11 +75,15 @@ fn parse_num_lang(s: String, octave: f32) -> Vec<NoteInfo> {
 pub fn send_num_lang(
     melody_string: String,
     octave: f32,
+    key: f32,
     melody_name: String,
     player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
 ) -> Result<(), String> {
-    player.send_event(MusicStateEvent::NewMelody(melody_name.clone()))?;
-    let note_infos = parse_num_lang(melody_string, octave);
+    player.send_event(MusicStateEvent::NewMelody(
+        melody_name.clone(),
+        Beat::from(melody_string.len() as f32 / 2.0),
+    ))?;
+    let note_infos = parse_num_lang(melody_string, octave, key);
     for &note_info in note_infos.iter() {
         player.send_event(MusicStateEvent::MelodyStateEvent(
             melody_name.clone(),

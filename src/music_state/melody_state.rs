@@ -35,6 +35,13 @@ impl MelodyState {
             repeat_length: self.repeat_length,
         }
     }
+
+    pub fn set_repeat_length(&self, repeat_length: Beat) -> Self {
+        MelodyState {
+            notes: self.notes.clone(),
+            repeat_length: repeat_length,
+        }
+    }
 }
 
 impl State<MelodyStateEvent> for MelodyState {

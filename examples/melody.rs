@@ -53,7 +53,8 @@ fn main() {
         .unwrap();
 
     send_num_lang(
-        "12345 643 2 1".to_string(),
+        "12345 643 2 1   ".to_string(),
+        0.0,
         0.0,
         "main".to_string(),
         Arc::clone(&player)
@@ -62,8 +63,9 @@ fn main() {
     .unwrap();
 
     send_num_lang(
-        "1   4   5   1".to_string(),
+        "1   4   5   1   ".to_string(),
         -1.0,
+        0.0,
         "sub".to_string(),
         Arc::clone(&player)
             as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,

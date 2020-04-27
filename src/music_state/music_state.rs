@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
+use super::beat::Beat;
 use super::melody_state::{MelodyState, MelodyStateEvent};
 use super::scheduling_state::{SchedulingState, SchedulingStateEvent};
 use super::sf2_state::{SF2State, SF2StateEvent};
@@ -17,9 +18,12 @@ pub struct MusicState {
 }
 
 impl MusicState {
-    fn new_melody(&self, key: String) -> Self {
+    fn new_melody(&self, key: String, repeat_length: Beat) -> Self {
         let mut new_melody_map = self.melody_map.clone();
-        new_melody_map.insert(key, Arc::new(MelodyState::new()));
+        new_melody_map.insert(
+            key,
+            Arc::new(MelodyState::new().set_repeat_length(repeat_length)),
+        );
         Self {
             scheduling: self.scheduling.clone(),
             melody_map: new_melody_map,
@@ -68,7 +72,7 @@ impl State<MusicStateEvent> for MusicState {
 
     fn reduce(&self, event: MusicStateEvent) -> Self {
         match event {
-            MusicStateEvent::NewMelody(key) => self.new_melody(key),
+            MusicStateEvent::NewMelody(key, repeat_length) => self.new_melody(key, repeat_length),
             MusicStateEvent::SchedulingStateEvent(e) => self.scheduling_state_event(e),
             MusicStateEvent::MelodyStateEvent(key, e) => self.melody_state_event(key, e),
             MusicStateEvent::SF2StateEvent(e) => self.sf2_state_event(e),
@@ -93,7 +97,7 @@ impl serialize::Serialize<MusicState> for MusicState {
 
 #[derive(Serialize, Deserialize)]
 pub enum MusicStateEvent {
-    NewMelody(String),
+    NewMelody(String, Beat),
     SchedulingStateEvent(SchedulingStateEvent),
     MelodyStateEvent(String, MelodyStateEvent),
     SF2StateEvent(SF2StateEvent),
