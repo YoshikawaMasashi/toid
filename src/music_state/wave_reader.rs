@@ -3,6 +3,7 @@ use std::f64::consts::PI;
 use std::ops::Bound::{Excluded, Included, Unbounded};
 use std::sync::Arc;
 
+use log::error;
 use serde::{Deserialize, Serialize};
 
 use super::super::resource_management::resource_manager::ResourceManager;
@@ -52,7 +53,7 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
         let music_state = match store.get_state() {
             Ok(music_state) => music_state,
             Err(e) => {
-                println!("get_state Error {}", e);
+                error!("get_state Error {}", e);
                 return ret;
             }
         };
@@ -102,7 +103,7 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                                     notes_in_cum_end_samples.push((cum_start_samples, *new_note));
                                 }
                                 None => {
-                                    println!("get_mut failed");
+                                    error!("get_mut failed");
                                 }
                             };
                         } else {
@@ -131,7 +132,7 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                                     notes_in_cum_end_samples.push((cum_start_samples, *new_note));
                                 }
                                 None => {
-                                    println!("get_mut failed");
+                                    error!("get_mut failed");
                                 }
                             };
                         } else {
@@ -162,7 +163,7 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                                     notes_in_cum_end_samples.push((cum_start_samples, *new_note));
                                 }
                                 None => {
-                                    println!("get_mut failed");
+                                    error!("get_mut failed");
                                 }
                             };
                         } else {
@@ -241,14 +242,14 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                                     }
                                     Err(e) => {
                                         // TODO:
-                                        println!("error {}", e);
+                                        error!("error {}", e);
                                     }
                                 }
                             }
                         }
                     }
                     Err(e) => {
-                        println!("sf2 error {}", e);
+                        error!("sf2 error {}", e);
                     }
                 }
             }

@@ -5,6 +5,7 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::thread;
 
+use log::{error, info};
 use openssl::ssl::{SslConnector, SslMethod, SslStream, SslVerifyMode};
 use url;
 use ws;
@@ -87,7 +88,7 @@ impl<
                 };
                 handler
             }) {
-                println!("Failed to create WebSocket due to: {:?}", error);
+                error!("Failed to create WebSocket due to: {:?}", error);
             }
         });
     }
@@ -171,12 +172,12 @@ impl<
     > ws::Handler for WebSocketPlayerHandler<S, E, R, O, RE>
 {
     fn on_open(&mut self, _: ws::Handshake) -> ws::Result<()> {
-        println!("connected");
+        info!("connected");
         Ok(())
     }
 
     fn on_message(&mut self, msg: ws::Message) -> ws::Result<()> {
-        println!("Client got message '{}'. ", msg);
+        info!("Client got message '{}'. ", msg);
         let send_data: SendData =
             SendData::deserialize(msg.to_string()).map_err(|e| ws::Error {
                 kind: ws::ErrorKind::Internal,
@@ -226,7 +227,7 @@ impl<
                     details: Cow::from(e),
                 })?;
                 if let Err(error) = self.resource_manager.apply(event) {
-                    println!("send resource event error !: {}", error);
+                    error!("send resource event error !: {}", error);
                 }
                 Ok(())
             }
@@ -234,7 +235,7 @@ impl<
     }
 
     fn on_close(&mut self, _: ws::CloseCode, reason: &str) {
-        println!("Closed WebSocket. reason: {}", reason);
+        info!("Closed WebSocket. reason: {}", reason);
     }
 
     fn upgrade_ssl_client(
