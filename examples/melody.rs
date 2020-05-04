@@ -29,6 +29,7 @@ fn main() {
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
         as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>)
     .unwrap();
+    portaudio_outputter.set_volume(0.3);
 
     player
         .send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
