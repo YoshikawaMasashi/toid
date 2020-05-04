@@ -7,15 +7,27 @@ use super::super::state_management::store_reader::StoreReader;
 use portaudio as pa;
 use std::option::Option;
 use std::sync::Arc;
+use std::sync::RwLock;
 
 const CHANNELS: i32 = 2;
 const SAMPLE_RATE: f64 = 44_100.0;
 const FRAMES_PER_BUFFER: u32 = 512;
 
+struct PortAudioOutputterConfig {
+    volume: f32,
+}
+
+impl PortAudioOutputterConfig {
+    fn set_volume(&mut self, volume: f32) {
+        self.volume = volume;
+    }
+}
+
 pub struct PortAudioOutputter {
     player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
     portaudio: pa::PortAudio,
     stream: Option<pa::Stream<pa::NonBlocking, pa::Output<i16>>>,
+    config: Arc<RwLock<PortAudioOutputterConfig>>,
 }
 
 impl PortAudioOutputter {
@@ -28,13 +40,19 @@ impl PortAudioOutputter {
             player,
             portaudio,
             stream: None,
+            config: Arc::new(RwLock::new(PortAudioOutputterConfig { volume: 1.0 })),
         })
+    }
+
+    pub fn set_volume(&self, volume: f32) {
+        self.config.write().unwrap().set_volume(volume);
     }
 
     pub fn run(&mut self) -> Result<(), String> {
         let wave_reader = Arc::clone(&self.player.get_reader());
         let store = Arc::clone(&self.player.get_store());
         let resource_manager = Arc::clone(&self.player.get_resource_manager());
+        let config = Arc::clone(&self.config);
         let callback = move |pa::OutputStreamCallbackArgs::<'static, i16> {
                                  buffer,
                                  frames,
@@ -52,9 +70,10 @@ impl PortAudioOutputter {
             };
 
             let mut idx = 0;
+            let volume = config.read().unwrap().volume;
             for i in 0..frames {
-                buffer[idx] = waves[i];
-                buffer[idx + 1] = waves[i];
+                buffer[idx] = (volume * waves[i] as f32) as i16;
+                buffer[idx + 1] = (volume * waves[i] as f32) as i16;
                 idx += 2;
             }
             pa::Continue
