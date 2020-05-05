@@ -80,8 +80,8 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
         for (_, phrase) in music_state.phrase_map.iter() {
             // 付け加えるnotesをリストアップする。
             // self.played_notesに加える。
-            let rep_current_beats = self.cum_current_beats % phrase.repeat_length;
-            let rep_next_beats = cum_next_beats % phrase.repeat_length;
+            let rep_current_beats = self.cum_current_beats % phrase.length;
+            let rep_next_beats = cum_next_beats % phrase.length;
 
             if rep_current_beats < rep_next_beats {
                 for (&rep_note_beats, new_notes) in phrase
@@ -115,7 +115,7 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
             } else {
                 for (&rep_note_beats, new_notes) in phrase
                     .notes
-                    .range((Included(rep_current_beats), Excluded(phrase.repeat_length)))
+                    .range((Included(rep_current_beats), Excluded(phrase.length)))
                 {
                     for new_note in new_notes.iter() {
                         let cum_start_samples =
@@ -147,7 +147,7 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                 {
                     for new_note in new_notes.iter() {
                         let cum_start_samples =
-                            ((phrase.repeat_length + rep_note_beats - rep_current_beats).to_f32()
+                            ((phrase.length + rep_note_beats - rep_current_beats).to_f32()
                                 * 44100.0
                                 * 60.0
                                 / self.current_bpm) as u64

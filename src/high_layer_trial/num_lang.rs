@@ -7,13 +7,13 @@ use super::super::music_state::music_state::{MusicState, MusicStateEvent};
 use super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::players::player::Player;
 
-fn parse_num_lang(s: String, octave: f32, key: f32) -> Phrase {
+pub fn parse_num_lang(s: String, octave: f32, key: f32) -> Phrase {
     let mut now: Beat = Beat::from(0);
     let length_unit: Beat = Beat::from(0.5);
     let mut phrase = Phrase::new();
     let pitch_offset: f32 = octave * 12.0 + key;
 
-    phrase = phrase.set_repeat_length(Beat::from(s.len() as f32 / 2.0));
+    phrase = phrase.set_length(Beat::from(s.len() as f32 / 2.0));
 
     for c in s.chars() {
         let pitch = match c {

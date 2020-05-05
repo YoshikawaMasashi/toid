@@ -8,14 +8,14 @@ use super::note::Note;
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Phrase {
     pub notes: BTreeMap<Beat, Vec<Note>>,
-    pub repeat_length: Beat,
+    pub length: Beat,
 }
 
 impl Phrase {
     pub fn new() -> Self {
         Self {
             notes: BTreeMap::new(),
-            repeat_length: Beat::from(0),
+            length: Beat::from(0),
         }
     }
 
@@ -31,14 +31,14 @@ impl Phrase {
         new_notes.insert(note.start, new_note_vec);
         Phrase {
             notes: new_notes,
-            repeat_length: self.repeat_length,
+            length: self.length,
         }
     }
 
-    pub fn set_repeat_length(&self, repeat_length: Beat) -> Self {
+    pub fn set_length(&self, length: Beat) -> Self {
         Phrase {
             notes: self.notes.clone(),
-            repeat_length: repeat_length,
+            length: length,
         }
     }
 }
