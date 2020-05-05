@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use super::super::data::music_info::beat::Beat;
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
-use super::beat::Beat;
 
 #[derive(Serialize, Deserialize)]
 pub struct SchedulingState {

@@ -3,30 +3,26 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
+use super::super::data::music_info::phrase::Phrase;
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
-use super::beat::Beat;
-use super::melody_state::{MelodyState, MelodyStateEvent};
 use super::scheduling_state::{SchedulingState, SchedulingStateEvent};
 use super::sf2_state::{SF2State, SF2StateEvent};
 
 #[derive(Serialize, Deserialize)]
 pub struct MusicState {
     pub scheduling: Arc<SchedulingState>,
-    pub melody_map: HashMap<String, Arc<MelodyState>>,
+    pub phrase_map: HashMap<String, Phrase>,
     pub sf2: Arc<SF2State>,
 }
 
 impl MusicState {
-    fn new_melody(&self, key: String, repeat_length: Beat) -> Self {
-        let mut new_melody_map = self.melody_map.clone();
-        new_melody_map.insert(
-            key,
-            Arc::new(MelodyState::new().set_repeat_length(repeat_length)),
-        );
+    fn new_phrase(&self, key: String, phrase: Phrase) -> Self {
+        let mut new_phrase_map = self.phrase_map.clone();
+        new_phrase_map.insert(key, phrase);
         Self {
             scheduling: self.scheduling.clone(),
-            melody_map: new_melody_map,
+            phrase_map: new_phrase_map,
             sf2: self.sf2.clone(),
         }
     }
@@ -35,18 +31,7 @@ impl MusicState {
         let new_scheduling = Arc::new(self.scheduling.reduce(e));
         Self {
             scheduling: new_scheduling,
-            melody_map: self.melody_map.clone(),
-            sf2: self.sf2.clone(),
-        }
-    }
-
-    fn melody_state_event(&self, key: String, e: MelodyStateEvent) -> Self {
-        let mut new_melody_map = self.melody_map.clone();
-        let new_melody = Arc::new(self.melody_map[&key].reduce(e));
-        new_melody_map.insert(key, new_melody);
-        Self {
-            scheduling: self.scheduling.clone(),
-            melody_map: new_melody_map,
+            phrase_map: self.phrase_map.clone(),
             sf2: self.sf2.clone(),
         }
     }
@@ -55,7 +40,7 @@ impl MusicState {
         let new_sf2 = Arc::new(self.sf2.reduce(e));
         Self {
             scheduling: self.scheduling.clone(),
-            melody_map: self.melody_map.clone(),
+            phrase_map: self.phrase_map.clone(),
             sf2: new_sf2,
         }
     }
@@ -65,16 +50,15 @@ impl State<MusicStateEvent> for MusicState {
     fn new() -> Self {
         Self {
             scheduling: Arc::new(SchedulingState::new()),
-            melody_map: HashMap::new(),
+            phrase_map: HashMap::new(),
             sf2: Arc::new(SF2State::new()),
         }
     }
 
     fn reduce(&self, event: MusicStateEvent) -> Self {
         match event {
-            MusicStateEvent::NewMelody(key, repeat_length) => self.new_melody(key, repeat_length),
+            MusicStateEvent::NewPhrase(key, phrase) => self.new_phrase(key, phrase),
             MusicStateEvent::SchedulingStateEvent(e) => self.scheduling_state_event(e),
-            MusicStateEvent::MelodyStateEvent(key, e) => self.melody_state_event(key, e),
             MusicStateEvent::SF2StateEvent(e) => self.sf2_state_event(e),
         }
     }
@@ -97,9 +81,8 @@ impl serialize::Serialize<MusicState> for MusicState {
 
 #[derive(Serialize, Deserialize)]
 pub enum MusicStateEvent {
-    NewMelody(String, Beat),
+    NewPhrase(String, Phrase),
     SchedulingStateEvent(SchedulingStateEvent),
-    MelodyStateEvent(String, MelodyStateEvent),
     SF2StateEvent(SF2StateEvent),
 }
 

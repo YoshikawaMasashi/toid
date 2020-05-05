@@ -6,17 +6,17 @@ use std::sync::Arc;
 use log::error;
 use serde::{Deserialize, Serialize};
 
+use super::super::data::music_info::beat::Beat;
+use super::super::data::music_info::note::Note;
 use super::super::resource_management::resource_manager::ResourceManager;
 use super::super::state_management::serialize;
 use super::super::state_management::store::Store;
 use super::super::state_management::store_reader::StoreReader;
-use super::beat::Beat;
-use super::melody_state::NoteInfo;
 use super::music_state::{MusicState, MusicStateEvent};
 
 pub struct WaveReader {
     wave_length: u64,
-    played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
+    played_notes: BTreeMap<u64, Vec<(u64, Note)>>,
     cum_current_samples: u64,
     current_bpm: f32,
     bpm_change_samples: u64,
@@ -77,14 +77,14 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
         let cum_next_beats = self.cum_current_beats
             + Beat::from(self.wave_length as f32 * self.current_bpm / 44100.0 / 60.0);
 
-        for (_, melody_state) in music_state.melody_map.iter() {
+        for (_, phrase) in music_state.phrase_map.iter() {
             // 付け加えるnotesをリストアップする。
             // self.played_notesに加える。
-            let rep_current_beats = self.cum_current_beats % melody_state.repeat_length;
-            let rep_next_beats = cum_next_beats % melody_state.repeat_length;
+            let rep_current_beats = self.cum_current_beats % phrase.repeat_length;
+            let rep_next_beats = cum_next_beats % phrase.repeat_length;
 
             if rep_current_beats < rep_next_beats {
-                for (&rep_note_beats, new_notes) in melody_state
+                for (&rep_note_beats, new_notes) in phrase
                     .notes
                     .range((Included(rep_current_beats), Excluded(rep_next_beats)))
                 {
@@ -113,10 +113,10 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                     }
                 }
             } else {
-                for (&rep_note_beats, new_notes) in melody_state.notes.range((
-                    Included(rep_current_beats),
-                    Excluded(melody_state.repeat_length),
-                )) {
+                for (&rep_note_beats, new_notes) in phrase
+                    .notes
+                    .range((Included(rep_current_beats), Excluded(phrase.repeat_length)))
+                {
                     for new_note in new_notes.iter() {
                         let cum_start_samples =
                             ((rep_note_beats - rep_current_beats).to_f32() * 44100.0 * 60.0
@@ -141,14 +141,13 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                         }
                     }
                 }
-                for (&rep_note_beats, new_notes) in melody_state
+                for (&rep_note_beats, new_notes) in phrase
                     .notes
                     .range((Included(Beat::from(0)), Excluded(rep_next_beats)))
                 {
                     for new_note in new_notes.iter() {
                         let cum_start_samples =
-                            ((melody_state.repeat_length + rep_note_beats - rep_current_beats)
-                                .to_f32()
+                            ((phrase.repeat_length + rep_note_beats - rep_current_beats).to_f32()
                                 * 44100.0
                                 * 60.0
                                 / self.current_bpm) as u64

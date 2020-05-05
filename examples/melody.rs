@@ -2,8 +2,8 @@ extern crate portaudio;
 
 use std::sync::Arc;
 
+use toid::data::music_info::beat::Beat;
 use toid::high_layer_trial::num_lang::send_num_lang;
-use toid::music_state::beat::Beat;
 use toid::music_state::music_state::{MusicState, MusicStateEvent};
 use toid::music_state::scheduling_state::SchedulingStateEvent;
 use toid::music_state::sf2_state::SF2StateEvent;
