@@ -1,24 +1,18 @@
 use std::sync::Arc;
 
+use toid::data::music_info::beat::Beat;
 use toid::high_layer_trial::music_language::num_lang::send_num_lang;
 use toid::music_state::music_state::{MusicState, MusicStateEvent};
+use toid::music_state::scheduling_state::SchedulingStateEvent;
 use toid::music_state::sf2_state::SF2StateEvent;
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
+use toid::players::local_player::LocalPlayer;
 use toid::players::player::Player;
-use toid::players::websocket_player::WebSocketPlayer;
 use toid::resource_management::resource_manager::ResourceManagerEvent;
 
 fn main() {
-    let mut ip = String::new();
-    println!("please input ip (ex. 127.0.0.1):");
-    std::io::stdin().read_line(&mut ip).unwrap();
-    println!("ip: {}", ip);
-    let ip = ip;
-    let connect_address = format!("ws://play:password@{}:3012", ip).replace("\n", "");
-
-    let mut player = WebSocketPlayer::new();
-    player.connect(connect_address);
+    let player = LocalPlayer::new();
     let player = Arc::new(player);
 
     player
@@ -26,18 +20,35 @@ fn main() {
         .register(String::from("./toid-sample-resource/sf2/sf2.toml"))
         .unwrap();
 
-    let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
-        as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>)
-    .unwrap();
-
     player
         .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.test")))
         .unwrap();
+
+    let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
+        as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>)
+    .unwrap();
+    portaudio_outputter.set_volume(0.3);
 
     player
         .send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
             String::from("sf2.test"),
         )))
+        .unwrap();
+
+    player
+        .send_event(MusicStateEvent::SchedulingStateEvent(
+            SchedulingStateEvent::ChangeBPM(Beat::from(0), 120.0),
+        ))
+        .unwrap();
+    player
+        .send_event(MusicStateEvent::SchedulingStateEvent(
+            SchedulingStateEvent::ChangeBPM(Beat::from(8), 180.0),
+        ))
+        .unwrap();
+    player
+        .send_event(MusicStateEvent::SchedulingStateEvent(
+            SchedulingStateEvent::ChangeBPM(Beat::from(16), 120.0),
+        ))
         .unwrap();
 
     send_num_lang(
@@ -60,11 +71,11 @@ fn main() {
     )
     .unwrap();
 
-    loop {
-        portaudio_outputter.sleep(5000);
-        player
-            .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.test")))
-            .unwrap();
-        player.sync_state().unwrap();
-    }
+    portaudio_outputter.run().unwrap();
+    portaudio_outputter.sleep(2250);
+    player
+        .send_reader_event(WaveReaderEvent::MoveStart)
+        .unwrap();
+    portaudio_outputter.sleep(12000);
+    portaudio_outputter.stop().unwrap();
 }

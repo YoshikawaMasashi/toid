@@ -1,9 +1,9 @@
-extern crate portaudio;
-
 use std::sync::Arc;
 
 use toid::data::music_info::beat::Beat;
-use toid::high_layer_trial::num_lang::send_num_lang;
+use toid::high_layer_trial::music_language::num_lang::parse_num_lang;
+use toid::high_layer_trial::music_language::send_phrase::send_phrase;
+use toid::high_layer_trial::phrase_operation::{concat, delay, marge};
 use toid::music_state::music_state::{MusicState, MusicStateEvent};
 use toid::music_state::scheduling_state::SchedulingStateEvent;
 use toid::music_state::sf2_state::SF2StateEvent;
@@ -42,42 +42,25 @@ fn main() {
             SchedulingStateEvent::ChangeBPM(Beat::from(0), 120.0),
         ))
         .unwrap();
-    player
-        .send_event(MusicStateEvent::SchedulingStateEvent(
-            SchedulingStateEvent::ChangeBPM(Beat::from(8), 180.0),
-        ))
-        .unwrap();
-    player
-        .send_event(MusicStateEvent::SchedulingStateEvent(
-            SchedulingStateEvent::ChangeBPM(Beat::from(16), 120.0),
-        ))
-        .unwrap();
 
-    send_num_lang(
-        "12345 643 2 1   ".to_string(),
-        0.0,
-        0.0,
-        "main".to_string(),
-        Arc::clone(&player)
-            as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
-    )
-    .unwrap();
+    let phrase1 = parse_num_lang("1234321 ".to_string(), 0.0, 0.0);
+    let phrase2 = parse_num_lang("3456543 ".to_string(), 0.0, 0.0);
+    let phrase3 = parse_num_lang("1 1 1 1 ".to_string(), 0.0, 0.0);
+    let phrase4 = parse_num_lang("1234321 ".to_string(), 0.0, 0.0);
 
-    send_num_lang(
-        "1   4   5   1   ".to_string(),
-        -1.0,
-        0.0,
-        "sub".to_string(),
+    let phrase5 = concat(concat(concat(phrase1, phrase2), phrase3), phrase4);
+    let phrase6 = delay(phrase5.clone(), Beat::from(4));
+    let phrase7 = marge(phrase5, phrase6);
+
+    send_phrase(
+        phrase7,
+        "phrase7".to_string(),
         Arc::clone(&player)
             as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
     )
     .unwrap();
 
     portaudio_outputter.run().unwrap();
-    portaudio_outputter.sleep(2250);
-    player
-        .send_reader_event(WaveReaderEvent::MoveStart)
-        .unwrap();
     portaudio_outputter.sleep(12000);
     portaudio_outputter.stop().unwrap();
 }
