@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use super::super::data::music_info::beat::Beat;
 use super::super::data::music_info::note::Note;
-use super::super::music_state::melody_state::MelodyStateEvent;
 use super::super::music_state::music_state::{MusicState, MusicStateEvent};
+use super::super::music_state::phrase_state::PhraseStateEvent;
 use super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::players::player::Player;
 
@@ -73,21 +73,21 @@ fn parse_num_lang(s: String, octave: f32, key: f32) -> Vec<Note> {
 }
 
 pub fn send_num_lang(
-    melody_string: String,
+    phrase_string: String,
     octave: f32,
     key: f32,
-    melody_name: String,
+    phrase_name: String,
     player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
 ) -> Result<(), String> {
-    player.send_event(MusicStateEvent::NewMelody(
-        melody_name.clone(),
-        Beat::from(melody_string.len() as f32 / 2.0),
+    player.send_event(MusicStateEvent::NewPhrase(
+        phrase_name.clone(),
+        Beat::from(phrase_string.len() as f32 / 2.0),
     ))?;
-    let note_infos = parse_num_lang(melody_string, octave, key);
+    let note_infos = parse_num_lang(phrase_string, octave, key);
     for &note_info in note_infos.iter() {
-        player.send_event(MusicStateEvent::MelodyStateEvent(
-            melody_name.clone(),
-            MelodyStateEvent::AddNote(note_info),
+        player.send_event(MusicStateEvent::PhraseStateEvent(
+            phrase_name.clone(),
+            PhraseStateEvent::AddNote(note_info),
         ))?;
     }
     Ok(())

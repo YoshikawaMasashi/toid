@@ -9,41 +9,41 @@ use super::super::state_management::serialize;
 use super::super::state_management::state::State;
 
 #[derive(Serialize, Deserialize)]
-pub struct MelodyState {
+pub struct PhraseState {
     pub phrase: Phrase,
 }
 
-impl MelodyState {
+impl PhraseState {
     pub fn add_note(&self, note: Note) -> Self {
-        MelodyState {
+        PhraseState {
             phrase: self.phrase.add_note(note),
         }
     }
 
     pub fn set_repeat_length(&self, repeat_length: Beat) -> Self {
-        MelodyState {
+        PhraseState {
             phrase: self.phrase.set_repeat_length(repeat_length),
         }
     }
 }
 
-impl State<MelodyStateEvent> for MelodyState {
+impl State<PhraseStateEvent> for PhraseState {
     fn new() -> Self {
         let phrase = Phrase {
             notes: BTreeMap::new(),
             repeat_length: Beat::from(8),
         };
-        MelodyState { phrase }
+        PhraseState { phrase }
     }
 
-    fn reduce(&self, event: MelodyStateEvent) -> Self {
+    fn reduce(&self, event: PhraseStateEvent) -> Self {
         match event {
-            MelodyStateEvent::AddNote(note) => self.add_note(note),
+            PhraseStateEvent::AddNote(note) => self.add_note(note),
         }
     }
 }
 
-impl serialize::Serialize<MelodyState> for MelodyState {
+impl serialize::Serialize<PhraseState> for PhraseState {
     fn serialize(&self) -> Result<String, String> {
         match serde_json::to_string(&self) {
             Ok(serialized) => Ok(serialized),
@@ -59,11 +59,11 @@ impl serialize::Serialize<MelodyState> for MelodyState {
 }
 
 #[derive(Serialize, Deserialize)]
-pub enum MelodyStateEvent {
+pub enum PhraseStateEvent {
     AddNote(Note),
 }
 
-impl serialize::Serialize<MelodyStateEvent> for MelodyStateEvent {
+impl serialize::Serialize<PhraseStateEvent> for PhraseStateEvent {
     fn serialize(&self) -> Result<String, String> {
         match serde_json::to_string(&self) {
             Ok(serialized) => Ok(serialized),
