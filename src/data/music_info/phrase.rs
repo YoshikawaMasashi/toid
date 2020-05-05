@@ -12,6 +12,13 @@ pub struct Phrase {
 }
 
 impl Phrase {
+    pub fn new() -> Self {
+        Self {
+            notes: BTreeMap::new(),
+            repeat_length: Beat::from(0),
+        }
+    }
+
     pub fn add_note(&self, note: Note) -> Self {
         let mut new_notes = self.notes.clone();
         let mut new_note_vec;

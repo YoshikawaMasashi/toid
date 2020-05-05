@@ -3,27 +3,23 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::data::music_info::beat::Beat;
+use super::super::data::music_info::phrase::Phrase;
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
-use super::phrase_state::{PhraseState, PhraseStateEvent};
 use super::scheduling_state::{SchedulingState, SchedulingStateEvent};
 use super::sf2_state::{SF2State, SF2StateEvent};
 
 #[derive(Serialize, Deserialize)]
 pub struct MusicState {
     pub scheduling: Arc<SchedulingState>,
-    pub phrase_map: HashMap<String, Arc<PhraseState>>,
+    pub phrase_map: HashMap<String, Phrase>,
     pub sf2: Arc<SF2State>,
 }
 
 impl MusicState {
-    fn new_phrase(&self, key: String, repeat_length: Beat) -> Self {
+    fn new_phrase(&self, key: String, phrase: Phrase) -> Self {
         let mut new_phrase_map = self.phrase_map.clone();
-        new_phrase_map.insert(
-            key,
-            Arc::new(PhraseState::new().set_repeat_length(repeat_length)),
-        );
+        new_phrase_map.insert(key, phrase);
         Self {
             scheduling: self.scheduling.clone(),
             phrase_map: new_phrase_map,
@@ -36,17 +32,6 @@ impl MusicState {
         Self {
             scheduling: new_scheduling,
             phrase_map: self.phrase_map.clone(),
-            sf2: self.sf2.clone(),
-        }
-    }
-
-    fn phrase_state_event(&self, key: String, e: PhraseStateEvent) -> Self {
-        let mut new_phrase_map = self.phrase_map.clone();
-        let new_phrase = Arc::new(self.phrase_map[&key].reduce(e));
-        new_phrase_map.insert(key, new_phrase);
-        Self {
-            scheduling: self.scheduling.clone(),
-            phrase_map: new_phrase_map,
             sf2: self.sf2.clone(),
         }
     }
@@ -72,9 +57,8 @@ impl State<MusicStateEvent> for MusicState {
 
     fn reduce(&self, event: MusicStateEvent) -> Self {
         match event {
-            MusicStateEvent::NewPhrase(key, repeat_length) => self.new_phrase(key, repeat_length),
+            MusicStateEvent::NewPhrase(key, phrase) => self.new_phrase(key, phrase),
             MusicStateEvent::SchedulingStateEvent(e) => self.scheduling_state_event(e),
-            MusicStateEvent::PhraseStateEvent(key, e) => self.phrase_state_event(key, e),
             MusicStateEvent::SF2StateEvent(e) => self.sf2_state_event(e),
         }
     }
@@ -97,9 +81,8 @@ impl serialize::Serialize<MusicState> for MusicState {
 
 #[derive(Serialize, Deserialize)]
 pub enum MusicStateEvent {
-    NewPhrase(String, Beat),
+    NewPhrase(String, Phrase),
     SchedulingStateEvent(SchedulingStateEvent),
-    PhraseStateEvent(String, PhraseStateEvent),
     SF2StateEvent(SF2StateEvent),
 }
 

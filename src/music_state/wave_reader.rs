@@ -77,10 +77,9 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
         let cum_next_beats = self.cum_current_beats
             + Beat::from(self.wave_length as f32 * self.current_bpm / 44100.0 / 60.0);
 
-        for (_, phrase_state) in music_state.phrase_map.iter() {
+        for (_, phrase) in music_state.phrase_map.iter() {
             // 付け加えるnotesをリストアップする。
             // self.played_notesに加える。
-            let phrase = &phrase_state.phrase;
             let rep_current_beats = self.cum_current_beats % phrase.repeat_length;
             let rep_next_beats = cum_next_beats % phrase.repeat_length;
 
