@@ -80,11 +80,12 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
         for (_, melody_state) in music_state.melody_map.iter() {
             // 付け加えるnotesをリストアップする。
             // self.played_notesに加える。
-            let rep_current_beats = self.cum_current_beats % melody_state.repeat_length;
-            let rep_next_beats = cum_next_beats % melody_state.repeat_length;
+            let phrase = &melody_state.phrase;
+            let rep_current_beats = self.cum_current_beats % phrase.repeat_length;
+            let rep_next_beats = cum_next_beats % phrase.repeat_length;
 
             if rep_current_beats < rep_next_beats {
-                for (&rep_note_beats, new_notes) in melody_state
+                for (&rep_note_beats, new_notes) in phrase
                     .notes
                     .range((Included(rep_current_beats), Excluded(rep_next_beats)))
                 {
@@ -113,10 +114,10 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                     }
                 }
             } else {
-                for (&rep_note_beats, new_notes) in melody_state.notes.range((
-                    Included(rep_current_beats),
-                    Excluded(melody_state.repeat_length),
-                )) {
+                for (&rep_note_beats, new_notes) in phrase
+                    .notes
+                    .range((Included(rep_current_beats), Excluded(phrase.repeat_length)))
+                {
                     for new_note in new_notes.iter() {
                         let cum_start_samples =
                             ((rep_note_beats - rep_current_beats).to_f32() * 44100.0 * 60.0
@@ -141,14 +142,13 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
                         }
                     }
                 }
-                for (&rep_note_beats, new_notes) in melody_state
+                for (&rep_note_beats, new_notes) in phrase
                     .notes
                     .range((Included(Beat::from(0)), Excluded(rep_next_beats)))
                 {
                     for new_note in new_notes.iter() {
                         let cum_start_samples =
-                            ((melody_state.repeat_length + rep_note_beats - rep_current_beats)
-                                .to_f32()
+                            ((phrase.repeat_length + rep_note_beats - rep_current_beats).to_f32()
                                 * 44100.0
                                 * 60.0
                                 / self.current_bpm) as u64

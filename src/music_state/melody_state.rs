@@ -4,46 +4,36 @@ use serde::{Deserialize, Serialize};
 
 use super::super::data::music_info::beat::Beat;
 use super::super::data::music_info::note::Note;
+use super::super::data::music_info::phrase::Phrase;
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
 
 #[derive(Serialize, Deserialize)]
 pub struct MelodyState {
-    pub notes: BTreeMap<Beat, Vec<Note>>,
-    pub repeat_length: Beat,
+    pub phrase: Phrase,
 }
 
 impl MelodyState {
     pub fn add_note(&self, note: Note) -> Self {
-        let mut new_notes = self.notes.clone();
-        let mut new_note_vec;
-        if self.notes.contains_key(&note.start) {
-            new_note_vec = self.notes[&note.start].clone();
-        } else {
-            new_note_vec = Vec::new();
-        }
-        new_note_vec.push(note);
-        new_notes.insert(note.start, new_note_vec);
         MelodyState {
-            notes: new_notes,
-            repeat_length: self.repeat_length,
+            phrase: self.phrase.add_note(note),
         }
     }
 
     pub fn set_repeat_length(&self, repeat_length: Beat) -> Self {
         MelodyState {
-            notes: self.notes.clone(),
-            repeat_length: repeat_length,
+            phrase: self.phrase.set_repeat_length(repeat_length),
         }
     }
 }
 
 impl State<MelodyStateEvent> for MelodyState {
     fn new() -> Self {
-        MelodyState {
+        let phrase = Phrase {
             notes: BTreeMap::new(),
             repeat_length: Beat::from(8),
-        }
+        };
+        MelodyState { phrase }
     }
 
     fn reduce(&self, event: MelodyStateEvent) -> Self {

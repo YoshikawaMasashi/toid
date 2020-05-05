@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::beat::Beat;
 use super::note::Note;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Phrase {
     pub notes: BTreeMap<Beat, Vec<Note>>,
     pub repeat_length: Beat,
