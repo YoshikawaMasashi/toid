@@ -2,25 +2,19 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use super::super::data::music_info::beat::Beat;
+use super::super::data::music_info::note::Note;
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
-use super::beat::Beat;
-
-#[derive(Serialize, Deserialize, Clone, Copy)]
-pub struct NoteInfo {
-    pub pitch: f32,
-    pub duration: Beat,
-    pub start: Beat,
-}
 
 #[derive(Serialize, Deserialize)]
 pub struct MelodyState {
-    pub notes: BTreeMap<Beat, Vec<NoteInfo>>,
+    pub notes: BTreeMap<Beat, Vec<Note>>,
     pub repeat_length: Beat,
 }
 
 impl MelodyState {
-    pub fn add_note(&self, note: NoteInfo) -> Self {
+    pub fn add_note(&self, note: Note) -> Self {
         let mut new_notes = self.notes.clone();
         let mut new_note_vec;
         if self.notes.contains_key(&note.start) {
@@ -76,7 +70,7 @@ impl serialize::Serialize<MelodyState> for MelodyState {
 
 #[derive(Serialize, Deserialize)]
 pub enum MelodyStateEvent {
-    AddNote(NoteInfo),
+    AddNote(Note),
 }
 
 impl serialize::Serialize<MelodyStateEvent> for MelodyStateEvent {

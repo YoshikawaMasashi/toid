@@ -6,17 +6,17 @@ use std::sync::Arc;
 use log::error;
 use serde::{Deserialize, Serialize};
 
+use super::super::data::music_info::beat::Beat;
+use super::super::data::music_info::note::Note;
 use super::super::resource_management::resource_manager::ResourceManager;
 use super::super::state_management::serialize;
 use super::super::state_management::store::Store;
 use super::super::state_management::store_reader::StoreReader;
-use super::beat::Beat;
-use super::melody_state::NoteInfo;
 use super::music_state::{MusicState, MusicStateEvent};
 
 pub struct WaveReader {
     wave_length: u64,
-    played_notes: BTreeMap<u64, Vec<(u64, NoteInfo)>>,
+    played_notes: BTreeMap<u64, Vec<(u64, Note)>>,
     cum_current_samples: u64,
     current_bpm: f32,
     bpm_change_samples: u64,

@@ -3,9 +3,9 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
+use super::super::data::music_info::beat::Beat;
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
-use super::beat::Beat;
 use super::melody_state::{MelodyState, MelodyStateEvent};
 use super::scheduling_state::{SchedulingState, SchedulingStateEvent};
 use super::sf2_state::{SF2State, SF2StateEvent};
