@@ -1,8 +1,5 @@
-use super::super::super::data::music_info::{Beat, Note, Phrase};
-
-pub trait Condition {
-    fn judge(&self, note: Note) -> bool;
-}
+use super::super::super::data::music_info::{Beat, Note};
+use super::split_by_condition::Condition;
 
 pub struct And {
     condition1: Box<dyn Condition>,
@@ -105,23 +102,4 @@ impl Condition for IsDownBeat {
         let start_in_beat = note.start % Beat::from(1);
         start_in_beat >= Beat::from(0.75) || start_in_beat < Beat::from(0.25)
     }
-}
-
-pub fn split_by_condition(phrase: Phrase, condition: Box<dyn Condition>) -> (Phrase, Phrase) {
-    let mut true_phrase = Phrase::new();
-    let mut false_phrase = Phrase::new();
-    true_phrase = true_phrase.set_length(phrase.length);
-    false_phrase = false_phrase.set_length(phrase.length);
-
-    for (_, note_vec) in phrase.notes.iter() {
-        for &note in note_vec.iter() {
-            if condition.judge(note) {
-                true_phrase = true_phrase.add_note(note.clone());
-            } else {
-                false_phrase = false_phrase.add_note(note.clone());
-            }
-        }
-    }
-
-    (true_phrase, false_phrase)
 }
