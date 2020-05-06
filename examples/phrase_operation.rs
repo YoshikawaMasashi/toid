@@ -3,7 +3,10 @@ use std::sync::Arc;
 use toid::data::music_info::beat::Beat;
 use toid::high_layer_trial::music_language::num_lang::parse_num_lang;
 use toid::high_layer_trial::music_language::send_phrase::send_phrase;
-use toid::high_layer_trial::phrase_operation::{concat, delay, marge};
+use toid::high_layer_trial::phrase_operation::condition::IsDownBeat;
+use toid::high_layer_trial::phrase_operation::{
+    concat, delay, marge, shuffle_start, split_by_condition,
+};
 use toid::music_state::music_state::{MusicState, MusicStateEvent};
 use toid::music_state::scheduling_state::SchedulingStateEvent;
 use toid::music_state::sf2_state::SF2StateEvent;
@@ -52,9 +55,13 @@ fn main() {
     let phrase6 = delay(phrase5.clone(), Beat::from(4));
     let phrase7 = marge(phrase5, phrase6);
 
+    let (phrase8, phrase9) = split_by_condition(phrase7.clone(), Box::new(IsDownBeat::new()));
+    let phrase10 = shuffle_start(phrase9);
+    let phrase11 = marge(phrase8, phrase10);
+
     send_phrase(
-        phrase7,
-        "phrase7".to_string(),
+        phrase11,
+        "phrase11".to_string(),
         Arc::clone(&player)
             as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
     )

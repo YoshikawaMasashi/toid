@@ -1,88 +1,21 @@
-use std::cmp;
-use std::collections::BTreeMap;
+pub mod condition;
 
-use super::super::data::music_info::{Beat, Note, Phrase};
+mod change_key;
+mod change_pitch_in_key;
+mod concat;
+mod delay;
+mod invert_pitch;
+mod invert_start_order;
+mod marge;
+mod shuffle_start;
+mod split_by_condition;
 
-pub fn delay(phrase: Phrase, delay: Beat) -> Phrase {
-    let mut new_notes = BTreeMap::new();
-    for (&start, note_vec) in phrase.notes.iter() {
-        let mut new_note_vec = vec![];
-        for note in note_vec.iter() {
-            new_note_vec.push(Note {
-                pitch: note.pitch,
-                duration: note.duration,
-                start: note.start + delay,
-            });
-        }
-        new_notes.insert(start + delay, new_note_vec);
-    }
-
-    let new_length = phrase.length + delay;
-
-    Phrase {
-        notes: new_notes,
-        length: new_length,
-    }
-}
-
-pub fn marge(phrase1: Phrase, phrase2: Phrase) -> Phrase {
-    let mut new_phrase = Phrase::new();
-    new_phrase = new_phrase.set_length(cmp::max(phrase1.length, phrase2.length));
-    for (_, note_vec) in phrase1.notes.iter() {
-        for &note in note_vec.iter() {
-            new_phrase = new_phrase.add_note(note);
-        }
-    }
-    for (_, note_vec) in phrase2.notes.iter() {
-        for &note in note_vec.iter() {
-            new_phrase = new_phrase.add_note(note);
-        }
-    }
-    new_phrase
-}
-
-pub fn concat(phrase1: Phrase, phrase2: Phrase) -> Phrase {
-    let mut new_phrase = Phrase::new();
-    new_phrase = new_phrase.set_length(phrase1.length + phrase2.length);
-
-    for (_, note_vec) in phrase1.notes.iter() {
-        for &note in note_vec.iter() {
-            new_phrase = new_phrase.add_note(note);
-        }
-    }
-
-    for (_, note_vec) in phrase2.notes.iter() {
-        for &note in note_vec.iter() {
-            let new_note = Note {
-                pitch: note.pitch,
-                duration: note.duration,
-                start: note.start + phrase1.length,
-            };
-            new_phrase = new_phrase.add_note(new_note);
-        }
-    }
-
-    new_phrase
-}
-
-pub fn change_key(phrase: Phrase, key: f32) -> Phrase {
-    let mut new_notes = BTreeMap::new();
-    for (&start, note_vec) in phrase.notes.iter() {
-        let mut new_note_vec = vec![];
-        for note in note_vec.iter() {
-            new_note_vec.push(Note {
-                pitch: note.pitch + key,
-                duration: note.duration,
-                start: note.start,
-            });
-        }
-        new_notes.insert(start, new_note_vec);
-    }
-
-    let new_length = phrase.length;
-
-    Phrase {
-        notes: new_notes,
-        length: new_length,
-    }
-}
+pub use change_key::change_key;
+pub use change_pitch_in_key::change_pitch_in_key;
+pub use concat::concat;
+pub use delay::delay;
+pub use invert_pitch::invert_pitch;
+pub use invert_start_order::invert_start_order;
+pub use marge::marge;
+pub use shuffle_start::shuffle_start;
+pub use split_by_condition::split_by_condition;
