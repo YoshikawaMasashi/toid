@@ -52,42 +52,38 @@ impl TrackPlayer {
         let rep_next_beats = cum_next_beats % track.phrase.length;
 
         if rep_current_beats < rep_next_beats {
-            for (_, new_notes) in track
+            for (&start, new_notes) in track
                 .phrase
                 .notes
                 .range((Included(rep_current_beats), Excluded(rep_next_beats)))
             {
-                self.register_notes(
-                    new_notes,
-                    &rep_current_beats,
-                    &current_bpm,
-                    &cum_current_samples,
-                );
+                let cum_start_samples = ((start - rep_current_beats).to_f32() * 44100.0 * 60.0
+                    / current_bpm) as u64
+                    + cum_current_samples;
+                self.register_notes(new_notes, &current_bpm, &cum_start_samples);
             }
         } else {
-            for (_, new_notes) in track
+            for (&start, new_notes) in track
                 .phrase
                 .notes
                 .range((Included(rep_current_beats), Excluded(track.phrase.length)))
             {
-                self.register_notes(
-                    new_notes,
-                    &rep_current_beats,
-                    &current_bpm,
-                    &cum_current_samples,
-                );
+                let cum_start_samples = ((start - rep_current_beats).to_f32() * 44100.0 * 60.0
+                    / current_bpm) as u64
+                    + cum_current_samples;
+                self.register_notes(new_notes, &current_bpm, &cum_start_samples);
             }
-            for (_, new_notes) in track
+            for (&start, new_notes) in track
                 .phrase
                 .notes
                 .range((Included(Beat::from(0)), Excluded(rep_next_beats)))
             {
-                self.register_notes(
-                    new_notes,
-                    &rep_current_beats,
-                    &current_bpm,
-                    &cum_current_samples,
-                );
+                let cum_start_samples =
+                    ((track.phrase.length + start - rep_current_beats).to_f32() * 44100.0 * 60.0
+                        / current_bpm) as u64
+                        + cum_current_samples;
+
+                self.register_notes(new_notes, &current_bpm, &cum_start_samples);
             }
         }
 
@@ -177,26 +173,15 @@ impl TrackPlayer {
         ret
     }
 
-    fn register_notes(
-        &mut self,
-        notes: &Vec<Note>,
-        rep_current_beats: &Beat,
-        current_bpm: &f32,
-        cum_current_samples: &u64,
-    ) {
+    fn register_notes(&mut self, notes: &Vec<Note>, current_bpm: &f32, cum_start_samples: &u64) {
         for &note in notes.iter() {
-            let rep_note_beats = note.start;
-            let cum_start_samples =
-                ((rep_note_beats - *rep_current_beats).to_f32() * 44100.0 * 60.0 / current_bpm)
-                    as u64
-                    + cum_current_samples;
             let cum_end_samples =
                 cum_start_samples + (note.duration.to_f32() * 44100.0 * 60.0 / current_bpm) as u64;
 
             if self.played_notes.contains_key(&cum_end_samples) {
                 match self.played_notes.get_mut(&cum_end_samples) {
                     Some(notes_in_cum_end_samples) => {
-                        notes_in_cum_end_samples.push((cum_start_samples, note));
+                        notes_in_cum_end_samples.push((*cum_start_samples, note));
                     }
                     None => {
                         error!("get_mut failed");
@@ -204,7 +189,7 @@ impl TrackPlayer {
                 };
             } else {
                 self.played_notes
-                    .insert(cum_end_samples, vec![(cum_start_samples, note)]);
+                    .insert(cum_end_samples, vec![(*cum_start_samples, note)]);
             }
         }
     }
