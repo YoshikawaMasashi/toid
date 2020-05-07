@@ -35,20 +35,20 @@ impl TrackPlayer {
         &mut self,
         track: &Track,
         resource_manager: Arc<ResourceManager>,
-        cum_current_samples: u64,
-        cum_current_beats: Beat,
-        current_bpm: f32,
+        cum_current_samples: &u64,
+        cum_current_beats: &Beat,
+        current_bpm: &f32,
     ) -> Vec<i16> {
         let mut ret: Vec<i16> = Vec::new();
         ret.resize(self.wave_length as usize, 0);
 
         let cum_next_samples = cum_current_samples + self.wave_length;
         let cum_next_beats =
-            cum_current_beats + Beat::from(self.wave_length as f32 * current_bpm / 44100.0 / 60.0);
+            *cum_current_beats + Beat::from(self.wave_length as f32 * current_bpm / 44100.0 / 60.0);
 
         // 付け加えるnotesをリストアップする。
         // self.played_notesに加える。
-        let rep_current_beats = cum_current_beats % track.phrase.length;
+        let rep_current_beats = *cum_current_beats % track.phrase.length;
         let rep_next_beats = cum_next_beats % track.phrase.length;
 
         if rep_current_beats < rep_next_beats {
@@ -97,7 +97,7 @@ impl TrackPlayer {
                 for (&cum_end_samples, notes) in self.played_notes.iter() {
                     for (cum_start_samples, note) in notes.iter() {
                         let herts_par_sample = get_hertz(note.pitch) / 44100.0;
-                        let start_idx = if *cum_start_samples <= cum_current_samples {
+                        let start_idx = if *cum_start_samples <= *cum_current_samples {
                             0
                         } else {
                             (cum_start_samples - cum_current_samples) as usize
@@ -124,7 +124,7 @@ impl TrackPlayer {
                     Ok(sf2) => {
                         for (&cum_end_samples, notes) in self.played_notes.iter() {
                             for (cum_start_samples, note) in notes.iter() {
-                                let start_idx = if *cum_start_samples <= cum_current_samples {
+                                let start_idx = if *cum_start_samples <= *cum_current_samples {
                                     0
                                 } else {
                                     (cum_start_samples - cum_current_samples) as usize
@@ -170,7 +170,7 @@ impl TrackPlayer {
         };
 
         // 使ったself.played_notesのノートを消す
-        for cum_note_samples in cum_current_samples..cum_next_samples {
+        for cum_note_samples in *cum_current_samples..cum_next_samples {
             self.played_notes.remove(&cum_note_samples);
         }
 
