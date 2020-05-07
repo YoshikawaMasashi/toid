@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::data::music_info::phrase::Phrase;
+use super::super::data::music_info::{Phrase, Track};
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
 use super::scheduling_state::{SchedulingState, SchedulingStateEvent};
@@ -12,17 +12,21 @@ use super::sf2_state::{SF2State, SF2StateEvent};
 #[derive(Serialize, Deserialize)]
 pub struct MusicState {
     pub scheduling: Arc<SchedulingState>,
-    pub phrase_map: HashMap<String, Phrase>,
+    pub track_map: HashMap<String, Track>,
     pub sf2: Arc<SF2State>,
 }
 
 impl MusicState {
     fn new_phrase(&self, key: String, phrase: Phrase) -> Self {
-        let mut new_phrase_map = self.phrase_map.clone();
-        new_phrase_map.insert(key, phrase);
+        let mut new_track_map = self.track_map.clone();
+        let new_track = Track {
+            phrase,
+            sf2_name: self.sf2.sf2_name.clone(),
+        };
+        new_track_map.insert(key, new_track);
         Self {
             scheduling: self.scheduling.clone(),
-            phrase_map: new_phrase_map,
+            track_map: new_track_map,
             sf2: self.sf2.clone(),
         }
     }
@@ -31,7 +35,7 @@ impl MusicState {
         let new_scheduling = Arc::new(self.scheduling.reduce(e));
         Self {
             scheduling: new_scheduling,
-            phrase_map: self.phrase_map.clone(),
+            track_map: self.track_map.clone(),
             sf2: self.sf2.clone(),
         }
     }
@@ -40,7 +44,7 @@ impl MusicState {
         let new_sf2 = Arc::new(self.sf2.reduce(e));
         Self {
             scheduling: self.scheduling.clone(),
-            phrase_map: self.phrase_map.clone(),
+            track_map: self.track_map.clone(),
             sf2: new_sf2,
         }
     }
@@ -50,7 +54,7 @@ impl State<MusicStateEvent> for MusicState {
     fn new() -> Self {
         Self {
             scheduling: Arc::new(SchedulingState::new()),
-            phrase_map: HashMap::new(),
+            track_map: HashMap::new(),
             sf2: Arc::new(SF2State::new()),
         }
     }
