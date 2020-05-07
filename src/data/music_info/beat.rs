@@ -179,5 +179,27 @@ mod tests {
     #[test]
     fn test_eq() {
         assert_eq!(Beat::from(100), Beat::from(100));
+        assert_ne!(Beat::from(100), Beat::from(101));
     }
+
+    #[test]
+    fn test_from_fraction() {
+        assert_eq!(Beat::from_fraction(2, 3), Beat{num: 640});
+    }
+
+    // TODO: test
+    // serialize
+    // deserialize
+    // to_f32
+    // get_num
+    // from_f32
+    // from_f64
+    // from_u32
+    // from_u64
+    // from_i32
+    // from_i64
+    // cmp
+    // add
+    // sub
+    // rem
 }
