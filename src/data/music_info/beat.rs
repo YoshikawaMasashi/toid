@@ -11,7 +11,7 @@ trait FromFraction<T> {
     fn from_fraction(numerator: T, denominator: T) -> Self;
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Beat {
     num: i64,
 }
@@ -169,5 +169,15 @@ impl Rem<Self> for Beat {
         Self {
             num: self.num % modulus.num,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_eq() {
+        assert_eq!(Beat::from(100), Beat::from(100));
     }
 }
