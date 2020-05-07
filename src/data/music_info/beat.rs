@@ -187,19 +187,70 @@ mod tests {
         assert_eq!(Beat::from_fraction(2, 3), Beat{num: 640});
     }
 
-    // TODO: test
-    // serialize
-    // deserialize
-    // to_f32
-    // get_num
-    // from_f32
-    // from_f64
-    // from_u32
-    // from_u64
-    // from_i32
-    // from_i64
-    // cmp
-    // add
-    // sub
-    // rem
+    #[test]
+    fn test_serialize_deserialize() {
+        let serialized = serde_json::to_string(&Beat::from(100)).unwrap();
+        let deserialized: Beat = serde_json::from_str(&serialized.to_string()).unwrap();
+        assert_eq!(deserialized, Beat::from(100));
+    }
+
+    #[test]
+    fn test_to_f32() {
+        assert_eq!(Beat::from(1.5 as f32).to_f32(), 1.5 as f32);
+    }
+
+    #[test]
+    fn test_get_num() {
+        assert_eq!(Beat::from(1.5).get_num(), 1440);
+    }
+
+    #[test]
+    fn test_from_f32() {
+        assert_eq!(Beat::from(1.5 as f32), Beat{num: 1440});
+    }
+
+    #[test]
+    fn test_from_f64() {
+        assert_eq!(Beat::from(1.5 as f64), Beat{num: 1440});
+    }
+
+    #[test]
+    fn test_from_u32() {
+        assert_eq!(Beat::from(2 as u32), Beat{num: 1920});
+    }
+
+    #[test]
+    fn test_from_u64() {
+        assert_eq!(Beat::from(2 as u64), Beat{num: 1920});
+    }
+
+    #[test]
+    fn test_from_i32() {
+        assert_eq!(Beat::from(2 as i32), Beat{num: 1920});
+    }
+
+    #[test]
+    fn test_from_i64() {
+        assert_eq!(Beat::from(2 as i64), Beat{num: 1920});
+    }
+
+    #[test]
+    fn test_cmp() {
+        assert_eq!(Beat::from(1.5) > Beat::from(1), true);
+    }
+
+    #[test]
+    fn test_add() {
+        assert_eq!(Beat::from(1.5) + Beat::from(1), Beat::from(2.5));
+    }
+
+    #[test]
+    fn test_sub() {
+        assert_eq!(Beat::from(1.5) - Beat::from(1), Beat::from(0.5));
+    }
+
+    #[test]
+    fn test_rem() {
+        assert_eq!(Beat::from(1.5) % Beat::from(1), Beat::from(0.5));
+    }
 }
