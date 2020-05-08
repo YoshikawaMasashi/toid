@@ -3,7 +3,7 @@ use std::ops::Sub;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct Pitch {
     pitch: f32,
 }
@@ -79,10 +79,29 @@ impl From<f32> for Pitch {
     }
 }
 
+impl From<i32> for Pitch {
+    fn from(pitch: i32) -> Self {
+        Pitch { pitch: pitch as f32 }
+    }
+}
+
 impl Sub for Pitch {
     type Output = f32;
 
     fn sub(self, other: Self) -> f32 {
         self.pitch - other.pitch
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add_f32() {
+        let pitch = Pitch::from(60);
+        let pitch = pitch.add_f32(0.5);
+        assert_eq!(pitch, Pitch::from(60.5));
     }
 }

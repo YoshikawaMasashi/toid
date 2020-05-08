@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::beat::Beat;
 use super::pitch::Pitch;
 
-#[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct Note {
     pub pitch: Pitch,
     pub duration: Beat,
