@@ -14,11 +14,6 @@ pub struct TrackPlayer {
     played_notes: BTreeMap<u64, Vec<(u64, Note)>>,
 }
 
-fn get_hertz(pitch: f32) -> f32 {
-    // A4 -> 69 440hz
-    440. * (2.0 as f32).powf((pitch - 69.) / 12.)
-}
-
 impl TrackPlayer {
     pub fn new() -> Self {
         Self {
@@ -92,7 +87,7 @@ impl TrackPlayer {
             None => {
                 for (&cum_end_samples, notes) in self.played_notes.iter() {
                     for (cum_start_samples, note) in notes.iter() {
-                        let herts_par_sample = get_hertz(note.pitch) / 44100.0;
+                        let herts_par_sample = note.pitch.get_hertz() / 44100.0;
                         let start_idx = if *cum_start_samples <= *cum_current_samples {
                             0
                         } else {
@@ -140,7 +135,7 @@ impl TrackPlayer {
 
                                 let sample_data = sf2.get_samples(
                                     0,
-                                    note.pitch as u8,
+                                    note.pitch.get_u8_pitch(),
                                     start_idx_for_sample,
                                     end_idx_for_sample,
                                 );

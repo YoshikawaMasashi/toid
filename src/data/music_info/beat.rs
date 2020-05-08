@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn test_from_fraction() {
-        assert_eq!(Beat::from_fraction(2, 3), Beat{num: 640});
+        assert_eq!(Beat::from_fraction(2, 3), Beat { num: 640 });
     }
 
     #[test]
@@ -206,32 +206,32 @@ mod tests {
 
     #[test]
     fn test_from_f32() {
-        assert_eq!(Beat::from(1.5 as f32), Beat{num: 1440});
+        assert_eq!(Beat::from(1.5 as f32), Beat { num: 1440 });
     }
 
     #[test]
     fn test_from_f64() {
-        assert_eq!(Beat::from(1.5 as f64), Beat{num: 1440});
+        assert_eq!(Beat::from(1.5 as f64), Beat { num: 1440 });
     }
 
     #[test]
     fn test_from_u32() {
-        assert_eq!(Beat::from(2 as u32), Beat{num: 1920});
+        assert_eq!(Beat::from(2 as u32), Beat { num: 1920 });
     }
 
     #[test]
     fn test_from_u64() {
-        assert_eq!(Beat::from(2 as u64), Beat{num: 1920});
+        assert_eq!(Beat::from(2 as u64), Beat { num: 1920 });
     }
 
     #[test]
     fn test_from_i32() {
-        assert_eq!(Beat::from(2 as i32), Beat{num: 1920});
+        assert_eq!(Beat::from(2 as i32), Beat { num: 1920 });
     }
 
     #[test]
     fn test_from_i64() {
-        assert_eq!(Beat::from(2 as i64), Beat{num: 1920});
+        assert_eq!(Beat::from(2 as i64), Beat { num: 1920 });
     }
 
     #[test]

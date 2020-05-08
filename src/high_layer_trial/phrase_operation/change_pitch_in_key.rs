@@ -18,7 +18,7 @@ pub fn change_pitch_in_key(phrase: Phrase, key: f32, pitch: usize) -> Phrase {
 
     for (_, note_vec) in phrase.notes.iter() {
         for note in note_vec.iter() {
-            let pitch_in_key: f32 = (note.pitch - key) % 12.0;
+            let pitch_in_key: f32 = (note.pitch.sub_f32(key)).rem_f32(12.0);
             let pitch_in_key: usize = if pitch_in_key < 1.0 || pitch_in_key >= 11.5 {
                 0
             } else if pitch_in_key >= 1.0 && pitch_in_key < 3.0 {
@@ -36,7 +36,7 @@ pub fn change_pitch_in_key(phrase: Phrase, key: f32, pitch: usize) -> Phrase {
             };
             let offset = OFFSET_KEY[pitch_in_key][pitch % 7] + 12.0 * (pitch / 7) as f32;
             new_phrase = new_phrase.add_note(Note {
-                pitch: note.pitch + offset,
+                pitch: note.pitch.add_f32(offset),
                 duration: note.duration,
                 start: note.start,
             });
