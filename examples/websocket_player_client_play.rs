@@ -53,6 +53,9 @@ fn main() {
         0.0,
         0.0,
         "main".to_string(),
+        Some(String::from("sf2.test")),
+        1.0,
+        1.0,
         Arc::clone(&player)
             as Arc<
                 dyn Player<
@@ -71,6 +74,9 @@ fn main() {
         -1.0,
         0.0,
         "sub".to_string(),
+        Some(String::from("sf2.test")),
+        1.0,
+        -1.0,
         Arc::clone(&player)
             as Arc<
                 dyn Player<

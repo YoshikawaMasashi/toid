@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::data::music_info::{Phrase, Track};
+use super::super::data::music_info::Track;
 use super::super::state_management::serialize;
 use super::super::state_management::state::State;
 use super::scheduling_state::{SchedulingState, SchedulingStateEvent};
@@ -17,15 +17,9 @@ pub struct MusicState {
 }
 
 impl MusicState {
-    fn new_phrase(&self, key: String, phrase: Phrase) -> Self {
+    fn new_track(&self, key: String, track: Track) -> Self {
         let mut new_track_map = self.track_map.clone();
-        let new_track = Track {
-            phrase,
-            sf2_name: self.sf2.sf2_name.clone(),
-            vol: 1.0,
-            pan: 0.0,
-        };
-        new_track_map.insert(key, new_track);
+        new_track_map.insert(key, track);
         Self {
             scheduling: self.scheduling.clone(),
             track_map: new_track_map,
@@ -63,7 +57,7 @@ impl State<MusicStateEvent> for MusicState {
 
     fn reduce(&self, event: MusicStateEvent) -> Self {
         match event {
-            MusicStateEvent::NewPhrase(key, phrase) => self.new_phrase(key, phrase),
+            MusicStateEvent::NewTrack(key, track) => self.new_track(key, track),
             MusicStateEvent::SchedulingStateEvent(e) => self.scheduling_state_event(e),
             MusicStateEvent::SF2StateEvent(e) => self.sf2_state_event(e),
         }
@@ -87,7 +81,7 @@ impl serialize::Serialize<MusicState> for MusicState {
 
 #[derive(Serialize, Deserialize)]
 pub enum MusicStateEvent {
-    NewPhrase(String, Phrase),
+    NewTrack(String, Track),
     SchedulingStateEvent(SchedulingStateEvent),
     SF2StateEvent(SF2StateEvent),
 }

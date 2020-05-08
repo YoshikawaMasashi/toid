@@ -64,6 +64,9 @@ fn main() {
         0.0,
         0.0,
         "main".to_string(),
+        Some(String::from("sf2.test")),
+        1.0,
+        -0.5,
         Arc::clone(&player)
             as Arc<
                 dyn Player<
@@ -79,9 +82,12 @@ fn main() {
 
     send_num_lang(
         "1   4   5   1   ".to_string(),
-        -1.0,
+        -2.0,
         0.0,
         "sub".to_string(),
+        Some(String::from("sf2.test")),
+        0.7,
+        0.5,
         Arc::clone(&player)
             as Arc<
                 dyn Player<
