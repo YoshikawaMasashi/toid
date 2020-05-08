@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::f64::consts::PI;
 use std::iter::Iterator;
 use std::ops::Bound::{Excluded, Included};
@@ -168,7 +168,12 @@ impl TrackPlayer {
         ret
     }
 
-    fn register_notes(&mut self, notes: &Vec<Note>, current_bpm: &f32, cum_start_samples: &u64) {
+    fn register_notes(
+        &mut self,
+        notes: &BTreeSet<Note>,
+        current_bpm: &f32,
+        cum_start_samples: &u64,
+    ) {
         for &note in notes.iter() {
             let cum_end_samples =
                 cum_start_samples + (note.duration.to_f32() * 44100.0 * 60.0 / current_bpm) as u64;
