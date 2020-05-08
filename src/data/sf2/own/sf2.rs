@@ -1,3 +1,4 @@
+use std::iter::FromIterator;
 use std::sync::Arc;
 
 use super::super::parsed;
@@ -26,7 +27,7 @@ impl SF2 {
         parsed_sf2_to_own_sf2(parsed_sf2)
     }
 
-    pub fn get_sample(&self, preset_idx: usize, key: u8, idx: usize) -> Result<i16, String> {
+    pub fn get_sample(&self, preset_idx: usize, key: u8, idx: usize) -> Result<f32, String> {
         self.presets
             .get(preset_idx)
             .ok_or("get failed")?
@@ -39,7 +40,7 @@ impl SF2 {
         key: u8,
         start: usize,
         end: usize,
-    ) -> Result<Vec<i16>, String> {
+    ) -> Result<Vec<f32>, String> {
         self.presets
             .get(preset_idx)
             .ok_or("get failed")?
@@ -49,7 +50,13 @@ impl SF2 {
 
 fn parsed_sf2_to_own_sf2(parsed_sf2: parsed::SF2) -> Result<SF2, String> {
     let mut own_sf2 = SF2::new();
-    let sample_access = Arc::clone(&parsed_sf2.sdta.smpl);
+    let sample_access = Arc::new(Vec::from_iter(
+        parsed_sf2
+            .sdta
+            .smpl
+            .iter()
+            .map(|&x| x as f32 / i16::MAX as f32),
+    ));
 
     let mut samples = Vec::new();
     for sample_header in parsed_sf2.pdta.shdr.iter() {

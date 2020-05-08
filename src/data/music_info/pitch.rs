@@ -81,7 +81,9 @@ impl From<f32> for Pitch {
 
 impl From<i32> for Pitch {
     fn from(pitch: i32) -> Self {
-        Pitch { pitch: pitch as f32 }
+        Pitch {
+            pitch: pitch as f32,
+        }
     }
 }
 
@@ -92,7 +94,6 @@ impl Sub for Pitch {
         self.pitch - other.pitch
     }
 }
-
 
 #[cfg(test)]
 mod tests {

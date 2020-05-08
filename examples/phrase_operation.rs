@@ -30,7 +30,15 @@ fn main() {
         .unwrap();
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
-        as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>)
+        as Arc<
+            dyn Player<
+                MusicState,
+                MusicStateEvent,
+                WaveReader,
+                (Vec<i16>, Vec<i16>),
+                WaveReaderEvent,
+            >,
+        >)
     .unwrap();
     portaudio_outputter.set_volume(0.3);
 
@@ -62,8 +70,19 @@ fn main() {
     send_phrase(
         phrase11,
         "phrase11".to_string(),
+        Some(String::from("sf2.test")),
+        1.0,
+        -1.0,
         Arc::clone(&player)
-            as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
     )
     .unwrap();
 

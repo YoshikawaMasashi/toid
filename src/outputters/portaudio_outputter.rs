@@ -24,7 +24,9 @@ impl PortAudioOutputterConfig {
 }
 
 pub struct PortAudioOutputter {
-    player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
+    player: Arc<
+        dyn Player<MusicState, MusicStateEvent, WaveReader, (Vec<i16>, Vec<i16>), WaveReaderEvent>,
+    >,
     portaudio: pa::PortAudio,
     stream: Option<pa::Stream<pa::NonBlocking, pa::Output<i16>>>,
     config: Arc<RwLock<PortAudioOutputterConfig>>,
@@ -32,7 +34,15 @@ pub struct PortAudioOutputter {
 
 impl PortAudioOutputter {
     pub fn new(
-        player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
+        player: Arc<
+            dyn Player<
+                MusicState,
+                MusicStateEvent,
+                WaveReader,
+                (Vec<i16>, Vec<i16>),
+                WaveReaderEvent,
+            >,
+        >,
     ) -> Result<Self, String> {
         let portaudio = pa::PortAudio::new().map_err(|e| e.to_string())?;
 
@@ -59,7 +69,7 @@ impl PortAudioOutputter {
                                  ..
                              }|
               -> pa::StreamCallbackResult {
-            let waves = match wave_reader.write() {
+            let (left_waves, right_waves) = match wave_reader.write() {
                 Ok(mut wave_reader) => {
                     wave_reader.read(Arc::clone(&store), Arc::clone(&resource_manager))
                 }
@@ -72,8 +82,8 @@ impl PortAudioOutputter {
             let mut idx = 0;
             let volume = config.read().unwrap().volume;
             for i in 0..frames {
-                buffer[idx] = (volume * waves[i] as f32) as i16;
-                buffer[idx + 1] = (volume * waves[i] as f32) as i16;
+                buffer[idx] = (volume * left_waves[i] as f32) as i16;
+                buffer[idx + 1] = (volume * right_waves[i] as f32) as i16;
                 idx += 2;
             }
             pa::Continue
