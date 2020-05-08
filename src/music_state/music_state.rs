@@ -22,6 +22,8 @@ impl MusicState {
         let new_track = Track {
             phrase,
             sf2_name: self.sf2.sf2_name.clone(),
+            vol: 1.0,
+            pan: 0.0,
         };
         new_track_map.insert(key, new_track);
         Self {

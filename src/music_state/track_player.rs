@@ -33,9 +33,11 @@ impl TrackPlayer {
         cum_current_samples: &u64,
         cum_current_beats: &Beat,
         current_bpm: &f32,
-    ) -> Vec<i16> {
-        let mut ret: Vec<i16> = Vec::new();
-        ret.resize(self.wave_length as usize, 0);
+    ) -> (Vec<i16>, Vec<i16>) {
+        let mut left_wave: Vec<i16> = Vec::new();
+        let mut right_wave: Vec<i16> = Vec::new();
+        left_wave.resize(self.wave_length as usize, 0);
+        right_wave.resize(self.wave_length as usize, 0);
 
         let cum_next_samples = cum_current_samples + self.wave_length;
         let cum_next_beats =
@@ -104,7 +106,8 @@ impl TrackPlayer {
                                 * herts_par_sample;
                             let x = x * 2.0 * (PI as f32);
                             let addition = (x.sin() * 15000.0) as i16;
-                            ret[i] = ret[i].saturating_add(addition);
+                            left_wave[i] = left_wave[i].saturating_add(addition);
+                            right_wave[i] = right_wave[i].saturating_add(addition);
                         }
                     }
                 }
@@ -142,7 +145,10 @@ impl TrackPlayer {
                                 match sample_data {
                                     Ok(sample_data) => {
                                         for (i, j) in (start_idx..end_idx).enumerate() {
-                                            ret[j] = ret[j].saturating_add(sample_data[i]);
+                                            left_wave[j] =
+                                                left_wave[j].saturating_add(sample_data[i]);
+                                            right_wave[j] =
+                                                right_wave[j].saturating_add(sample_data[i]);
                                         }
                                     }
                                     Err(e) => {
@@ -165,7 +171,7 @@ impl TrackPlayer {
             self.played_notes.remove(&cum_note_samples);
         }
 
-        ret
+        (left_wave, right_wave)
     }
 
     fn register_notes(

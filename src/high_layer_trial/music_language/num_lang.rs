@@ -51,7 +51,9 @@ pub fn send_num_lang(
     octave: f32,
     key: f32,
     phrase_name: String,
-    player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
+    player: Arc<
+        dyn Player<MusicState, MusicStateEvent, WaveReader, (Vec<i16>, Vec<i16>), WaveReaderEvent>,
+    >,
 ) -> Result<(), String> {
     send_phrase(
         parse_num_lang(phrase_string, octave, key),

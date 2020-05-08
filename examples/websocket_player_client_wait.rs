@@ -24,7 +24,15 @@ fn main() {
     let player = Arc::new(player);
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
-        as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>)
+        as Arc<
+            dyn Player<
+                MusicState,
+                MusicStateEvent,
+                WaveReader,
+                (Vec<i16>, Vec<i16>),
+                WaveReaderEvent,
+            >,
+        >)
     .unwrap();
 
     portaudio_outputter.run().unwrap();

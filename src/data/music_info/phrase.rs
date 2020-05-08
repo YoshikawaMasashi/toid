@@ -53,25 +53,25 @@ impl Eq for Phrase {}
 
 #[cfg(test)]
 mod tests {
+    use super::super::{Beat, Note, Pitch};
     use super::*;
-    use super::super::{Note, Beat, Pitch};
 
     #[test]
     fn test_eq() {
         let phrase1 = Phrase::new();
 
-        let phrase1 = phrase1.add_note(Note{
+        let phrase1 = phrase1.add_note(Note {
             pitch: Pitch::from(60),
             start: Beat::from(0.0),
             duration: Beat::from(1.0),
         });
-        let phrase1 = phrase1.add_note(Note{
+        let phrase1 = phrase1.add_note(Note {
             pitch: Pitch::from(62),
             start: Beat::from(1.0),
             duration: Beat::from(1.0),
         });
         let phrase2 = phrase1.clone();
-        let phrase3 = phrase2.add_note(Note{
+        let phrase3 = phrase2.add_note(Note {
             pitch: Pitch::from(64),
             start: Beat::from(2.0),
             duration: Beat::from(1.0),

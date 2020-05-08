@@ -24,7 +24,9 @@ pub struct WaveReader {
     track_players: HashMap<String, TrackPlayer>,
 }
 
-impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for WaveReader {
+impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEvent>
+    for WaveReader
+{
     fn new() -> Self {
         WaveReader {
             wave_length: 512,
@@ -41,15 +43,17 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
         &mut self,
         store: Arc<Store<MusicState, MusicStateEvent>>,
         resource_manager: Arc<ResourceManager>,
-    ) -> Vec<i16> {
-        let mut ret: Vec<i16> = Vec::new();
-        ret.resize(self.wave_length as usize, 0);
+    ) -> (Vec<i16>, Vec<i16>) {
+        let mut left_wave: Vec<i16> = Vec::new();
+        left_wave.resize(self.wave_length as usize, 0);
+        let mut right_wave: Vec<i16> = Vec::new();
+        right_wave.resize(self.wave_length as usize, 0);
 
         let music_state = match store.get_state() {
             Ok(music_state) => music_state,
             Err(e) => {
                 error!("get_state Error {}", e);
-                return ret;
+                return (left_wave, right_wave);
             }
         };
         let scheduling_state = &music_state.scheduling;
@@ -83,22 +87,24 @@ impl StoreReader<Vec<i16>, WaveReaderEvent, MusicState, MusicStateEvent> for Wav
             self.track_players.insert(key.clone(), TrackPlayer::new());
         }
         for (key, track) in music_state.track_map.iter() {
-            let wave_of_track = self.track_players.get_mut(key).unwrap().play(
-                &track,
-                Arc::clone(&resource_manager),
-                &self.cum_current_samples,
-                &self.cum_current_beats,
-                &self.current_bpm,
-            );
+            let (left_wave_of_track, right_wave_of_track) =
+                self.track_players.get_mut(key).unwrap().play(
+                    &track,
+                    Arc::clone(&resource_manager),
+                    &self.cum_current_samples,
+                    &self.cum_current_beats,
+                    &self.current_bpm,
+                );
             for i in 0..self.wave_length as usize {
-                ret[i] = ret[i].saturating_add(wave_of_track[i]);
+                left_wave[i] = left_wave[i].saturating_add(left_wave_of_track[i]);
+                right_wave[i] = right_wave[i].saturating_add(right_wave_of_track[i]);
             }
         }
 
         self.cum_current_samples = cum_next_samples;
         self.cum_current_beats = cum_next_beats;
 
-        ret
+        (left_wave, right_wave)
     }
 
     fn apply(&mut self, event: WaveReaderEvent) {

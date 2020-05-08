@@ -8,7 +8,9 @@ use super::super::super::players::player::Player;
 pub fn send_phrase(
     phrase: Phrase,
     phrase_name: String,
-    player: Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
+    player: Arc<
+        dyn Player<MusicState, MusicStateEvent, WaveReader, (Vec<i16>, Vec<i16>), WaveReaderEvent>,
+    >,
 ) -> Result<(), String> {
     player.send_event(MusicStateEvent::NewPhrase(phrase_name.clone(), phrase))?;
     Ok(())

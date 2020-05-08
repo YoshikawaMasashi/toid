@@ -27,7 +27,15 @@ fn main() {
         .unwrap();
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
-        as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>)
+        as Arc<
+            dyn Player<
+                MusicState,
+                MusicStateEvent,
+                WaveReader,
+                (Vec<i16>, Vec<i16>),
+                WaveReaderEvent,
+            >,
+        >)
     .unwrap();
 
     player
@@ -46,7 +54,15 @@ fn main() {
         0.0,
         "main".to_string(),
         Arc::clone(&player)
-            as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
     )
     .unwrap();
 
@@ -56,7 +72,15 @@ fn main() {
         0.0,
         "sub".to_string(),
         Arc::clone(&player)
-            as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>,
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
     )
     .unwrap();
 
