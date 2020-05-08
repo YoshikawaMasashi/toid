@@ -33,11 +33,11 @@ impl TrackPlayer {
         cum_current_samples: &u64,
         cum_current_beats: &Beat,
         current_bpm: &f32,
-    ) -> (Vec<i16>, Vec<i16>) {
-        let mut left_wave: Vec<i16> = Vec::new();
-        let mut right_wave: Vec<i16> = Vec::new();
-        left_wave.resize(self.wave_length as usize, 0);
-        right_wave.resize(self.wave_length as usize, 0);
+    ) -> (Vec<f32>, Vec<f32>) {
+        let mut left_wave: Vec<f32> = Vec::new();
+        let mut right_wave: Vec<f32> = Vec::new();
+        left_wave.resize(self.wave_length as usize, 0.0);
+        right_wave.resize(self.wave_length as usize, 0.0);
 
         let cum_next_samples = cum_current_samples + self.wave_length;
         let cum_next_beats =
@@ -105,9 +105,9 @@ impl TrackPlayer {
                             let x = (cum_current_samples + i as u64 - cum_start_samples) as f32
                                 * herts_par_sample;
                             let x = x * 2.0 * (PI as f32);
-                            let addition = (x.sin() * 15000.0) as i16;
-                            left_wave[i] = left_wave[i].saturating_add(addition);
-                            right_wave[i] = right_wave[i].saturating_add(addition);
+                            let addition = x.sin() * 0.3;
+                            left_wave[i] = left_wave[i] + addition;
+                            right_wave[i] = right_wave[i] + addition;
                         }
                     }
                 }
@@ -145,10 +145,8 @@ impl TrackPlayer {
                                 match sample_data {
                                     Ok(sample_data) => {
                                         for (i, j) in (start_idx..end_idx).enumerate() {
-                                            left_wave[j] =
-                                                left_wave[j].saturating_add(sample_data[i]);
-                                            right_wave[j] =
-                                                right_wave[j].saturating_add(sample_data[i]);
+                                            left_wave[j] = left_wave[j] + sample_data[i];
+                                            right_wave[j] = right_wave[j] + sample_data[i];
                                         }
                                     }
                                     Err(e) => {

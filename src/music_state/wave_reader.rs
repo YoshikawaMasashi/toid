@@ -44,15 +44,35 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
         store: Arc<Store<MusicState, MusicStateEvent>>,
         resource_manager: Arc<ResourceManager>,
     ) -> (Vec<i16>, Vec<i16>) {
-        let mut left_wave: Vec<i16> = Vec::new();
-        left_wave.resize(self.wave_length as usize, 0);
-        let mut right_wave: Vec<i16> = Vec::new();
-        right_wave.resize(self.wave_length as usize, 0);
+        let mut left_wave: Vec<f32> = Vec::new();
+        left_wave.resize(self.wave_length as usize, 0.0);
+        let mut right_wave: Vec<f32> = Vec::new();
+        right_wave.resize(self.wave_length as usize, 0.0);
 
         let music_state = match store.get_state() {
             Ok(music_state) => music_state,
             Err(e) => {
                 error!("get_state Error {}", e);
+
+                let left_wave = Vec::from_iter(left_wave.iter().map(|&x| {
+                    if x > 1.0 {
+                        i16::MAX
+                    } else if x <= -1.0 {
+                        i16::MIN
+                    } else {
+                        (x * i16::MAX as f32) as i16
+                    }
+                }));
+                let right_wave = Vec::from_iter(right_wave.iter().map(|&x| {
+                    if x > 1.0 {
+                        i16::MAX
+                    } else if x <= -1.0 {
+                        i16::MIN
+                    } else {
+                        (x * i16::MAX as f32) as i16
+                    }
+                }));
+
                 return (left_wave, right_wave);
             }
         };
@@ -96,14 +116,32 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
                     &self.current_bpm,
                 );
             for i in 0..self.wave_length as usize {
-                left_wave[i] = left_wave[i].saturating_add(left_wave_of_track[i]);
-                right_wave[i] = right_wave[i].saturating_add(right_wave_of_track[i]);
+                left_wave[i] = left_wave[i] + left_wave_of_track[i];
+                right_wave[i] = right_wave[i] + right_wave_of_track[i];
             }
         }
 
         self.cum_current_samples = cum_next_samples;
         self.cum_current_beats = cum_next_beats;
 
+        let left_wave = Vec::from_iter(left_wave.iter().map(|&x| {
+            if x > 1.0 {
+                i16::MAX
+            } else if x <= -1.0 {
+                i16::MIN
+            } else {
+                (x * i16::MAX as f32) as i16
+            }
+        }));
+        let right_wave = Vec::from_iter(right_wave.iter().map(|&x| {
+            if x > 1.0 {
+                i16::MAX
+            } else if x <= -1.0 {
+                i16::MIN
+            } else {
+                (x * i16::MAX as f32) as i16
+            }
+        }));
         (left_wave, right_wave)
     }
 
