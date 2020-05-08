@@ -1,4 +1,4 @@
-use super::super::super::data::music_info::{Beat, Note};
+use super::super::super::data::music_info::{Beat, Note, Pitch};
 use super::split_by_condition::Condition;
 
 pub struct And {
@@ -58,11 +58,11 @@ impl Condition for Not {
 }
 
 pub struct PitchLarger {
-    pitch: f32,
+    pitch: Pitch,
 }
 
 impl PitchLarger {
-    pub fn new(pitch: f32) -> Self {
+    pub fn new(pitch: Pitch) -> Self {
         Self { pitch }
     }
 }

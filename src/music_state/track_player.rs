@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::f64::consts::PI;
 use std::iter::Iterator;
 use std::ops::Bound::{Excluded, Included};
@@ -12,11 +12,6 @@ use super::super::resource_management::resource_manager::ResourceManager;
 pub struct TrackPlayer {
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, Note)>>,
-}
-
-fn get_hertz(pitch: f32) -> f32 {
-    // A4 -> 69 440hz
-    440. * (2.0 as f32).powf((pitch - 69.) / 12.)
 }
 
 impl TrackPlayer {
@@ -92,7 +87,7 @@ impl TrackPlayer {
             None => {
                 for (&cum_end_samples, notes) in self.played_notes.iter() {
                     for (cum_start_samples, note) in notes.iter() {
-                        let herts_par_sample = get_hertz(note.pitch) / 44100.0;
+                        let herts_par_sample = note.pitch.get_hertz() / 44100.0;
                         let start_idx = if *cum_start_samples <= *cum_current_samples {
                             0
                         } else {
@@ -140,7 +135,7 @@ impl TrackPlayer {
 
                                 let sample_data = sf2.get_samples(
                                     0,
-                                    note.pitch as u8,
+                                    note.pitch.get_u8_pitch(),
                                     start_idx_for_sample,
                                     end_idx_for_sample,
                                 );
@@ -173,7 +168,12 @@ impl TrackPlayer {
         ret
     }
 
-    fn register_notes(&mut self, notes: &Vec<Note>, current_bpm: &f32, cum_start_samples: &u64) {
+    fn register_notes(
+        &mut self,
+        notes: &BTreeSet<Note>,
+        current_bpm: &f32,
+        cum_start_samples: &u64,
+    ) {
         for &note in notes.iter() {
             let cum_end_samples =
                 cum_start_samples + (note.duration.to_f32() * 44100.0 * 60.0 / current_bpm) as u64;
