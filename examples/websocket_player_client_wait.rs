@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use toid::music_state::music_state::{MusicState, MusicStateEvent};
+use toid::music_state::states::{MusicState, MusicStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::player::Player;

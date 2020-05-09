@@ -1,6 +1,6 @@
 extern crate portaudio;
 
-use super::super::music_state::music_state::{MusicState, MusicStateEvent};
+use super::super::music_state::states::{MusicState, MusicStateEvent};
 use super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::players::player::Player;
 use super::super::state_management::store_reader::StoreReader;

@@ -1,41 +1,41 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::data::music_info::beat::Beat;
-use super::super::state_management::serialize;
-use super::super::state_management::state::State;
+use super::super::super::data::music_info::Track;
+use super::super::super::state_management::serialize;
+use super::super::super::state_management::state::State;
 
 #[derive(Serialize, Deserialize)]
-pub struct SchedulingState {
-    pub bpm_schedule: BTreeMap<Beat, f32>,
+pub struct SectionState {
+    pub track_map: HashMap<String, Track>,
 }
 
-impl SchedulingState {
-    fn change_bpm(&self, change: Beat, bpm: f32) -> Self {
-        let mut new_bpm_schedule = self.bpm_schedule.clone();
-        new_bpm_schedule.insert(change, bpm);
-        SchedulingState {
-            bpm_schedule: new_bpm_schedule,
+impl SectionState {
+    fn new_track(&self, key: String, track: Track) -> Self {
+        let mut new_track_map = self.track_map.clone();
+        new_track_map.insert(key, track);
+        Self {
+            track_map: new_track_map,
         }
     }
 }
 
-impl State<SchedulingStateEvent> for SchedulingState {
+impl State<SectionStateEvent> for SectionState {
     fn new() -> Self {
-        let mut bpm_schedule = BTreeMap::new();
-        bpm_schedule.insert(Beat::from(0), 120.0);
-        SchedulingState { bpm_schedule }
+        Self {
+            track_map: HashMap::new(),
+        }
     }
 
-    fn reduce(&self, event: SchedulingStateEvent) -> Self {
+    fn reduce(&self, event: SectionStateEvent) -> Self {
         match event {
-            SchedulingStateEvent::ChangeBPM(beat, bpm) => self.change_bpm(beat, bpm),
+            SectionStateEvent::NewTrack(key, track) => self.new_track(key, track),
         }
     }
 }
 
-impl serialize::Serialize<SchedulingState> for SchedulingState {
+impl serialize::Serialize<SectionState> for SectionState {
     fn serialize(&self) -> Result<String, String> {
         match serde_json::to_string(&self) {
             Ok(serialized) => Ok(serialized),
@@ -51,11 +51,11 @@ impl serialize::Serialize<SchedulingState> for SchedulingState {
 }
 
 #[derive(Serialize, Deserialize)]
-pub enum SchedulingStateEvent {
-    ChangeBPM(Beat, f32),
+pub enum SectionStateEvent {
+    NewTrack(String, Track),
 }
 
-impl serialize::Serialize<SchedulingStateEvent> for SchedulingStateEvent {
+impl serialize::Serialize<SectionStateEvent> for SectionStateEvent {
     fn serialize(&self) -> Result<String, String> {
         match serde_json::to_string(&self) {
             Ok(serialized) => Ok(serialized),

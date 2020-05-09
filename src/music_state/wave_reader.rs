@@ -11,7 +11,7 @@ use super::super::resource_management::resource_manager::ResourceManager;
 use super::super::state_management::serialize;
 use super::super::state_management::store::Store;
 use super::super::state_management::store_reader::StoreReader;
-use super::music_state::{MusicState, MusicStateEvent};
+use super::states::{MusicState, MusicStateEvent};
 use super::track_player::TrackPlayer;
 
 pub struct WaveReader {
@@ -95,8 +95,13 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
         let cum_next_beats = self.cum_current_beats
             + Beat::from(self.wave_length as f32 * self.current_bpm / 44100.0 / 60.0);
 
-        let state_track_keys: HashSet<String> =
-            HashSet::from_iter(music_state.track_map.keys().cloned());
+        let state_track_keys: HashSet<String> = HashSet::from_iter(
+            music_state
+                .get_section_state_by_beat(cum_next_beats)
+                .track_map
+                .keys()
+                .cloned(),
+        );
         let track_player_keys: HashSet<String> =
             HashSet::from_iter(self.track_players.keys().cloned());
 
@@ -106,7 +111,11 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
         for key in state_track_keys.difference(&track_player_keys) {
             self.track_players.insert(key.clone(), TrackPlayer::new());
         }
-        for (key, track) in music_state.track_map.iter() {
+        for (key, track) in music_state
+            .get_section_state_by_beat(cum_next_beats)
+            .track_map
+            .iter()
+        {
             let (left_wave_of_track, right_wave_of_track) =
                 self.track_players.get_mut(key).unwrap().play(
                     &track,

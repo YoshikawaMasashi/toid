@@ -2,9 +2,7 @@ use std::sync::Arc;
 
 use toid::data::music_info::beat::Beat;
 use toid::high_layer_trial::music_language::num_lang::send_num_lang;
-use toid::music_state::music_state::{MusicState, MusicStateEvent};
-use toid::music_state::scheduling_state::SchedulingStateEvent;
-use toid::music_state::sf2_state::SF2StateEvent;
+use toid::music_state::states::{MusicState, MusicStateEvent, SchedulingStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::local_player::LocalPlayer;
@@ -38,12 +36,6 @@ fn main() {
     portaudio_outputter.set_volume(0.3);
 
     player
-        .send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
-            String::from("sf2.test"),
-        )))
-        .unwrap();
-
-    player
         .send_event(MusicStateEvent::SchedulingStateEvent(
             SchedulingStateEvent::ChangeBPM(Beat::from(0), 120.0),
         ))
@@ -59,10 +51,15 @@ fn main() {
         ))
         .unwrap();
 
+    player
+        .send_event(MusicStateEvent::NewSection(Beat::from(8.0)))
+        .unwrap();
+
     send_num_lang(
         "12345 643 2 1   ".to_string(),
         0.0,
         0.0,
+        Beat::from(0),
         "main".to_string(),
         Some(String::from("sf2.test")),
         1.0,
@@ -84,6 +81,51 @@ fn main() {
         "1   4   5   1   ".to_string(),
         -2.0,
         0.0,
+        Beat::from(0),
+        "sub".to_string(),
+        Some(String::from("sf2.test")),
+        0.7,
+        0.5,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    send_num_lang(
+        "5 3 4 65        ".to_string(),
+        0.0,
+        0.0,
+        Beat::from(8),
+        "main".to_string(),
+        Some(String::from("sf2.test")),
+        1.0,
+        -0.5,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    send_num_lang(
+        "3   5   4   1   ".to_string(),
+        -2.0,
+        0.0,
+        Beat::from(8),
         "sub".to_string(),
         Some(String::from("sf2.test")),
         0.7,

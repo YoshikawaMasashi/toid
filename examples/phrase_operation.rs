@@ -7,9 +7,7 @@ use toid::high_layer_trial::phrase_operation::condition::IsDownBeat;
 use toid::high_layer_trial::phrase_operation::{
     concat, delay, marge, shuffle_start, split_by_condition,
 };
-use toid::music_state::music_state::{MusicState, MusicStateEvent};
-use toid::music_state::scheduling_state::SchedulingStateEvent;
-use toid::music_state::sf2_state::SF2StateEvent;
+use toid::music_state::states::{MusicState, MusicStateEvent, SchedulingStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::local_player::LocalPlayer;
@@ -43,12 +41,6 @@ fn main() {
     portaudio_outputter.set_volume(0.3);
 
     player
-        .send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
-            String::from("sf2.test"),
-        )))
-        .unwrap();
-
-    player
         .send_event(MusicStateEvent::SchedulingStateEvent(
             SchedulingStateEvent::ChangeBPM(Beat::from(0), 120.0),
         ))
@@ -69,6 +61,7 @@ fn main() {
 
     send_phrase(
         phrase11,
+        Beat::from(0),
         "phrase11".to_string(),
         Some(String::from("sf2.test")),
         1.0,
