@@ -7,9 +7,7 @@ use toid::high_layer_trial::phrase_operation::condition::IsDownBeat;
 use toid::high_layer_trial::phrase_operation::{
     concat, delay, marge, shuffle_start, split_by_condition,
 };
-use toid::music_state::music_state::{MusicState, MusicStateEvent};
-use toid::music_state::scheduling_state::SchedulingStateEvent;
-use toid::music_state::sf2_state::SF2StateEvent;
+use toid::music_state::states::{MusicState, MusicStateEvent, SF2StateEvent, SchedulingStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::local_player::LocalPlayer;

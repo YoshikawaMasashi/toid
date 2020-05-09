@@ -1,34 +1,41 @@
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
-use super::super::state_management::serialize;
-use super::super::state_management::state::State;
+use super::super::super::data::music_info::beat::Beat;
+use super::super::super::state_management::serialize;
+use super::super::super::state_management::state::State;
 
 #[derive(Serialize, Deserialize)]
-pub struct SF2State {
-    pub sf2_name: Option<String>,
+pub struct SchedulingState {
+    pub bpm_schedule: BTreeMap<Beat, f32>,
 }
 
-impl SF2State {
-    pub fn set_sf2_name(&self, sf2_name: String) -> Self {
-        SF2State {
-            sf2_name: Some(sf2_name),
+impl SchedulingState {
+    fn change_bpm(&self, change: Beat, bpm: f32) -> Self {
+        let mut new_bpm_schedule = self.bpm_schedule.clone();
+        new_bpm_schedule.insert(change, bpm);
+        SchedulingState {
+            bpm_schedule: new_bpm_schedule,
         }
     }
 }
 
-impl State<SF2StateEvent> for SF2State {
+impl State<SchedulingStateEvent> for SchedulingState {
     fn new() -> Self {
-        SF2State { sf2_name: None }
+        let mut bpm_schedule = BTreeMap::new();
+        bpm_schedule.insert(Beat::from(0), 120.0);
+        SchedulingState { bpm_schedule }
     }
 
-    fn reduce(&self, event: SF2StateEvent) -> Self {
+    fn reduce(&self, event: SchedulingStateEvent) -> Self {
         match event {
-            SF2StateEvent::SetSF2Name(sf2_name) => self.set_sf2_name(sf2_name),
+            SchedulingStateEvent::ChangeBPM(beat, bpm) => self.change_bpm(beat, bpm),
         }
     }
 }
 
-impl serialize::Serialize<SF2State> for SF2State {
+impl serialize::Serialize<SchedulingState> for SchedulingState {
     fn serialize(&self) -> Result<String, String> {
         match serde_json::to_string(&self) {
             Ok(serialized) => Ok(serialized),
@@ -44,11 +51,11 @@ impl serialize::Serialize<SF2State> for SF2State {
 }
 
 #[derive(Serialize, Deserialize)]
-pub enum SF2StateEvent {
-    SetSF2Name(String),
+pub enum SchedulingStateEvent {
+    ChangeBPM(Beat, f32),
 }
 
-impl serialize::Serialize<SF2StateEvent> for SF2StateEvent {
+impl serialize::Serialize<SchedulingStateEvent> for SchedulingStateEvent {
     fn serialize(&self) -> Result<String, String> {
         match serde_json::to_string(&self) {
             Ok(serialized) => Ok(serialized),

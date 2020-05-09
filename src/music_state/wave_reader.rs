@@ -11,7 +11,7 @@ use super::super::resource_management::resource_manager::ResourceManager;
 use super::super::state_management::serialize;
 use super::super::state_management::store::Store;
 use super::super::state_management::store_reader::StoreReader;
-use super::music_state::{MusicState, MusicStateEvent};
+use super::states::{MusicState, MusicStateEvent};
 use super::track_player::TrackPlayer;
 
 pub struct WaveReader {

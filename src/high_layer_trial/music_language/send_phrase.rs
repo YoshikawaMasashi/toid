@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use super::super::super::data::music_info::{Phrase, Track};
-use super::super::super::music_state::music_state::{MusicState, MusicStateEvent};
+use super::super::super::music_state::states::{MusicState, MusicStateEvent};
 use super::super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::super::players::player::Player;
 

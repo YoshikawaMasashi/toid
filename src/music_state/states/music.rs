@@ -3,11 +3,11 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::data::music_info::Track;
-use super::super::state_management::serialize;
-use super::super::state_management::state::State;
-use super::scheduling_state::{SchedulingState, SchedulingStateEvent};
-use super::sf2_state::{SF2State, SF2StateEvent};
+use super::super::super::data::music_info::Track;
+use super::super::super::state_management::serialize;
+use super::super::super::state_management::state::State;
+use super::super::states::scheduling::{SchedulingState, SchedulingStateEvent};
+use super::super::states::sf2::{SF2State, SF2StateEvent};
 
 #[derive(Serialize, Deserialize)]
 pub struct MusicState {
