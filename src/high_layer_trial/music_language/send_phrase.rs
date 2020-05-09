@@ -7,6 +7,7 @@ use super::super::super::players::player::Player;
 
 pub fn send_phrase(
     phrase: Phrase,
+    section_beat: Beat,
     track_name: String,
     sf2_name: Option<String>,
     vol: f32,
@@ -22,7 +23,7 @@ pub fn send_phrase(
         pan,
     };
     player.send_event(MusicStateEvent::SectionStateEvent(
-        Beat::from(0),
+        section_beat,
         SectionStateEvent::NewTrack(track_name.clone(), track),
     ))?;
     Ok(())

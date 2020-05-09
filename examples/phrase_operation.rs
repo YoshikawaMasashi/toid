@@ -61,6 +61,7 @@ fn main() {
 
     send_phrase(
         phrase11,
+        Beat::from(0),
         "phrase11".to_string(),
         Some(String::from("sf2.test")),
         1.0,

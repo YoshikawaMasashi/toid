@@ -51,10 +51,13 @@ fn main() {
         ))
         .unwrap();
 
+    player.send_event(MusicStateEvent::NewSection(Beat::from(8.0))).unwrap();
+
     send_num_lang(
         "12345 643 2 1   ".to_string(),
         0.0,
         0.0,
+        Beat::from(0),
         "main".to_string(),
         Some(String::from("sf2.test")),
         1.0,
@@ -76,6 +79,51 @@ fn main() {
         "1   4   5   1   ".to_string(),
         -2.0,
         0.0,
+        Beat::from(0),
+        "sub".to_string(),
+        Some(String::from("sf2.test")),
+        0.7,
+        0.5,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    send_num_lang(
+        "5 3 4 65        ".to_string(),
+        0.0,
+        0.0,
+        Beat::from(8),
+        "main".to_string(),
+        Some(String::from("sf2.test")),
+        1.0,
+        -0.5,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    send_num_lang(
+        "3   5   4   1   ".to_string(),
+        -2.0,
+        0.0,
+        Beat::from(8),
         "sub".to_string(),
         Some(String::from("sf2.test")),
         0.7,

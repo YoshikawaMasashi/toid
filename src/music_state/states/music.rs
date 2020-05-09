@@ -23,6 +23,7 @@ impl MusicState {
         match self
             .section_map
             .range((Included(&Beat::from(0)), Included(&beat)))
+            .rev()
             .next()
         {
             Some((&change_beat, section_state)) => {
@@ -58,6 +59,7 @@ impl MusicState {
         Arc::clone(
             self.section_map
                 .range((Included(&Beat::from(0)), Included(&beat)))
+                .rev()
                 .next()
                 .unwrap()
                 .1,

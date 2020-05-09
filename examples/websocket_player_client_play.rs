@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use toid::data::music_info::Beat;
 use toid::high_layer_trial::music_language::num_lang::send_num_lang;
 use toid::music_state::states::{MusicState, MusicStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
@@ -45,6 +46,7 @@ fn main() {
         "12345 643 2 1   ".to_string(),
         0.0,
         0.0,
+        Beat::from(0),
         "main".to_string(),
         Some(String::from("sf2.test")),
         1.0,
@@ -66,6 +68,7 @@ fn main() {
         "1   4   5   1   ".to_string(),
         -1.0,
         0.0,
+        Beat::from(0),
         "sub".to_string(),
         Some(String::from("sf2.test")),
         1.0,

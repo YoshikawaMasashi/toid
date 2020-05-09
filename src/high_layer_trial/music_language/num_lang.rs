@@ -50,6 +50,7 @@ pub fn send_num_lang(
     phrase_string: String,
     octave: f32,
     key: f32,
+    section_beat: Beat,
     phrase_name: String,
     sf2_name: Option<String>,
     vol: f32,
@@ -60,6 +61,7 @@ pub fn send_num_lang(
 ) -> Result<(), String> {
     send_phrase(
         parse_num_lang(phrase_string, octave, key),
+        section_beat,
         phrase_name,
         sf2_name,
         vol,
