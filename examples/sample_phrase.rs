@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use toid::data::music_info::beat::Beat;
 use toid::high_layer_trial::music_language::num_lang::send_num_lang;
-use toid::music_state::states::{MusicState, MusicStateEvent, SF2StateEvent, SchedulingStateEvent};
+use toid::music_state::states::{MusicState, MusicStateEvent, SchedulingStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::local_player::LocalPlayer;
@@ -34,12 +34,6 @@ fn main() {
         >)
     .unwrap();
     portaudio_outputter.set_volume(0.3);
-
-    player
-        .send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
-            String::from("sf2.test"),
-        )))
-        .unwrap();
 
     player
         .send_event(MusicStateEvent::SchedulingStateEvent(

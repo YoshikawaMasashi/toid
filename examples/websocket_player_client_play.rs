@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use toid::high_layer_trial::music_language::num_lang::send_num_lang;
-use toid::music_state::states::{MusicState, MusicStateEvent, SF2StateEvent};
+use toid::music_state::states::{MusicState, MusicStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::player::Player;
@@ -39,12 +39,6 @@ fn main() {
 
     player
         .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.test")))
-        .unwrap();
-
-    player
-        .send_event(MusicStateEvent::SF2StateEvent(SF2StateEvent::SetSF2Name(
-            String::from("sf2.test"),
-        )))
         .unwrap();
 
     send_num_lang(
