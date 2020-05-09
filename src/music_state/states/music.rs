@@ -44,6 +44,16 @@ impl MusicState {
         }
     }
 
+    fn new_section(&self, beat: Beat) -> Self {
+        let mut new_section_map = self.section_map.clone();
+        let section = Arc::new(SectionState::new());
+        new_section_map.insert(beat, section);
+        Self {
+            scheduling: Arc::clone(&self.scheduling),
+            section_map: new_section_map,
+        }
+    }
+
     pub fn get_section_state_by_beat(&self, beat: Beat) -> Arc<SectionState> {
         Arc::clone(
             self.section_map
@@ -69,6 +79,7 @@ impl State<MusicStateEvent> for MusicState {
         match event {
             MusicStateEvent::SectionStateEvent(beat, e) => self.section_state_event(beat, e),
             MusicStateEvent::SchedulingStateEvent(e) => self.scheduling_state_event(e),
+            MusicStateEvent::NewSection(beat) => self.new_section(beat),
         }
     }
 }
@@ -92,6 +103,7 @@ impl serialize::Serialize<MusicState> for MusicState {
 pub enum MusicStateEvent {
     SectionStateEvent(Beat, SectionStateEvent),
     SchedulingStateEvent(SchedulingStateEvent),
+    NewSection(Beat),
 }
 
 impl serialize::Serialize<MusicStateEvent> for MusicStateEvent {
