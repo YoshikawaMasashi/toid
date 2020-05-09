@@ -648,6 +648,7 @@ version = "0.3.0-alpha"
 dependencies = [
  "base64",
  "im",
+ "lazy_static",
  "log",
  "nom",
  "openssl",
