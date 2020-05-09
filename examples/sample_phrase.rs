@@ -51,7 +51,9 @@ fn main() {
         ))
         .unwrap();
 
-    player.send_event(MusicStateEvent::NewSection(Beat::from(8.0))).unwrap();
+    player
+        .send_event(MusicStateEvent::NewSection(Beat::from(8.0)))
+        .unwrap();
 
     send_num_lang(
         "12345 643 2 1   ".to_string(),
