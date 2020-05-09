@@ -97,7 +97,7 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
 
         let state_track_keys: HashSet<String> = HashSet::from_iter(
             music_state
-                .get_section_state_by_beat(self.cum_current_beats)
+                .get_section_state_by_beat(cum_next_beats)
                 .track_map
                 .keys()
                 .cloned(),
@@ -112,7 +112,7 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
             self.track_players.insert(key.clone(), TrackPlayer::new());
         }
         for (key, track) in music_state
-            .get_section_state_by_beat(self.cum_current_beats)
+            .get_section_state_by_beat(cum_next_beats)
             .track_map
             .iter()
         {
