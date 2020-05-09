@@ -1,26 +1,38 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
+use std::ops::Bound::Included;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::super::data::music_info::Track;
+use super::super::super::data::music_info::Beat;
 use super::super::super::state_management::serialize;
 use super::super::super::state_management::state::State;
-use super::super::states::scheduling::{SchedulingState, SchedulingStateEvent};
+use super::scheduling::{SchedulingState, SchedulingStateEvent};
+use super::section::{SectionState, SectionStateEvent};
 
 #[derive(Serialize, Deserialize)]
 pub struct MusicState {
     pub scheduling: Arc<SchedulingState>,
-    pub track_map: HashMap<String, Track>,
+    pub section_map: BTreeMap<Beat, Arc<SectionState>>,
 }
 
 impl MusicState {
-    fn new_track(&self, key: String, track: Track) -> Self {
-        let mut new_track_map = self.track_map.clone();
-        new_track_map.insert(key, track);
+    fn section_state_event(&self, beat: Beat, e: SectionStateEvent) -> Self {
+        let mut new_section_map = self.section_map.clone();
+
+        match self
+            .section_map
+            .range((Included(&Beat::from(0)), Included(&beat)))
+            .next()
+        {
+            Some((&change_beat, section_state)) => {
+                new_section_map.insert(change_beat, Arc::new(section_state.reduce(e)));
+            }
+            None => {}
+        }
         Self {
-            scheduling: self.scheduling.clone(),
-            track_map: new_track_map,
+            scheduling: Arc::clone(&self.scheduling),
+            section_map: new_section_map,
         }
     }
 
@@ -28,22 +40,34 @@ impl MusicState {
         let new_scheduling = Arc::new(self.scheduling.reduce(e));
         Self {
             scheduling: new_scheduling,
-            track_map: self.track_map.clone(),
+            section_map: self.section_map.clone(),
         }
+    }
+
+    pub fn get_section_state_by_beat(&self, beat: Beat) -> Arc<SectionState> {
+        Arc::clone(
+            self.section_map
+                .range((Included(&Beat::from(0)), Included(&beat)))
+                .next()
+                .unwrap()
+                .1,
+        )
     }
 }
 
 impl State<MusicStateEvent> for MusicState {
     fn new() -> Self {
+        let mut section_map = BTreeMap::new();
+        section_map.insert(Beat::from(0), Arc::new(SectionState::new()));
         Self {
             scheduling: Arc::new(SchedulingState::new()),
-            track_map: HashMap::new(),
+            section_map,
         }
     }
 
     fn reduce(&self, event: MusicStateEvent) -> Self {
         match event {
-            MusicStateEvent::NewTrack(key, track) => self.new_track(key, track),
+            MusicStateEvent::SectionStateEvent(beat, e) => self.section_state_event(beat, e),
             MusicStateEvent::SchedulingStateEvent(e) => self.scheduling_state_event(e),
         }
     }
@@ -66,7 +90,7 @@ impl serialize::Serialize<MusicState> for MusicState {
 
 #[derive(Serialize, Deserialize)]
 pub enum MusicStateEvent {
-    NewTrack(String, Track),
+    SectionStateEvent(Beat, SectionStateEvent),
     SchedulingStateEvent(SchedulingStateEvent),
 }
 
