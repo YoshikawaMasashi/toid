@@ -39,7 +39,7 @@ fn main() {
     .unwrap();
 
     player
-        .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.test")))
+        .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.example")))
         .unwrap();
 
     send_num_lang(
@@ -48,7 +48,7 @@ fn main() {
         0.0,
         Beat::from(0),
         "main".to_string(),
-        Some(String::from("sf2.test")),
+        Some(String::from("sf2.example")),
         1.0,
         1.0,
         Arc::clone(&player)
@@ -70,7 +70,7 @@ fn main() {
         0.0,
         Beat::from(0),
         "sub".to_string(),
-        Some(String::from("sf2.test")),
+        Some(String::from("sf2.example")),
         1.0,
         -1.0,
         Arc::clone(&player)
@@ -89,7 +89,7 @@ fn main() {
     loop {
         portaudio_outputter.sleep(5000);
         player
-            .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.test")))
+            .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.example")))
             .unwrap();
         player.sync_state().unwrap();
     }

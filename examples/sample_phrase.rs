@@ -19,7 +19,7 @@ fn main() {
         .unwrap();
 
     player
-        .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.test")))
+        .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.example")))
         .unwrap();
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
@@ -61,7 +61,7 @@ fn main() {
         0.0,
         Beat::from(0),
         "main".to_string(),
-        Some(String::from("sf2.test")),
+        Some(String::from("sf2.example")),
         1.0,
         -0.5,
         Arc::clone(&player)
@@ -83,7 +83,7 @@ fn main() {
         0.0,
         Beat::from(0),
         "sub".to_string(),
-        Some(String::from("sf2.test")),
+        Some(String::from("sf2.example")),
         0.7,
         0.5,
         Arc::clone(&player)
@@ -105,7 +105,7 @@ fn main() {
         0.0,
         Beat::from(8),
         "main".to_string(),
-        Some(String::from("sf2.test")),
+        Some(String::from("sf2.example")),
         1.0,
         -0.5,
         Arc::clone(&player)
@@ -127,7 +127,7 @@ fn main() {
         0.0,
         Beat::from(8),
         "sub".to_string(),
-        Some(String::from("sf2.test")),
+        Some(String::from("sf2.example")),
         0.7,
         0.5,
         Arc::clone(&player)
