@@ -3,9 +3,9 @@ mod fmt;
 
 use std::sync::Arc;
 
-use super::super::riff::{RiffChank, RiffData};
-use data::{convert_chank_to_data_chunk, DataChunk};
-use fmt::{convert_chank_to_format_chunk, FormatChunk};
+use super::super::riff::{RiffChunk, RiffData};
+use data::{convert_chunk_to_data_chunk, DataChunk};
+use fmt::{convert_chunk_to_format_chunk, FormatChunk};
 
 pub struct Wave {
     pub format: Arc<FormatChunk>,
@@ -14,31 +14,31 @@ pub struct Wave {
 
 impl Wave {
     pub fn parse(i: &[u8]) -> Result<Self, String> {
-        let chunk = RiffChank::parse(i)?;
+        let chunk = RiffChunk::parse(i)?;
         Self::convert_from_chunk(&chunk)
     }
 
-    fn convert_from_chunk(chank: &RiffChank) -> Result<Wave, String> {
+    fn convert_from_chunk(chunk: &RiffChunk) -> Result<Wave, String> {
         let mut format: Option<FormatChunk> = None;
         let mut data: Option<DataChunk> = None;
 
-        if let Some(chank_type) = &chank.chank_type {
-            if chank_type == "WAVE" && chank.id == "RIFF" {
-                match &chank.data {
-                    RiffData::Chanks(subchanks) => {
-                        for subchank in subchanks {
-                            if let Some(subchank_type) = &subchank.chank_type {
-                                match subchank_type.as_str() {
+        if let Some(chunk_type) = &chunk.chunk_type {
+            if chunk_type == "WAVE" && chunk.id == "RIFF" {
+                match &chunk.data {
+                    RiffData::Chunks(subchunks) => {
+                        for subchunk in subchunks {
+                            if let Some(subchunk_type) = &subchunk.chunk_type {
+                                match subchunk_type.as_str() {
                                     _ => {}
                                 }
                             } else {
-                                match subchank.id.as_str() {
+                                match subchunk.id.as_str() {
                                     "fmt " => {
                                         format =
-                                            Some(convert_chank_to_format_chunk(subchank).unwrap());
+                                            Some(convert_chunk_to_format_chunk(subchunk).unwrap());
                                     }
                                     "data" => {
-                                        data = Some(convert_chank_to_data_chunk(subchank).unwrap());
+                                        data = Some(convert_chunk_to_data_chunk(subchunk).unwrap());
                                     }
                                     _ => {}
                                 }

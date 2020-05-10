@@ -5,10 +5,10 @@ pub mod sdta;
 use std::fmt;
 use std::sync::Arc;
 
-use super::super::riff::{RiffChank, RiffData};
-use info::{convert_chank_to_sf2info, SF2Info};
-use pdta::{convert_chank_to_sf2pdta, SF2pdta};
-use sdta::{convert_chank_to_sf2sdta, SF2sdta};
+use super::super::riff::{RiffChunk, RiffData};
+use info::{convert_chunk_to_sf2info, SF2Info};
+use pdta::{convert_chunk_to_sf2pdta, SF2pdta};
+use sdta::{convert_chunk_to_sf2sdta, SF2sdta};
 
 pub struct SF2 {
     pub info: Arc<SF2Info>,
@@ -18,8 +18,8 @@ pub struct SF2 {
 
 impl SF2 {
     pub fn parse(i: &[u8]) -> Result<Self, String> {
-        let chank = RiffChank::parse(i)?;
-        let sf2 = convert_chank_to_sf2(&chank);
+        let chunk = RiffChunk::parse(i)?;
+        let sf2 = convert_chunk_to_sf2(&chunk);
         sf2
     }
 }
@@ -35,25 +35,25 @@ impl fmt::Display for SF2 {
     }
 }
 
-fn convert_chank_to_sf2(chank: &RiffChank) -> Result<SF2, String> {
+fn convert_chunk_to_sf2(chunk: &RiffChunk) -> Result<SF2, String> {
     let mut info: Option<SF2Info> = None;
     let mut sdta: Option<SF2sdta> = None;
     let mut pdta: Option<SF2pdta> = None;
 
-    if let Some(chank_type) = &chank.chank_type {
-        if chank_type == "sfbk" && chank.id == "RIFF" {
-            if let RiffData::Chanks(subchanks) = &chank.data {
-                for subchank in subchanks {
-                    if let Some(subchank_type) = &subchank.chank_type {
-                        match subchank_type.as_str() {
+    if let Some(chunk_type) = &chunk.chunk_type {
+        if chunk_type == "sfbk" && chunk.id == "RIFF" {
+            if let RiffData::Chunks(subchunks) = &chunk.data {
+                for subchunk in subchunks {
+                    if let Some(subchunk_type) = &subchunk.chunk_type {
+                        match subchunk_type.as_str() {
                             "INFO" => {
-                                info = Some(convert_chank_to_sf2info(&subchank)?);
+                                info = Some(convert_chunk_to_sf2info(&subchunk)?);
                             }
                             "sdta" => {
-                                sdta = Some(convert_chank_to_sf2sdta(&subchank)?);
+                                sdta = Some(convert_chunk_to_sf2sdta(&subchunk)?);
                             }
                             "pdta" => {
-                                pdta = Some(convert_chank_to_sf2pdta(&subchank)?);
+                                pdta = Some(convert_chunk_to_sf2pdta(&subchunk)?);
                             }
                             _ => {}
                         }

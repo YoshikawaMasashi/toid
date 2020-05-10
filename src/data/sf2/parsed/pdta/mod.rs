@@ -6,4 +6,4 @@ pub mod sf_mod;
 pub mod sf_preset_header;
 pub mod sf_sample_header;
 
-pub use pdta::{convert_chank_to_sf2pdta, SF2pdta};
+pub use pdta::{convert_chunk_to_sf2pdta, SF2pdta};
