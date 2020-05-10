@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
-use toid::data::music_info::beat::Beat;
+use toid::data::music_info::{Beat, SampleNote, SamplePhrase, SampleTrack};
 use toid::high_layer_trial::music_language::num_lang::send_num_lang;
-use toid::music_state::states::{MusicState, MusicStateEvent, SchedulingStateEvent};
+use toid::music_state::states::{
+    MusicState, MusicStateEvent, SchedulingStateEvent, SectionStateEvent,
+};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::local_player::LocalPlayer;
@@ -15,6 +17,10 @@ fn main() {
     player
         .get_resource_manager()
         .register(String::from("./toid-sample-resource/sf2/sf2.toml"))
+        .unwrap();
+    player
+        .get_resource_manager()
+        .register(String::from("./toid-sample-resource/drums/drums.toml"))
         .unwrap();
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
@@ -94,6 +100,25 @@ fn main() {
     )
     .unwrap();
 
+    let mut sample_phrase = SamplePhrase::new();
+    sample_phrase = sample_phrase.add_note(SampleNote {
+        sound: "x".to_string(),
+        start: Beat::from(0),
+    });
+    sample_phrase = sample_phrase.set_length(Beat::from(1));
+    let sample_track = SampleTrack {
+        phrase: sample_phrase,
+        sample_name: "example_drums".to_string(),
+        vol: 1.0,
+        pan: 0.0,
+    };
+    player
+        .send_event(MusicStateEvent::SectionStateEvent(
+            Beat::from(0),
+            SectionStateEvent::NewSampleTrack("drums".to_string(), sample_track),
+        ))
+        .unwrap();
+
     send_num_lang(
         "5 3 4 65        ".to_string(),
         0.0,
@@ -137,6 +162,29 @@ fn main() {
             >,
     )
     .unwrap();
+
+    let mut sample_phrase = SamplePhrase::new();
+    sample_phrase = sample_phrase.add_note(SampleNote {
+        sound: "x".to_string(),
+        start: Beat::from(0),
+    });
+    sample_phrase = sample_phrase.add_note(SampleNote {
+        sound: "o".to_string(),
+        start: Beat::from(0),
+    });
+    sample_phrase = sample_phrase.set_length(Beat::from(1));
+    let sample_track = SampleTrack {
+        phrase: sample_phrase,
+        sample_name: "example_drums".to_string(),
+        vol: 1.0,
+        pan: 0.0,
+    };
+    player
+        .send_event(MusicStateEvent::SectionStateEvent(
+            Beat::from(8),
+            SectionStateEvent::NewSampleTrack("drums".to_string(), sample_track),
+        ))
+        .unwrap();
 
     portaudio_outputter.run().unwrap();
     portaudio_outputter.sleep(2250);
