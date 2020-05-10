@@ -7,7 +7,6 @@ use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::player::Player;
 use toid::players::websocket_player::WebSocketPlayer;
-use toid::resource_management::resource_manager::ResourceManagerEvent;
 
 fn main() {
     let mut ip = String::new();
@@ -38,17 +37,13 @@ fn main() {
         >)
     .unwrap();
 
-    player
-        .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.example")))
-        .unwrap();
-
     send_num_lang(
         "12345 643 2 1   ".to_string(),
         0.0,
         0.0,
         Beat::from(0),
         "main".to_string(),
-        Some(String::from("sf2.example")),
+        Some(String::from("example_sf2")),
         1.0,
         1.0,
         Arc::clone(&player)
@@ -70,7 +65,7 @@ fn main() {
         0.0,
         Beat::from(0),
         "sub".to_string(),
-        Some(String::from("sf2.example")),
+        Some(String::from("example_sf2")),
         1.0,
         -1.0,
         Arc::clone(&player)
@@ -88,9 +83,6 @@ fn main() {
 
     loop {
         portaudio_outputter.sleep(5000);
-        player
-            .send_resource_event(ResourceManagerEvent::LoadSF2(String::from("sf2.example")))
-            .unwrap();
         player.sync_state().unwrap();
     }
 }
