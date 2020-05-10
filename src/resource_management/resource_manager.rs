@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
-use std::path::Path;
 use std::sync::Arc;
 use std::sync::RwLock;
 
 use serde::{Deserialize, Serialize};
 
 use super::super::data::sf2::SF2;
+use super::super::data::wave::Wave;
 use super::super::state_management::serialize;
 use super::resource_units::ResourceUnitEnum;
 
@@ -42,8 +42,24 @@ impl ResourceManager {
         }
     }
 
-    pub fn apply(&self, event: ResourceManagerEvent) -> Result<(), String> {
-        match event {}
+    pub fn get_drums_wave(&self, name: String, sound: String) -> Result<Arc<Wave>, String> {
+        match self
+            .units
+            .read()
+            .map_err(|_| "RwLock Error")?
+            .get(&name)
+            .ok_or("get Error")?
+        {
+            ResourceUnitEnum::Drums(drums) => match drums.waves.get(&sound) {
+                Some(wave) => Ok(Arc::clone(&wave)),
+                None => Err("there is not wave of sound string".to_string()),
+            },
+            _ => Err("this name is not sf2".to_string()),
+        }
+    }
+
+    pub fn apply(&self, _: ResourceManagerEvent) -> Result<(), String> {
+        // match event {}
         Ok(())
     }
 }
