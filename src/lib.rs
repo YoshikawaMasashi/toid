@@ -1,6 +1,8 @@
 //! toidはlive codingツールを提供します。
 //! パフォーマンス向上のため、toidはrustで実装されていますが、
 //! 通常はPython3などのスクリプト言語にバインディングして使うことを想定しています。
+#[macro_use]
+extern crate lazy_static;
 
 pub mod data;
 pub mod high_layer_trial;

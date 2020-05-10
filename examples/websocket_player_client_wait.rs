@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use toid::music_state::music_state::{MusicState, MusicStateEvent};
+use toid::music_state::states::{MusicState, MusicStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::player::Player;
@@ -24,7 +24,15 @@ fn main() {
     let player = Arc::new(player);
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
-        as Arc<dyn Player<MusicState, MusicStateEvent, WaveReader, Vec<i16>, WaveReaderEvent>>)
+        as Arc<
+            dyn Player<
+                MusicState,
+                MusicStateEvent,
+                WaveReader,
+                (Vec<i16>, Vec<i16>),
+                WaveReaderEvent,
+            >,
+        >)
     .unwrap();
 
     portaudio_outputter.run().unwrap();

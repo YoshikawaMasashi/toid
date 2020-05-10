@@ -46,30 +46,48 @@ impl Preset {
         self.prepare_max_vel_range_of_gen();
     }
 
-    pub fn get_sample(&self, key: u8, idx: usize) -> Result<i16, String> {
-        let mut sample = 0;
+    pub fn get_sample(&self, key: u8, idx: usize) -> Result<f32, String> {
+        let mut sample = 0.0;
 
-        let gen_set = self.get_generator_from_key_vel(key, 64)?;
-        for gen in gen_set.iter() {
-            if let Some(instrument_obj) = &gen.instrument {
-                sample += instrument_obj.get_sample(key, idx)?;
+        let gen_set = self.get_generator_from_key_vel(key, 64);
+        match gen_set {
+            Ok(gen_set) => {
+                for gen in gen_set.iter() {
+                    if let Some(instrument_obj) = &gen.instrument {
+                        sample += instrument_obj.get_sample(key, idx)?;
+                    }
+                }
+            }
+            Err(e) => {
+                if e != "Out Of Range".to_string() {
+                    return Err(e);
+                }
             }
         }
 
         Ok(sample)
     }
 
-    pub fn get_samples(&self, key: u8, start: usize, end: usize) -> Result<Vec<i16>, String> {
+    pub fn get_samples(&self, key: u8, start: usize, end: usize) -> Result<Vec<f32>, String> {
         let mut sample = Vec::new();
-        sample.resize(end - start, 0);
+        sample.resize(end - start, 0.0);
 
-        let gen_set = self.get_generator_from_key_vel(key, 64)?;
-        for gen in gen_set.iter() {
-            if let Some(instrument_obj) = &gen.instrument {
-                let sample_ = instrument_obj.get_samples(key, start, end)?;
+        let gen_set = self.get_generator_from_key_vel(key, 64);
+        match gen_set {
+            Ok(gen_set) => {
+                for gen in gen_set.iter() {
+                    if let Some(instrument_obj) = &gen.instrument {
+                        let sample_ = instrument_obj.get_samples(key, start, end)?;
 
-                for i in 0..end - start {
-                    sample[i] += sample_[i];
+                        for i in 0..end - start {
+                            sample[i] += sample_[i];
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                if e != "Out Of Range".to_string() {
+                    return Err(e);
                 }
             }
         }
@@ -154,6 +172,12 @@ impl Preset {
         key: u8,
         vel: u8,
     ) -> Result<Vec<Arc<PresetGenerator>>, String> {
+        if
+        /* key < 0 || */
+        key > 127 || /* vel < 0 || */vel > 127 {
+            return Err("Out Of Range".to_string());
+        }
+
         match self.generator_cache.read() {
             Ok(generator_cache) => match generator_cache.get(&(key, vel)) {
                 Some(prstgen_vec) => {
