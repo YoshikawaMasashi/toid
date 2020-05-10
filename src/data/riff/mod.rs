@@ -52,6 +52,14 @@ impl RiffChank {
 
         let (i, data) = take(size)(i)?;
 
+        // padding
+        let i = if size % 2 != 0 {
+            let (i, _) = take(1 as usize)(i)?;
+            i
+        } else {
+            i
+        };
+
         match id.as_str() {
             "RIFF" | "LIST" => {
                 let (mut data, chank_type) = take(4u8)(data)?;
