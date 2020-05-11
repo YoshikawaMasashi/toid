@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
-use toid::data::music_info::{Beat, SampleNote, SamplePhrase, SampleTrack};
+use toid::data::music_info::Beat;
 use toid::high_layer_trial::music_language::num_lang::send_num_lang;
+use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
 use toid::music_state::states::{
-    MusicState, MusicStateEvent, SchedulingStateEvent, SectionStateEvent,
+    MusicState, MusicStateEvent, SchedulingStateEvent,
 };
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
@@ -100,24 +101,25 @@ fn main() {
     )
     .unwrap();
 
-    let mut sample_phrase = SamplePhrase::new();
-    sample_phrase = sample_phrase.add_note(SampleNote {
-        sound: "x".to_string(),
-        start: Beat::from(0),
-    });
-    sample_phrase = sample_phrase.set_length(Beat::from(1));
-    let sample_track = SampleTrack {
-        phrase: sample_phrase,
-        sample_name: "example_drums".to_string(),
-        vol: 1.0,
-        pan: 0.0,
-    };
-    player
-        .send_event(MusicStateEvent::SectionStateEvent(
-            Beat::from(0),
-            SectionStateEvent::NewSampleTrack("drums".to_string(), sample_track),
-        ))
-        .unwrap();
+    send_sample_lang(
+        "x ".to_string(),
+        Beat::from(0),
+        "drums".to_string(),
+        "example_drums".to_string(),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
 
     send_num_lang(
         "5 3 4 65        ".to_string(),
@@ -163,28 +165,65 @@ fn main() {
     )
     .unwrap();
 
-    let mut sample_phrase = SamplePhrase::new();
-    sample_phrase = sample_phrase.add_note(SampleNote {
-        sound: "x".to_string(),
-        start: Beat::from(0),
-    });
-    sample_phrase = sample_phrase.add_note(SampleNote {
-        sound: "o".to_string(),
-        start: Beat::from(0),
-    });
-    sample_phrase = sample_phrase.set_length(Beat::from(1));
-    let sample_track = SampleTrack {
-        phrase: sample_phrase,
-        sample_name: "example_drums".to_string(),
-        vol: 1.0,
-        pan: 0.0,
-    };
-    player
-        .send_event(MusicStateEvent::SectionStateEvent(
-            Beat::from(8),
-            SectionStateEvent::NewSampleTrack("drums".to_string(), sample_track),
-        ))
-        .unwrap();
+    send_sample_lang(
+        "----".to_string(),
+        Beat::from(8),
+        "hat".to_string(),
+        "example_drums".to_string(),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    send_sample_lang(
+        "x x x  x".to_string(),
+        Beat::from(8),
+        "bass".to_string(),
+        "example_drums".to_string(),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    send_sample_lang(
+        "  o   o ".to_string(),
+        Beat::from(8),
+        "snare".to_string(),
+        "example_drums".to_string(),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
 
     portaudio_outputter.run().unwrap();
     portaudio_outputter.sleep(2250);
