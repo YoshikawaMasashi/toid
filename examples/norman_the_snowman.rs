@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
 use toid::data::music_info::Beat;
-use toid::high_layer_trial::music_language::num_lang::send_num_lang;
+use toid::high_layer_trial::music_language::num_lang::{parse_num_lang, send_num_lang};
+use toid::high_layer_trial::music_language::send_phrase::send_phrase;
 use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
-use toid::music_state::states::{MusicState, MusicStateEvent, SchedulingStateEvent};
+use toid::high_layer_trial::phrase_operation;
+use toid::music_state::states::{MusicState, MusicStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::local_player::LocalPlayer;
@@ -33,37 +35,46 @@ fn main() {
             >,
         >)
     .unwrap();
-    portaudio_outputter.set_volume(0.3);
 
-    player
-        .send_event(MusicStateEvent::SchedulingStateEvent(
-            SchedulingStateEvent::ChangeBPM(Beat::from(0), 120.0),
-        ))
-        .unwrap();
-    player
-        .send_event(MusicStateEvent::SchedulingStateEvent(
-            SchedulingStateEvent::ChangeBPM(Beat::from(8), 180.0),
-        ))
-        .unwrap();
-    player
-        .send_event(MusicStateEvent::SchedulingStateEvent(
-            SchedulingStateEvent::ChangeBPM(Beat::from(16), 120.0),
-        ))
-        .unwrap();
+    let ph1 = parse_num_lang("53".to_string().repeat(32), 2.0, -4.0);
+    let ph2 = parse_num_lang(
+        format!(
+            "{}{}",
+            "97".to_string().repeat(16),
+            "86".to_string().repeat(16)
+        ),
+        1.0,
+        -4.0,
+    );
 
-    player
-        .send_event(MusicStateEvent::NewSection(Beat::from(8.0)))
-        .unwrap();
+    send_phrase(
+        phrase_operation::marge(ph1, ph2),
+        Beat::from(0),
+        "a".to_string(),
+        Some("example_sf2".to_string()),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    ).unwrap();
 
     send_num_lang(
-        "12345 643 2 1   ".to_string(),
-        0.0,
-        0.0,
+        "3121".to_string(),
+        1.0,
+        -4.0,
         Beat::from(0),
-        "main".to_string(),
+        "b".to_string(),
         Some(String::from("example_sf2")),
         1.0,
-        -0.5,
+        0.0,
         Arc::clone(&player)
             as Arc<
                 dyn Player<
@@ -78,14 +89,14 @@ fn main() {
     .unwrap();
 
     send_num_lang(
-        "1   4   5   1   ".to_string(),
-        -2.0,
-        0.0,
+        "1     5 3       ".to_string(),
+        3.0,
+        -4.0,
         Beat::from(0),
-        "sub".to_string(),
+        "c".to_string(),
         Some(String::from("example_sf2")),
-        0.7,
-        0.5,
+        1.0,
+        0.0,
         Arc::clone(&player)
             as Arc<
                 dyn Player<
@@ -99,10 +110,153 @@ fn main() {
     )
     .unwrap();
 
-    send_sample_lang(
-        "x ".to_string(),
+    send_num_lang(
+        format!(
+            "{}{}{}",
+            "3".to_string().repeat(16),
+            "5".to_string().repeat(16),
+            "4".to_string().repeat(32),
+        ),
+        -2.0,
+        -4.0,
         Beat::from(0),
-        "drums".to_string(),
+        "d".to_string(),
+        Some(String::from("example_sf2")),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    send_num_lang(
+        "2  1          1 5           5 432  1          1 3       4 3 2 1 ".to_string(),
+        -1.0,
+        -4.0,
+        Beat::from(0),
+        "e".to_string(),
+        Some(String::from("example_sf2")),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    send_num_lang(
+        "2  1          1 5           5 432  1          1 3       4 3 2 1 ".to_string(),
+        0.0,
+        -4.0,
+        Beat::from(0),
+        "f".to_string(),
+        Some(String::from("example_sf2")),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    send_num_lang(
+        "2  1          1 5           5 432  1          1 3       4 3 2 1 ".to_string(),
+        1.0,
+        -4.0,
+        Beat::from(0),
+        "g".to_string(),
+        Some(String::from("example_sf2")),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    let ph3 = parse_num_lang(
+        "2  1          1 5           5 432  1          1 3       4 3 2 1 ".to_string(),
+        0.0,
+        -4.0,
+    );
+    let ph4 = phrase_operation::change_pitch_in_key(ph3, -4.0, 4);
+    send_phrase(
+        ph4,
+        Beat::from(0),
+        "h".to_string(),
+        Some("example_sf2".to_string()),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    ).unwrap();
+
+    let ph5 = parse_num_lang(
+        "12356".to_string().repeat(8),
+        1.0,
+        -4.0,
+    );
+    let ph6 = phrase_operation::shuffle_start(ph5);
+    send_phrase(
+        ph6,
+        Beat::from(0),
+        "i".to_string(),
+        Some("example_sf2".to_string()),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    ).unwrap();
+
+    send_sample_lang(
+        "x x x x ".to_string(),
+        Beat::from(8),
+        "kick".to_string(),
         "example_drums".to_string(),
         1.0,
         0.0,
@@ -118,53 +272,8 @@ fn main() {
             >,
     )
     .unwrap();
-
-    send_num_lang(
-        "5 3 4 65        ".to_string(),
-        0.0,
-        0.0,
-        Beat::from(8),
-        "main".to_string(),
-        Some(String::from("example_sf2")),
-        1.0,
-        -0.5,
-        Arc::clone(&player)
-            as Arc<
-                dyn Player<
-                    MusicState,
-                    MusicStateEvent,
-                    WaveReader,
-                    (Vec<i16>, Vec<i16>),
-                    WaveReaderEvent,
-                >,
-            >,
-    )
-    .unwrap();
-
-    send_num_lang(
-        "3   5   4   1   ".to_string(),
-        -2.0,
-        0.0,
-        Beat::from(8),
-        "sub".to_string(),
-        Some(String::from("example_sf2")),
-        0.7,
-        0.5,
-        Arc::clone(&player)
-            as Arc<
-                dyn Player<
-                    MusicState,
-                    MusicStateEvent,
-                    WaveReader,
-                    (Vec<i16>, Vec<i16>),
-                    WaveReaderEvent,
-                >,
-            >,
-    )
-    .unwrap();
-
     send_sample_lang(
-        "----".to_string(),
+        "- - - - ".to_string(),
         Beat::from(8),
         "hat".to_string(),
         "example_drums".to_string(),
@@ -182,29 +291,8 @@ fn main() {
             >,
     )
     .unwrap();
-
     send_sample_lang(
-        "x x x  x".to_string(),
-        Beat::from(8),
-        "bass".to_string(),
-        "example_drums".to_string(),
-        1.0,
-        0.0,
-        Arc::clone(&player)
-            as Arc<
-                dyn Player<
-                    MusicState,
-                    MusicStateEvent,
-                    WaveReader,
-                    (Vec<i16>, Vec<i16>),
-                    WaveReaderEvent,
-                >,
-            >,
-    )
-    .unwrap();
-
-    send_sample_lang(
-        "  o   o ".to_string(),
+        "   ooo  ".to_string(),
         Beat::from(8),
         "snare".to_string(),
         "example_drums".to_string(),
@@ -224,10 +312,6 @@ fn main() {
     .unwrap();
 
     portaudio_outputter.run().unwrap();
-    portaudio_outputter.sleep(2250);
-    player
-        .send_reader_event(WaveReaderEvent::MoveStart)
-        .unwrap();
-    portaudio_outputter.sleep(12000);
+    portaudio_outputter.sleep(60000);
     portaudio_outputter.stop().unwrap();
 }
