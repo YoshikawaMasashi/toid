@@ -44,42 +44,46 @@ impl SampleTrackPlayer {
 
         // 付け加えるnotesをリストアップする。
         // self.played_notesに加える。
-        let rep_current_beats = *cum_current_beats % track.phrase.length;
-        let rep_next_beats = cum_next_beats % track.phrase.length;
+        if track.phrase.length > Beat::from(0) {
+            let rep_current_beats = *cum_current_beats % track.phrase.length;
+            let rep_next_beats = cum_next_beats % track.phrase.length;
 
-        if rep_current_beats < rep_next_beats {
-            for (&start, new_notes) in track
-                .phrase
-                .notes
-                .range((Included(rep_current_beats), Excluded(rep_next_beats)))
-            {
-                let cum_start_samples = ((start - rep_current_beats).to_f32() * 44100.0 * 60.0
-                    / current_bpm) as u64
-                    + cum_current_samples;
-                self.register_notes(new_notes, &current_bpm, &cum_start_samples);
-            }
-        } else {
-            for (&start, new_notes) in track
-                .phrase
-                .notes
-                .range((Included(rep_current_beats), Excluded(track.phrase.length)))
-            {
-                let cum_start_samples = ((start - rep_current_beats).to_f32() * 44100.0 * 60.0
-                    / current_bpm) as u64
-                    + cum_current_samples;
-                self.register_notes(new_notes, &current_bpm, &cum_start_samples);
-            }
-            for (&start, new_notes) in track
-                .phrase
-                .notes
-                .range((Included(Beat::from(0)), Excluded(rep_next_beats)))
-            {
-                let cum_start_samples =
-                    ((track.phrase.length + start - rep_current_beats).to_f32() * 44100.0 * 60.0
+            if rep_current_beats < rep_next_beats {
+                for (&start, new_notes) in track
+                    .phrase
+                    .notes
+                    .range((Included(rep_current_beats), Excluded(rep_next_beats)))
+                {
+                    let cum_start_samples = ((start - rep_current_beats).to_f32() * 44100.0 * 60.0
+                        / current_bpm) as u64
+                        + cum_current_samples;
+                    self.register_notes(new_notes, &current_bpm, &cum_start_samples);
+                }
+            } else {
+                for (&start, new_notes) in track
+                    .phrase
+                    .notes
+                    .range((Included(rep_current_beats), Excluded(track.phrase.length)))
+                {
+                    let cum_start_samples = ((start - rep_current_beats).to_f32() * 44100.0 * 60.0
+                        / current_bpm) as u64
+                        + cum_current_samples;
+                    self.register_notes(new_notes, &current_bpm, &cum_start_samples);
+                }
+                for (&start, new_notes) in track
+                    .phrase
+                    .notes
+                    .range((Included(Beat::from(0)), Excluded(rep_next_beats)))
+                {
+                    let cum_start_samples = ((track.phrase.length + start - rep_current_beats)
+                        .to_f32()
+                        * 44100.0
+                        * 60.0
                         / current_bpm) as u64
                         + cum_current_samples;
 
-                self.register_notes(new_notes, &current_bpm, &cum_start_samples);
+                    self.register_notes(new_notes, &current_bpm, &cum_start_samples);
+                }
             }
         }
 
