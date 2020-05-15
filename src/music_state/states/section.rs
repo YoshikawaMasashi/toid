@@ -30,6 +30,10 @@ impl SectionState {
             sample_track_map: new_sample_track_map,
         }
     }
+
+    pub fn get_track(&self, key: String) -> Option<Track> {
+        self.track_map.get(&key).cloned()
+    }
 }
 
 impl State<SectionStateEvent> for SectionState {
