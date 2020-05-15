@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::iter::FromIterator;
 
 use serde::{Deserialize, Serialize};
 
@@ -33,6 +34,10 @@ impl SectionState {
 
     pub fn get_track(&self, key: String) -> Option<Track> {
         self.track_map.get(&key).cloned()
+    }
+
+    pub fn get_track_names(&self) -> Vec<String> {
+        Vec::from_iter(self.track_map.keys().cloned())
     }
 }
 
