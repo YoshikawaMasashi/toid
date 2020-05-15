@@ -3,7 +3,7 @@ use std::sync::Arc;
 use toid::data::music_info::beat::Beat;
 use toid::high_layer_trial::music_language::num_lang::parse_num_lang;
 use toid::high_layer_trial::music_language::send_phrase::send_phrase;
-use toid::high_layer_trial::phrase_operation::condition::IsDownBeat;
+use toid::high_layer_trial::phrase_operation::condition::is_down_beat;
 use toid::high_layer_trial::phrase_operation::{
     concat, delay, marge, shuffle_start, split_by_condition,
 };
@@ -50,7 +50,7 @@ fn main() {
     let phrase6 = delay(phrase5.clone(), Beat::from(4));
     let phrase7 = marge(phrase5, phrase6);
 
-    let (phrase8, phrase9) = split_by_condition(phrase7.clone(), Box::new(IsDownBeat::new()));
+    let (phrase8, phrase9) = split_by_condition(phrase7.clone(), is_down_beat(phrase7));
     let phrase10 = shuffle_start(phrase9);
     let phrase11 = marge(phrase8, phrase10);
 
