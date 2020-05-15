@@ -41,6 +41,16 @@ impl Phrase {
             length: length,
         }
     }
+
+    pub fn note_vec(&self) -> Vec<Note> {
+        let mut vec = vec![];
+        for (_, notes_in_time) in self.notes.iter() {
+            for &note in notes_in_time.iter() {
+                vec.push(note);
+            }
+        }
+        vec
+    }
 }
 
 impl PartialEq for Phrase {
