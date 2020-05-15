@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use toid::data::music_info::Beat;
 use toid::high_layer_trial::music_language::num_lang::{parse_num_lang, send_num_lang};
-use toid::high_layer_trial::music_language::send_phrase::send_phrase;
 use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
+use toid::high_layer_trial::music_language::send_phrase::send_phrase;
 use toid::high_layer_trial::phrase_operation;
 use toid::music_state::states::{MusicState, MusicStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
@@ -64,7 +64,8 @@ fn main() {
                     WaveReaderEvent,
                 >,
             >,
-    ).unwrap();
+    )
+    .unwrap();
 
     send_num_lang(
         "3121".to_string(),
@@ -226,13 +227,10 @@ fn main() {
                     WaveReaderEvent,
                 >,
             >,
-    ).unwrap();
+    )
+    .unwrap();
 
-    let ph5 = parse_num_lang(
-        "12356".to_string().repeat(8),
-        1.0,
-        -4.0,
-    );
+    let ph5 = parse_num_lang("12356".to_string().repeat(8), 1.0, -4.0);
     let ph6 = phrase_operation::shuffle_start(ph5);
     send_phrase(
         ph6,
@@ -251,7 +249,8 @@ fn main() {
                     WaveReaderEvent,
                 >,
             >,
-    ).unwrap();
+    )
+    .unwrap();
 
     send_sample_lang(
         "x x x x ".to_string(),
