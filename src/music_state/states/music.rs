@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::iter::FromIterator;
 use std::ops::Bound::Included;
 use std::sync::Arc;
 
@@ -64,6 +65,10 @@ impl MusicState {
                 .unwrap()
                 .1,
         )
+    }
+
+    pub fn get_section_beats(&self) -> Vec<Beat> {
+        Vec::from_iter(self.section_map.keys().cloned())
     }
 }
 

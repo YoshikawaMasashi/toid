@@ -1,7 +1,7 @@
 use std::fmt;
 use std::sync::Arc;
 
-use super::super::super::super::riff::{RiffChank, RiffData};
+use super::super::super::super::riff::{RiffChunk, RiffData};
 use super::sf_bag::{parse_sf_bags, SFBag};
 use super::sf_gen::{parse_sf_gens, SFGen};
 use super::sf_inst_header::{parse_sf_inst_headers, SFInstHeader};
@@ -38,7 +38,7 @@ impl fmt::Display for SF2pdta {
     }
 }
 
-pub fn convert_chank_to_sf2pdta(chank: &RiffChank) -> Result<SF2pdta, String> {
+pub fn convert_chunk_to_sf2pdta(chunk: &RiffChunk) -> Result<SF2pdta, String> {
     let mut phdr: Option<Vec<Arc<SFPresetHeader>>> = None;
     let mut pbag: Option<Vec<Arc<SFBag>>> = None;
     let mut pmod: Option<Vec<Arc<SFMod>>> = None;
@@ -49,66 +49,66 @@ pub fn convert_chank_to_sf2pdta(chank: &RiffChank) -> Result<SF2pdta, String> {
     let mut igen: Option<Vec<Arc<SFGen>>> = None;
     let mut shdr: Option<Vec<Arc<SFSampleHeader>>> = None;
 
-    if let Some(chank_type) = &chank.chank_type {
-        if chank_type == "pdta" && chank.id == "LIST" {
-            if let RiffData::Chanks(subchanks) = &chank.data {
-                for subchank in subchanks {
-                    if let RiffData::Data(data_in_subchank) = &subchank.data {
-                        match subchank.id.as_str() {
+    if let Some(chunk_type) = &chunk.chunk_type {
+        if chunk_type == "pdta" && chunk.id == "LIST" {
+            if let RiffData::Chunks(subchunks) = &chunk.data {
+                for subchunk in subchunks {
+                    if let RiffData::Data(data_in_subchunk) = &subchunk.data {
+                        match subchunk.id.as_str() {
                             "phdr" => {
                                 let (_, phdr_) = parse_sf_preset_headers(
-                                    data_in_subchank,
-                                    subchank.size / 38 - 1,
+                                    data_in_subchunk,
+                                    subchunk.size / 38 - 1,
                                 )
                                 .expect("Invalid phdr");
                                 phdr = Some(phdr_);
                             }
                             "pbag" => {
                                 let (_, pbag_) =
-                                    parse_sf_bags(data_in_subchank, subchank.size / 4 - 1)
+                                    parse_sf_bags(data_in_subchunk, subchunk.size / 4 - 1)
                                         .expect("Invalid pbag");
                                 pbag = Some(pbag_);
                             }
                             "pmod" => {
                                 let (_, pmod_) =
-                                    parse_sf_mods(data_in_subchank, subchank.size / 10 - 1)
+                                    parse_sf_mods(data_in_subchunk, subchunk.size / 10 - 1)
                                         .expect("Invalid pmod");
                                 pmod = Some(pmod_);
                             }
                             "pgen" => {
                                 let (_, pgen_) =
-                                    parse_sf_gens(data_in_subchank, subchank.size / 4 - 1)
+                                    parse_sf_gens(data_in_subchunk, subchunk.size / 4 - 1)
                                         .expect("Invalid pgen");
                                 pgen = Some(pgen_);
                             }
                             "inst" => {
                                 let (_, inst_) =
-                                    parse_sf_inst_headers(data_in_subchank, subchank.size / 22 - 1)
+                                    parse_sf_inst_headers(data_in_subchunk, subchunk.size / 22 - 1)
                                         .expect("Invalid inst");
                                 inst = Some(inst_);
                             }
                             "ibag" => {
                                 let (_, ibag_) =
-                                    parse_sf_bags(data_in_subchank, subchank.size / 4 - 1)
+                                    parse_sf_bags(data_in_subchunk, subchunk.size / 4 - 1)
                                         .expect("Invalid ibag");
                                 ibag = Some(ibag_);
                             }
                             "imod" => {
                                 let (_, imod_) =
-                                    parse_sf_mods(data_in_subchank, subchank.size / 10 - 1)
+                                    parse_sf_mods(data_in_subchunk, subchunk.size / 10 - 1)
                                         .expect("Invalid imod");
                                 imod = Some(imod_);
                             }
                             "igen" => {
                                 let (_, igen_) =
-                                    parse_sf_gens(data_in_subchank, subchank.size / 4 - 1)
+                                    parse_sf_gens(data_in_subchunk, subchunk.size / 4 - 1)
                                         .expect("Invalid igen");
                                 igen = Some(igen_);
                             }
                             "shdr" => {
                                 let (_, shdr_) = parse_sf_sample_headers(
-                                    data_in_subchank,
-                                    subchank.size / 46 - 1,
+                                    data_in_subchunk,
+                                    subchunk.size / 46 - 1,
                                 )
                                 .expect("Invalid shdr");
                                 shdr = Some(shdr_);

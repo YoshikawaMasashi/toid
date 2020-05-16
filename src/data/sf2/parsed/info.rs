@@ -3,7 +3,7 @@ use std::fmt;
 use nom::number::streaming::le_u16;
 use nom::IResult;
 
-use super::super::super::riff::{RiffChank, RiffData};
+use super::super::super::riff::{RiffChunk, RiffData};
 
 pub struct SF2Info {
     pub ifil: SFVersion,
@@ -72,7 +72,7 @@ fn parse_sfversion(i: &[u8]) -> IResult<&[u8], SFVersion> {
     Ok((i, SFVersion { major, minor }))
 }
 
-pub fn convert_chank_to_sf2info(chank: &RiffChank) -> Result<SF2Info, String> {
+pub fn convert_chunk_to_sf2info(chunk: &RiffChunk) -> Result<SF2Info, String> {
     let mut ifil: Option<SFVersion> = None;
     let mut isng: Option<String> = None;
     let mut inam: Option<String> = None;
@@ -85,73 +85,73 @@ pub fn convert_chank_to_sf2info(chank: &RiffChank) -> Result<SF2Info, String> {
     let mut icmt: Option<String> = None;
     let mut isft: Option<String> = None;
 
-    if let Some(chank_type) = &chank.chank_type {
-        if chank_type == "INFO" && chank.id == "LIST" {
-            if let RiffData::Chanks(subchanks) = &chank.data {
-                for subchank in subchanks {
-                    if let RiffData::Data(data_in_subchank) = &subchank.data {
-                        match subchank.id.as_str() {
+    if let Some(chunk_type) = &chunk.chunk_type {
+        if chunk_type == "INFO" && chunk.id == "LIST" {
+            if let RiffData::Chunks(subchunks) = &chunk.data {
+                for subchunk in subchunks {
+                    if let RiffData::Data(data_in_subchunk) = &subchunk.data {
+                        match subchunk.id.as_str() {
                             "ifil" => {
-                                let i = data_in_subchank;
+                                let i = data_in_subchunk;
                                 let (_i, ifil_) = parse_sfversion(i).expect("Invalid ifil");
                                 ifil = Some(ifil_);
                             }
                             "isng" => {
                                 isng = Some(
-                                    String::from_utf8(data_in_subchank.to_vec())
+                                    String::from_utf8(data_in_subchunk.to_vec())
                                         .expect("Invalid isng"),
                                 );
                             }
                             "INAM" => {
                                 inam = Some(
-                                    String::from_utf8(data_in_subchank.to_vec())
+                                    String::from_utf8(data_in_subchunk.to_vec())
                                         .expect("Invalid INAM"),
                                 );
                             }
                             "irom" => {
                                 irom = Some(
-                                    String::from_utf8(data_in_subchank.to_vec())
+                                    String::from_utf8(data_in_subchunk.to_vec())
                                         .expect("Invalid irom"),
                                 );
                             }
                             "iver" => {
-                                let i = data_in_subchank;
+                                let i = data_in_subchunk;
                                 let (_i, iver_) = parse_sfversion(i).expect("Invalid iver");
                                 iver = Some(iver_);
                             }
                             "ICRD" => {
                                 icrd = Some(
-                                    String::from_utf8(data_in_subchank.to_vec())
+                                    String::from_utf8(data_in_subchunk.to_vec())
                                         .expect("Invalid ICRD"),
                                 );
                             }
                             "IENG" => {
                                 ieng = Some(
-                                    String::from_utf8(data_in_subchank.to_vec())
+                                    String::from_utf8(data_in_subchunk.to_vec())
                                         .expect("Invalid IENG"),
                                 );
                             }
                             "IPRD" => {
                                 iprd = Some(
-                                    String::from_utf8(data_in_subchank.to_vec())
+                                    String::from_utf8(data_in_subchunk.to_vec())
                                         .expect("Invalid IPRD"),
                                 );
                             }
                             "ICOP" => {
                                 icop = Some(
-                                    String::from_utf8(data_in_subchank.to_vec())
+                                    String::from_utf8(data_in_subchunk.to_vec())
                                         .expect("Invalid ICOP"),
                                 );
                             }
                             "ICMT" => {
                                 icmt = Some(
-                                    String::from_utf8(data_in_subchank.to_vec())
+                                    String::from_utf8(data_in_subchunk.to_vec())
                                         .expect("Invalid ICMT"),
                                 );
                             }
                             "ISFT" => {
                                 isft = Some(
-                                    String::from_utf8(data_in_subchank.to_vec())
+                                    String::from_utf8(data_in_subchunk.to_vec())
                                         .expect("Invalid ISFT"),
                                 );
                             }

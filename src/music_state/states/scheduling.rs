@@ -19,6 +19,10 @@ impl SchedulingState {
             bpm_schedule: new_bpm_schedule,
         }
     }
+
+    pub fn get_bpm_schedule(&self) -> BTreeMap<Beat, f32> {
+        self.bpm_schedule.clone()
+    }
 }
 
 impl State<SchedulingStateEvent> for SchedulingState {

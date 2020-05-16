@@ -5,7 +5,7 @@ use nom::multi::many_m_n;
 use nom::number::streaming::le_i16;
 use nom::IResult;
 
-use super::super::super::riff::{RiffChank, RiffData};
+use super::super::super::riff::{RiffChunk, RiffData};
 
 pub struct SF2sdta {
     pub smpl: Arc<Vec<i16>>,
@@ -33,17 +33,17 @@ fn parse_smpl(i: &[u8], num: usize) -> IResult<&[u8], Vec<i16>> {
     Ok((i, (smpl)))
 }
 
-pub fn convert_chank_to_sf2sdta(chank: &RiffChank) -> Result<SF2sdta, String> {
+pub fn convert_chunk_to_sf2sdta(chunk: &RiffChunk) -> Result<SF2sdta, String> {
     let mut smpl: Option<Vec<i16>> = None;
 
-    if let Some(chank_type) = &chank.chank_type {
-        if chank_type == "sdta" && chank.id == "LIST" {
-            if let RiffData::Chanks(subchanks) = &chank.data {
-                for subchank in subchanks {
-                    if let RiffData::Data(data_in_subchank) = &subchank.data {
-                        match subchank.id.as_str() {
+    if let Some(chunk_type) = &chunk.chunk_type {
+        if chunk_type == "sdta" && chunk.id == "LIST" {
+            if let RiffData::Chunks(subchunks) = &chunk.data {
+                for subchunk in subchunks {
+                    if let RiffData::Data(data_in_subchunk) = &subchunk.data {
+                        match subchunk.id.as_str() {
                             "smpl" => {
-                                let (_, smpl_) = parse_smpl(data_in_subchank, subchank.size / 2)
+                                let (_, smpl_) = parse_smpl(data_in_subchunk, subchunk.size / 2)
                                     .expect("Invalid smpl");
                                 smpl = Some(smpl_);
                             }

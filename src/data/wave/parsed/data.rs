@@ -1,4 +1,4 @@
-use super::super::super::riff::{RiffChank, RiffData};
+use super::super::super::riff::{RiffChunk, RiffData};
 
 pub struct DataChunk {
     pub data: Vec<u8>,
@@ -12,9 +12,9 @@ impl std::fmt::Display for DataChunk {
     }
 }
 
-pub fn convert_chank_to_data_chunk(chank: &RiffChank) -> Result<DataChunk, String> {
-    if chank.chank_type == None {
-        if let RiffData::Data(data) = &chank.data {
+pub fn convert_chunk_to_data_chunk(chunk: &RiffChunk) -> Result<DataChunk, String> {
+    if chunk.chunk_type == None {
+        if let RiffData::Data(data) = &chunk.data {
             return Ok(DataChunk {
                 data: data.to_vec(),
             });

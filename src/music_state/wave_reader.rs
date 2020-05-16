@@ -26,6 +26,12 @@ pub struct WaveReader {
     sample_track_players: HashMap<String, SampleTrackPlayer>,
 }
 
+impl WaveReader {
+    pub fn get_current_beats(&self) -> Beat {
+        self.cum_current_beats
+    }
+}
+
 impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEvent>
     for WaveReader
 {

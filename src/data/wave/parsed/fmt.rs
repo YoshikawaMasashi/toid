@@ -1,7 +1,7 @@
 use nom::number::streaming::{le_i16, le_u16, le_u32};
 use nom::IResult;
 
-use super::super::super::riff::{RiffChank, RiffData};
+use super::super::super::riff::{RiffChunk, RiffData};
 
 pub struct FormatChunk {
     pub format: i16,
@@ -41,9 +41,9 @@ fn parse_format_chunk(i: &[u8]) -> IResult<&[u8], FormatChunk> {
     ))
 }
 
-pub fn convert_chank_to_format_chunk(chank: &RiffChank) -> Result<FormatChunk, String> {
-    if chank.chank_type == None && chank.size == 16 {
-        if let RiffData::Data(data) = &chank.data {
+pub fn convert_chunk_to_format_chunk(chunk: &RiffChunk) -> Result<FormatChunk, String> {
+    if chunk.chunk_type == None && chunk.size == 16 {
+        if let RiffData::Data(data) = &chunk.data {
             let i: &[u8] = data.as_slice();
             return Ok(parse_format_chunk(i).unwrap().1);
         }
