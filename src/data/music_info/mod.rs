@@ -1,4 +1,5 @@
 pub mod beat;
+pub mod chord;
 pub mod note;
 pub mod phrase;
 pub mod pitch;
@@ -8,6 +9,7 @@ pub mod sample_track;
 pub mod track;
 
 pub use beat::Beat;
+pub use chord::Chord;
 pub use note::Note;
 pub use phrase::Phrase;
 pub use pitch::Pitch;
