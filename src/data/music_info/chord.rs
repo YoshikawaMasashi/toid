@@ -161,15 +161,6 @@ impl From<String> for Chord {
     }
 }
 
-// C, Cm, C7, CM7, CmM7, Cdim7, Cadd9, Csus4
-// 最初の文字を取る
-// 次のもじが#かbだったら取る
-// 次のもじがmだったら取る
-
-// 次にM7, dim7, add9, sus4がきたら取る
-
-// 次にonがきたら取る
-
 #[cfg(test)]
 mod tests {
     use super::*;
