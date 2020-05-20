@@ -168,12 +168,13 @@ impl Sub for Pitch {
 
 #[cfg(test)]
 mod tests {
+    use super::super::PitchInterval;
     use super::*;
 
     #[test]
     fn test_add_f32() {
         let pitch = Pitch::from(60);
-        let pitch = pitch.add_f32(0.5);
+        let pitch = pitch.add_interval(PitchInterval::from(0.5));
         assert_eq!(pitch, Pitch::from(60.5));
     }
 }

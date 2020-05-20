@@ -147,17 +147,34 @@ impl From<String> for Chord {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::{PitchInOctave, PitchInterval};
 
     #[test]
     fn test_parse_chord_name() {
         let chord = Chord::parse_chord_name("C#m7").unwrap().1;
 
-        assert_eq!(chord.root, 1.0);
-        assert_eq!(chord.member, vec![0.0, 3.0, 7.0, 10.0]);
+        assert_eq!(chord.root, PitchInOctave::from(1.0));
+        assert_eq!(
+            chord.member,
+            vec![
+                PitchInterval::from(0.0),
+                PitchInterval::from(3.0),
+                PitchInterval::from(7.0),
+                PitchInterval::from(10.0)
+            ]
+        );
 
         let chord = Chord::parse_chord_name("EM7").unwrap().1;
 
-        assert_eq!(chord.root, 4.0);
-        assert_eq!(chord.member, vec![0.0, 4.0, 7.0, 11.0]);
+        assert_eq!(chord.root, PitchInOctave::from(4.0));
+        assert_eq!(
+            chord.member,
+            vec![
+                PitchInterval::from(0.0),
+                PitchInterval::from(4.0),
+                PitchInterval::from(7.0),
+                PitchInterval::from(11.0)
+            ]
+        );
     }
 }
