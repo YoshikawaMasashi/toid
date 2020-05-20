@@ -2,9 +2,19 @@ use std::cmp::Ordering;
 
 use serde::{Deserialize, Serialize};
 
+use super::PitchInterval;
+
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct PitchInOctave {
-    pitch: f32,
+    pub pitch: f32,
+}
+
+impl PitchInOctave {
+    pub fn to_pitch_interval(&self) -> PitchInterval {
+        PitchInterval {
+            interval: self.pitch,
+        }
+    }
 }
 
 impl PartialEq for PitchInOctave {

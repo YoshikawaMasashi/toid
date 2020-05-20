@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct PitchInterval {
-    interval: f32,
+    pub interval: f32,
 }
 
 impl PartialEq for PitchInterval {

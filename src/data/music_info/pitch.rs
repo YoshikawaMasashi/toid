@@ -4,6 +4,8 @@ use std::ops::Sub;
 
 use serde::{Deserialize, Serialize};
 
+use super::{PitchInOctave, PitchInterval};
+
 lazy_static! {
     static ref STRING_TO_F32_PITCH: HashMap<String, f32> = {
         let mut map = HashMap::new();
@@ -60,20 +62,22 @@ pub struct Pitch {
 }
 
 impl Pitch {
-    pub fn add_f32(&self, offset: f32) -> Self {
+    pub fn add_interval(&self, interval: PitchInterval) -> Self {
         Self {
-            pitch: self.pitch + offset,
+            pitch: self.pitch + interval.interval,
         }
     }
 
-    pub fn sub_f32(&self, offset: f32) -> Self {
+    pub fn sub_interval(&self, interval: PitchInterval) -> Self {
         Self {
-            pitch: self.pitch - offset,
+            pitch: self.pitch - interval.interval,
         }
     }
 
-    pub fn rem_f32(&self, offset: f32) -> f32 {
-        self.pitch % offset
+    pub fn to_pitch_in_octave(&self) -> PitchInOctave {
+        PitchInOctave {
+            pitch: self.pitch % 12.0,
+        }
     }
 
     pub fn get_hertz(&self) -> f32 {
@@ -153,10 +157,12 @@ impl Into<String> for Pitch {
 }
 
 impl Sub for Pitch {
-    type Output = f32;
+    type Output = PitchInterval;
 
-    fn sub(self, other: Self) -> f32 {
-        self.pitch - other.pitch
+    fn sub(self, other: Self) -> PitchInterval {
+        PitchInterval {
+            interval: self.pitch - other.pitch,
+        }
     }
 }
 

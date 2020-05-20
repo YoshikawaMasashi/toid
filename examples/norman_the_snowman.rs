@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use toid::data::music_info::Beat;
+use toid::data::music_info::{Beat, PitchInterval};
 use toid::high_layer_trial::music_language::num_lang::{parse_num_lang, send_num_lang};
 use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
 use toid::high_layer_trial::music_language::send_phrase::send_phrase;
@@ -209,7 +209,7 @@ fn main() {
         0.0,
         -4.0,
     );
-    let ph4 = phrase_operation::change_pitch_in_key(ph3, -4.0, 4);
+    let ph4 = phrase_operation::change_pitch_in_key(ph3, PitchInterval { interval: -4.0 }, 4);
     send_phrase(
         ph4,
         Beat::from(0),
