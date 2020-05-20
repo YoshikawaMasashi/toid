@@ -4,10 +4,12 @@ use nom::character::complete::one_of;
 use nom::IResult;
 use serde::{Deserialize, Serialize};
 
+use super::{PitchInOctave, PitchInterval};
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Chord {
-    root: f32,
-    member: Vec<f32>,
+    root: PitchInOctave,
+    member: Vec<PitchInterval>,
 }
 
 #[derive(Debug)]
@@ -62,92 +64,73 @@ impl Chord {
             Err(_) => (s, Tension::None),
         };
 
-        let root = match root.as_str() {
-            "C" => 0.0,
-            "C#" => 1.0,
-            "Db" => 1.0,
-            "D" => 2.0,
-            "D#" => 3.0,
-            "Eb" => 3.0,
-            "E" => 4.0,
-            "F" => 5.0,
-            "F#" => 6.0,
-            "Gb" => 6.0,
-            "G" => 7.0,
-            "G#" => 8.0,
-            "Ab" => 8.0,
-            "A" => 9.0,
-            "A#" => 10.0,
-            "Bb" => 10.0,
-            "B" => 11.0,
-            _ => std::f32::NAN,
-        };
+        let root = PitchInOctave::from(root);
         let mut member = vec![];
-        member.push(0.0);
+        member.push(PitchInterval::from(0.0));
         match tension {
             Tension::Seventh => {
                 match second {
                     Second::Major => {
-                        member.push(4.0);
+                        member.push(PitchInterval::from(4.0));
                     }
                     Second::Minor => {
-                        member.push(3.0);
+                        member.push(PitchInterval::from(3.0));
                     }
                     Second::Sus4 => {
-                        member.push(5.0);
+                        member.push(PitchInterval::from(5.0));
                     }
                 };
-                member.push(7.0);
-                member.push(10.0);
+                member.push(PitchInterval::from(7.0));
+                member.push(PitchInterval::from(10.0));
             }
             Tension::Maj7 => {
                 match second {
                     Second::Major => {
-                        member.push(4.0);
+                        member.push(PitchInterval::from(4.0));
                     }
                     Second::Minor => {
-                        member.push(3.0);
+                        member.push(PitchInterval::from(3.0));
                     }
                     Second::Sus4 => {
-                        member.push(5.0);
+                        member.push(PitchInterval::from(5.0));
                     }
                 };
-                member.push(7.0);
-                member.push(11.0);
+                member.push(PitchInterval::from(7.0));
+                member.push(PitchInterval::from(11.0));
             }
             Tension::Dim7 => {
-                member.push(3.0);
-                member.push(6.0);
-                member.push(9.0);
+                member.push(PitchInterval::from(3.0));
+                member.push(PitchInterval::from(6.0));
+                member.push(PitchInterval::from(9.0));
             }
             Tension::Add9 => {
                 match second {
                     Second::Major => {
-                        member.push(4.0);
+                        member.push(PitchInterval::from(4.0));
                     }
                     Second::Minor => {
-                        member.push(3.0);
+                        member.push(PitchInterval::from(3.0));
                     }
                     Second::Sus4 => {
-                        member.push(5.0);
+                        member.push(PitchInterval::from(5.0));
                     }
                 };
-                member.push(7.0);
-                member.push(14.0);
+                member.push(PitchInterval::from(7.0));
+                member.push(PitchInterval::from(14.0));
             }
             Tension::None => {
                 match second {
                     Second::Major => {
-                        member.push(4.0);
+                        member.push(PitchInterval::from(4.0));
                     }
                     Second::Minor => {
-                        member.push(3.0);
+                        member.push(PitchInterval::from(3.0));
                     }
                     Second::Sus4 => {
-                        member.push(5.0);
+                        member.push(PitchInterval::from(5.0));
                     }
                 };
-                member.push(7.0);
+                member.push(PitchInterval::from(7.0));
             }
         }
 
@@ -164,17 +147,34 @@ impl From<String> for Chord {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::{PitchInOctave, PitchInterval};
 
     #[test]
     fn test_parse_chord_name() {
         let chord = Chord::parse_chord_name("C#m7").unwrap().1;
 
-        assert_eq!(chord.root, 1.0);
-        assert_eq!(chord.member, vec![0.0, 3.0, 7.0, 10.0]);
+        assert_eq!(chord.root, PitchInOctave::from(1.0));
+        assert_eq!(
+            chord.member,
+            vec![
+                PitchInterval::from(0.0),
+                PitchInterval::from(3.0),
+                PitchInterval::from(7.0),
+                PitchInterval::from(10.0)
+            ]
+        );
 
         let chord = Chord::parse_chord_name("EM7").unwrap().1;
 
-        assert_eq!(chord.root, 4.0);
-        assert_eq!(chord.member, vec![0.0, 4.0, 7.0, 11.0]);
+        assert_eq!(chord.root, PitchInOctave::from(4.0));
+        assert_eq!(
+            chord.member,
+            vec![
+                PitchInterval::from(0.0),
+                PitchInterval::from(4.0),
+                PitchInterval::from(7.0),
+                PitchInterval::from(11.0)
+            ]
+        );
     }
 }

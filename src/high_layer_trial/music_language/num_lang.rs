@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use super::super::super::data::music_info::{Beat, Note, Phrase, Pitch};
+use super::super::super::data::music_info::{Beat, Note, Phrase, Pitch, PitchInterval};
 use super::super::super::music_state::states::{MusicState, MusicStateEvent};
 use super::super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::super::players::player::Player;
@@ -32,7 +32,9 @@ pub fn parse_num_lang(s: String, octave: f32, key: f32) -> Phrase {
         match pitch {
             Some(pitch) => {
                 let note = Note {
-                    pitch: pitch.add_f32(pitch_offset),
+                    pitch: pitch.add_interval(PitchInterval {
+                        interval: pitch_offset,
+                    }),
                     duration: length_unit,
                     start: now,
                 };

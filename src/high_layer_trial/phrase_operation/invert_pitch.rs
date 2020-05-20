@@ -7,7 +7,7 @@ pub fn invert_pitch(phrase: Phrase, center: Pitch) -> Phrase {
     for (_, note_vec) in phrase.notes.iter() {
         for note in note_vec.iter() {
             new_phrase = new_phrase.add_note(Note {
-                pitch: center.sub_f32(note.pitch - center),
+                pitch: center.sub_interval(note.pitch - center),
                 duration: note.duration,
                 start: note.start,
             });

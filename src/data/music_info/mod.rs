@@ -1,8 +1,11 @@
 pub mod beat;
 pub mod chord;
+pub mod chord_progression;
 pub mod note;
 pub mod phrase;
 pub mod pitch;
+pub mod pitch_in_octave;
+pub mod pitch_interval;
 pub mod sample_note;
 pub mod sample_phrase;
 pub mod sample_track;
@@ -10,9 +13,12 @@ pub mod track;
 
 pub use beat::Beat;
 pub use chord::Chord;
+pub use chord_progression::ChordProgression;
 pub use note::Note;
 pub use phrase::Phrase;
 pub use pitch::Pitch;
+pub use pitch_in_octave::PitchInOctave;
+pub use pitch_interval::PitchInterval;
 pub use sample_note::SampleNote;
 pub use sample_phrase::SamplePhrase;
 pub use sample_track::SampleTrack;
