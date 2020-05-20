@@ -1,5 +1,6 @@
 pub mod beat;
 pub mod chord;
+pub mod chord_progression;
 pub mod note;
 pub mod phrase;
 pub mod pitch;
@@ -12,6 +13,7 @@ pub mod track;
 
 pub use beat::Beat;
 pub use chord::Chord;
+pub use chord_progression::ChordProgression;
 pub use note::Note;
 pub use phrase::Phrase;
 pub use pitch::Pitch;
