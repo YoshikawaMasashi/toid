@@ -66,3 +66,27 @@ impl From<i32> for PitchInOctave {
         }
     }
 }
+impl From<String> for PitchInOctave {
+    fn from(pitch_name: String) -> Self {
+        match pitch_name.as_str() {
+            "C" => PitchInOctave::from(0.0),
+            "C#" => PitchInOctave::from(1.0),
+            "Db" => PitchInOctave::from(1.0),
+            "D" => PitchInOctave::from(2.0),
+            "D#" => PitchInOctave::from(3.0),
+            "Eb" => PitchInOctave::from(3.0),
+            "E" => PitchInOctave::from(4.0),
+            "F" => PitchInOctave::from(5.0),
+            "F#" => PitchInOctave::from(6.0),
+            "Gb" => PitchInOctave::from(6.0),
+            "G" => PitchInOctave::from(7.0),
+            "G#" => PitchInOctave::from(8.0),
+            "Ab" => PitchInOctave::from(8.0),
+            "A" => PitchInOctave::from(9.0),
+            "A#" => PitchInOctave::from(10.0),
+            "Bb" => PitchInOctave::from(10.0),
+            "B" => PitchInOctave::from(11.0),
+            _ => PitchInOctave::from(std::f32::NAN),
+        }
+    }
+}
