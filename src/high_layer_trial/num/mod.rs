@@ -1,7 +1,7 @@
 use noise::{NoiseFn, Perlin};
 use rand;
 
-use super::super::data::music_info::Pitch;
+use super::super::data::music_info::{Beat, Pitch};
 
 pub fn parlin_noise_seq(size: usize, degree: f32, seed: Option<f32>) -> Vec<f32> {
     let mut seed = match seed {
@@ -55,6 +55,27 @@ pub fn f32_vec_to_pitch_vec(vec: &Vec<f32>) -> Vec<Pitch> {
 
     for &v in vec.iter() {
         new_vec.push(Pitch::from(v));
+    }
+
+    new_vec
+}
+
+pub fn linspace(start: f32, end: f32, size: usize) -> Vec<f32> {
+    let delta = (end - start) / (size - 1) as f32;
+    let mut vec = vec![];
+
+    for i in 0..size {
+        vec.push(delta * i as f32);
+    }
+
+    vec
+}
+
+pub fn f32_vec_to_beat_vec(vec: &Vec<f32>) -> Vec<Beat> {
+    let mut new_vec = vec![];
+
+    for &v in vec.iter() {
+        new_vec.push(Beat::from(v));
     }
 
     new_vec
