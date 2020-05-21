@@ -7,6 +7,7 @@ extern crate lazy_static;
 pub mod data;
 pub mod high_layer_trial;
 pub mod music_state;
+pub mod num;
 pub mod outputters;
 pub mod players;
 pub mod resource_management;
