@@ -62,6 +62,12 @@ pub struct Pitch {
 }
 
 impl Pitch {
+    pub fn to_f32(&self) -> f32 {
+        self.pitch
+    }
+}
+
+impl Pitch {
     pub fn add_interval(&self, interval: PitchInterval) -> Self {
         Self {
             pitch: self.pitch + interval.interval,
