@@ -1,5 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::ops::Bound::{Included, Unbounded};
+use std::ops::Bound::{Excluded, Included, Unbounded};
 
 use itertools::izip;
 
@@ -29,7 +29,7 @@ pub fn round_line(
 
     let mut not_round_pitch: Vec<Pitch> = Vec::new();
     for &start_beat in start.iter() {
-        let left_map = line_map.range((Included(&start_beat), Unbounded)).next();
+        let left_map = line_map.range((Excluded(&start_beat), Unbounded)).next();
         let right_map = line_map
             .range((Unbounded, Included(&start_beat)))
             .rev()
@@ -49,7 +49,6 @@ pub fn round_line(
                 return phrase;
             }
         };
-
         not_round_pitch.push(not_round_pitch_);
     }
 
