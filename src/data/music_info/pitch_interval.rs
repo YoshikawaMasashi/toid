@@ -7,6 +7,13 @@ pub struct PitchInterval {
     pub interval: f32,
 }
 
+impl PitchInterval {
+    pub fn abs(&self) -> Self {
+        Self {
+            interval: self.interval.abs(),
+        }
+    }
+}
 impl PartialEq for PitchInterval {
     fn eq(&self, other: &Self) -> bool {
         self.interval == other.interval

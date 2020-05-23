@@ -7,6 +7,7 @@ mod delay;
 mod invert_pitch;
 mod invert_start_order;
 mod marge;
+mod round_line;
 mod shuffle_start;
 mod split_by_condition;
 
@@ -17,5 +18,6 @@ pub use delay::delay;
 pub use invert_pitch::invert_pitch;
 pub use invert_start_order::invert_start_order;
 pub use marge::marge;
+pub use round_line::round_line;
 pub use shuffle_start::shuffle_start;
 pub use split_by_condition::split_by_condition;

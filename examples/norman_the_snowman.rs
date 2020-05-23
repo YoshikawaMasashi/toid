@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
-use toid::data::music_info::{Beat, PitchInterval};
+use toid::data::music_info::{Beat, PitchInOctave, PitchInterval};
 use toid::high_layer_trial::music_language::num_lang::{parse_num_lang, send_num_lang};
 use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
 use toid::high_layer_trial::music_language::send_phrase::send_phrase;
+use toid::high_layer_trial::num::{
+    change_max_min, f32_vec_to_beat_vec, f32_vec_to_pitch_vec, linspace, parlin_noise_seq,
+};
 use toid::high_layer_trial::phrase_operation;
 use toid::music_state::states::{MusicState, MusicStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
@@ -295,6 +298,49 @@ fn main() {
         Beat::from(8),
         "snare".to_string(),
         "example_drums".to_string(),
+        1.0,
+        0.0,
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    )
+    .unwrap();
+
+    let parlin = parlin_noise_seq(121, 0.1, None);
+    let parlin = change_max_min(&parlin, 72.0, 88.0);
+    let parlin = f32_vec_to_pitch_vec(&parlin);
+
+    let parlin_beat = linspace(0.0, 8.1, 121);
+    let parlin_beat = f32_vec_to_beat_vec(&parlin_beat);
+
+    let start = linspace(0.0, 7.75, 32);
+    let start = f32_vec_to_beat_vec(&start);
+
+    let scale = vec![
+        PitchInOctave::from(0.0 - 4.0),
+        PitchInOctave::from(2.0 - 4.0),
+        PitchInOctave::from(4.0 - 4.0),
+        PitchInOctave::from(7.0 - 4.0),
+        PitchInOctave::from(9.0 - 4.0),
+    ];
+
+    let duration: Vec<f32> = vec![0.25; 32];
+    let duration = f32_vec_to_beat_vec(&duration);
+
+    let ph7 = phrase_operation::round_line((parlin_beat, parlin), start, duration, scale);
+
+    send_phrase(
+        ph7,
+        Beat::from(0),
+        "i".to_string(),
+        Some("example_sf2".to_string()),
         1.0,
         0.0,
         Arc::clone(&player)
