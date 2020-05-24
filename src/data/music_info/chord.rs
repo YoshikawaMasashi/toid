@@ -136,6 +136,14 @@ impl Chord {
 
         Ok(("", Chord { root, member }))
     }
+
+    pub fn to_scale(&self) -> Vec<PitchInOctave> {
+        let mut scale = vec![];
+        for &p in self.member.iter() {
+            scale.push(PitchInOctave::from(self.root.pitch + p.interval));
+        }
+        scale
+    }
 }
 
 impl From<String> for Chord {
