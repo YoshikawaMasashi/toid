@@ -1,6 +1,6 @@
 use super::super::super::data::music_info::{Note, Phrase, PitchInOctave, PitchInterval};
 
-pub fn change_pitch_in_key(phrase: Phrase, key: PitchInterval, degree: usize) -> Phrase {
+pub fn change_pitch_in_key(phrase: Phrase, key: PitchInOctave, degree: usize) -> Phrase {
     const OFFSET_KEY: [[f32; 7]; 7] = [
         [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0],
         [0.0, 2.0, 3.0, 5.0, 7.0, 9.0, 10.0],
@@ -16,7 +16,8 @@ pub fn change_pitch_in_key(phrase: Phrase, key: PitchInterval, degree: usize) ->
 
     for (_, note_vec) in phrase.notes.iter() {
         for note in note_vec.iter() {
-            let pitch_in_key: PitchInOctave = (note.pitch.sub_interval(key)).to_pitch_in_octave();
+            let pitch_in_key: PitchInOctave =
+                (note.pitch.sub_interval(PitchInterval::from(key.pitch))).to_pitch_in_octave();
             let degree_in_key: usize = if pitch_in_key.pitch < 1.0 || pitch_in_key.pitch >= 11.5 {
                 0
             } else if pitch_in_key.pitch >= 1.0 && pitch_in_key.pitch < 3.0 {
