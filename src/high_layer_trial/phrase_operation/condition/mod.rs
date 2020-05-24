@@ -32,10 +32,74 @@ pub fn pitch_larger(phrase: Phrase, pitch: Pitch) -> Vec<bool> {
     new_cond
 }
 
+pub fn pitch_larger_equal(phrase: Phrase, pitch: Pitch) -> Vec<bool> {
+    let mut new_cond = vec![];
+    for &note in phrase.note_vec().iter() {
+        new_cond.push(note.pitch >= pitch);
+    }
+    new_cond
+}
+
+pub fn pitch_smaller(phrase: Phrase, pitch: Pitch) -> Vec<bool> {
+    let mut new_cond = vec![];
+    for &note in phrase.note_vec().iter() {
+        new_cond.push(note.pitch < pitch);
+    }
+    new_cond
+}
+
+pub fn pitch_smaller_equal(phrase: Phrase, pitch: Pitch) -> Vec<bool> {
+    let mut new_cond = vec![];
+    for &note in phrase.note_vec().iter() {
+        new_cond.push(note.pitch <= pitch);
+    }
+    new_cond
+}
+
+pub fn pitch_equal(phrase: Phrase, pitch: Pitch) -> Vec<bool> {
+    let mut new_cond = vec![];
+    for &note in phrase.note_vec().iter() {
+        new_cond.push(note.pitch == pitch);
+    }
+    new_cond
+}
+
 pub fn start_larger(phrase: Phrase, start: Beat) -> Vec<bool> {
     let mut new_cond = vec![];
     for &note in phrase.note_vec().iter() {
         new_cond.push(note.start > start);
+    }
+    new_cond
+}
+
+pub fn start_larger_equal(phrase: Phrase, start: Beat) -> Vec<bool> {
+    let mut new_cond = vec![];
+    for &note in phrase.note_vec().iter() {
+        new_cond.push(note.start >= start);
+    }
+    new_cond
+}
+
+pub fn start_smaller(phrase: Phrase, start: Beat) -> Vec<bool> {
+    let mut new_cond = vec![];
+    for &note in phrase.note_vec().iter() {
+        new_cond.push(note.start < start);
+    }
+    new_cond
+}
+
+pub fn start_smaller_equal(phrase: Phrase, start: Beat) -> Vec<bool> {
+    let mut new_cond = vec![];
+    for &note in phrase.note_vec().iter() {
+        new_cond.push(note.start <= start);
+    }
+    new_cond
+}
+
+pub fn start_equal(phrase: Phrase, start: Beat) -> Vec<bool> {
+    let mut new_cond = vec![];
+    for &note in phrase.note_vec().iter() {
+        new_cond.push(note.start == start);
     }
     new_cond
 }
