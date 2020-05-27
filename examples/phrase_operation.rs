@@ -44,10 +44,10 @@ fn main() {
         ))
         .unwrap();
 
-    let phrase1 = parse_num_lang("1234321 ".to_string(), 0.0, 0.0);
-    let phrase2 = parse_num_lang("3456543 ".to_string(), 0.0, 0.0);
-    let phrase3 = parse_num_lang("1 1 1 1 ".to_string(), 0.0, 0.0);
-    let phrase4 = parse_num_lang("1234321 ".to_string(), 0.0, 0.0);
+    let phrase1 = parse_num_lang("1234321 ".to_string(), 1.0, 0.0);
+    let phrase2 = parse_num_lang("3456543 ".to_string(), 1.0, 0.0);
+    let phrase3 = parse_num_lang("1 1 1 1 ".to_string(), 1.0, 0.0);
+    let phrase4 = parse_num_lang("1234321 ".to_string(), 1.0, 0.0);
 
     let phrase5 = concat(concat(concat(phrase1, phrase2), phrase3), phrase4);
     let phrase6 = delay(phrase5.clone(), Beat::from(4));
@@ -58,7 +58,7 @@ fn main() {
     let phrase11 = marge(phrase8, phrase10);
 
     let parlin = parlin_noise_seq(121, 0.1, None);
-    let parlin = change_max_min(&parlin, 72.0, 84.0);
+    let parlin = change_max_min(&parlin, 84.0, 96.0);
     let parlin = f32_vec_to_pitch_vec(&parlin);
 
     let parlin_beat = linspace(0.0, 8.1, 121);
@@ -86,7 +86,7 @@ fn main() {
         "phrase11".to_string(),
         Instrument::SF2(String::from("example_sf2"), 0),
         1.0,
-        -1.0,
+        0.0,
         Arc::clone(&player)
             as Arc<
                 dyn Player<
@@ -106,7 +106,7 @@ fn main() {
         "phrase12".to_string(),
         Instrument::SF2(String::from("example_sf2"), 0),
         1.0,
-        -1.0,
+        0.0,
         Arc::clone(&player)
             as Arc<
                 dyn Player<

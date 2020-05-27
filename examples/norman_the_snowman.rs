@@ -45,14 +45,14 @@ fn main() {
         >)
     .unwrap();
 
-    let ph1 = parse_num_lang("53".to_string().repeat(32), 2.0, -4.0);
+    let ph1 = parse_num_lang("53".to_string().repeat(32), 3.0, -4.0);
     let ph2 = parse_num_lang(
         format!(
             "{}{}",
             "97".to_string().repeat(16),
             "86".to_string().repeat(16)
         ),
-        1.0,
+        2.0,
         -4.0,
     );
 
@@ -78,7 +78,7 @@ fn main() {
 
     send_num_lang(
         "3121".to_string(),
-        1.0,
+        2.0,
         -4.0,
         Beat::from(0),
         "b".to_string(),
@@ -100,7 +100,7 @@ fn main() {
 
     send_num_lang(
         "1     5 3       ".to_string(),
-        3.0,
+        4.0,
         -4.0,
         Beat::from(0),
         "c".to_string(),
@@ -127,7 +127,7 @@ fn main() {
             "5".to_string().repeat(16),
             "4".to_string().repeat(32),
         ),
-        -2.0,
+        -1.0,
         -4.0,
         Beat::from(6),
         "d".to_string(),
@@ -149,7 +149,7 @@ fn main() {
 
     send_num_lang(
         "2  1          1 5           5 432  1          1 3       4 3 2 1 ".to_string(),
-        -1.0,
+        0.0,
         -4.0,
         Beat::from(0),
         "e".to_string(),
@@ -171,7 +171,7 @@ fn main() {
 
     send_num_lang(
         "2  1          1 5           5 432  1          1 3       4 3 2 1 ".to_string(),
-        0.0,
+        1.0,
         -4.0,
         Beat::from(0),
         "f".to_string(),
@@ -193,7 +193,7 @@ fn main() {
 
     send_num_lang(
         "2  1          1 5           5 432  1          1 3       4 3 2 1 ".to_string(),
-        1.0,
+        2.0,
         -4.0,
         Beat::from(0),
         "g".to_string(),
@@ -215,7 +215,7 @@ fn main() {
 
     let ph3 = parse_num_lang(
         "2  1          1 5           5 432  1          1 3       4 3 2 1 ".to_string(),
-        0.0,
+        2.0,
         -4.0,
     );
     let ph4 = phrase_operation::change_pitch_in_key(ph3, PitchInOctave { pitch: -4.0 }, 4);
@@ -239,7 +239,7 @@ fn main() {
     )
     .unwrap();
 
-    let ph5 = parse_num_lang("12356".to_string().repeat(8), 1.0, -4.0);
+    let ph5 = parse_num_lang("12356".to_string().repeat(8), 2.0, -4.0);
     let ph6 = phrase_operation::shuffle_start(ph5);
     send_phrase(
         ph6,
@@ -320,7 +320,7 @@ fn main() {
     .unwrap();
 
     let parlin = parlin_noise_seq(121, 0.1, None);
-    let parlin = change_max_min(&parlin, 72.0, 88.0);
+    let parlin = change_max_min(&parlin, 88.0, 100.0);
     let parlin = f32_vec_to_pitch_vec(&parlin);
 
     let parlin_beat = linspace(0.0, 8.1, 121);
