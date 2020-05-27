@@ -4,4 +4,6 @@ use serde::{Deserialize, Serialize};
 pub enum Instrument {
     SF2(String, usize),
     Sin,
+    Tri,
+    Saw,
 }

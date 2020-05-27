@@ -1,5 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::f64::consts::PI;
+use std::f32::consts::PI;
 use std::iter::Iterator;
 use std::ops::Bound::{Excluded, Included};
 use std::sync::Arc;
@@ -8,6 +8,16 @@ use log::error;
 
 use super::super::data::music_info::{Beat, Instrument, Note, Track};
 use super::super::resource_management::resource_manager::ResourceManager;
+
+fn tri(x: f32) -> f32 {
+    let x = (x - 0.5 * PI) % (2.0 * PI);
+    (x - PI).abs() / PI * 2.0 - 1.0
+}
+
+fn saw(x: f32) -> f32 {
+    let x = x % (2.0 * PI);
+    x / PI - 1.0
+}
 
 pub struct TrackPlayer {
     wave_length: u64,
@@ -108,8 +118,60 @@ impl TrackPlayer {
                         for i in start_idx..end_idx {
                             let x = (cum_current_samples + i as u64 - cum_start_samples) as f32
                                 * herts_par_sample;
-                            let x = x * 2.0 * (PI as f32);
+                            let x = x * 2.0 * PI;
                             let addition = x.sin() * 0.3 * track.vol;
+                            left_wave[i] = left_wave[i] + (1.0 - track.pan) * addition;
+                            right_wave[i] = right_wave[i] + (1.0 + track.pan) * addition;
+                        }
+                    }
+                }
+            }
+            Instrument::Tri => {
+                for (&cum_end_samples, notes) in self.played_notes.iter() {
+                    for (cum_start_samples, note) in notes.iter() {
+                        let herts_par_sample = note.pitch.get_hertz() / 44100.0;
+                        let start_idx = if *cum_start_samples <= *cum_current_samples {
+                            0
+                        } else {
+                            (cum_start_samples - cum_current_samples) as usize
+                        };
+                        let end_idx = if cum_end_samples >= cum_next_samples {
+                            self.wave_length as usize
+                        } else {
+                            (cum_end_samples - cum_current_samples) as usize
+                        };
+
+                        for i in start_idx..end_idx {
+                            let x = (cum_current_samples + i as u64 - cum_start_samples) as f32
+                                * herts_par_sample;
+                            let x = x * 2.0 * (PI as f32);
+                            let addition = tri(x) * 0.3 * track.vol;
+                            left_wave[i] = left_wave[i] + (1.0 - track.pan) * addition;
+                            right_wave[i] = right_wave[i] + (1.0 + track.pan) * addition;
+                        }
+                    }
+                }
+            }
+            Instrument::Saw => {
+                for (&cum_end_samples, notes) in self.played_notes.iter() {
+                    for (cum_start_samples, note) in notes.iter() {
+                        let herts_par_sample = note.pitch.get_hertz() / 44100.0;
+                        let start_idx = if *cum_start_samples <= *cum_current_samples {
+                            0
+                        } else {
+                            (cum_start_samples - cum_current_samples) as usize
+                        };
+                        let end_idx = if cum_end_samples >= cum_next_samples {
+                            self.wave_length as usize
+                        } else {
+                            (cum_end_samples - cum_current_samples) as usize
+                        };
+
+                        for i in start_idx..end_idx {
+                            let x = (cum_current_samples + i as u64 - cum_start_samples) as f32
+                                * herts_par_sample;
+                            let x = x * 2.0 * (PI as f32);
+                            let addition = saw(x) * 0.3 * track.vol;
                             left_wave[i] = left_wave[i] + (1.0 - track.pan) * addition;
                             right_wave[i] = right_wave[i] + (1.0 + track.pan) * addition;
                         }
