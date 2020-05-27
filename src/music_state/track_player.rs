@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use log::error;
 
-use super::super::data::music_info::{Beat, Note, Track};
+use super::super::data::music_info::{Beat, Instrument, Note, Track};
 use super::super::resource_management::resource_manager::ResourceManager;
 
 pub struct TrackPlayer {
@@ -89,8 +89,8 @@ impl TrackPlayer {
         }
 
         // self.played_notesのを鳴らす
-        match &track.sf2_name {
-            None => {
+        match &track.instrument {
+            Instrument::Sin => {
                 for (&cum_end_samples, notes) in self.played_notes.iter() {
                     for (cum_start_samples, note) in notes.iter() {
                         let herts_par_sample = note.pitch.get_hertz() / 44100.0;
@@ -116,7 +116,7 @@ impl TrackPlayer {
                     }
                 }
             }
-            Some(sf2_name) => {
+            Instrument::SF2(sf2_name, preset_idx) => {
                 let sf2 = resource_manager.get_sf2(sf2_name.to_string());
                 match sf2 {
                     Ok(sf2) => {
@@ -141,7 +141,7 @@ impl TrackPlayer {
                                     as usize;
 
                                 let sample_data = sf2.get_samples(
-                                    0,
+                                    *preset_idx,
                                     note.pitch.get_u8_pitch(),
                                     start_idx_for_sample,
                                     end_idx_for_sample,

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use toid::data::music_info::{Beat, PitchInOctave};
+use toid::data::music_info::{Beat, Instrument, PitchInOctave};
 use toid::high_layer_trial::music_language::num_lang::parse_num_lang;
 use toid::high_layer_trial::music_language::send_phrase::send_phrase;
 use toid::high_layer_trial::num::{
@@ -84,7 +84,7 @@ fn main() {
         phrase11,
         Beat::from(0),
         "phrase11".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 0),
         1.0,
         -1.0,
         Arc::clone(&player)
@@ -104,7 +104,7 @@ fn main() {
         phrase12,
         Beat::from(0),
         "phrase12".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 0),
         1.0,
         -1.0,
         Arc::clone(&player)

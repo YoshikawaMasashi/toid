@@ -5,7 +5,7 @@ use std::sync::{Arc, RwLock};
 use super::generator::PresetGenerator;
 
 pub struct Preset {
-    name: String,
+    pub name: String,
     generators: Vec<Arc<PresetGenerator>>,
 
     min_key_range_of_gen: Option<Arc<BTreeMap<u8, HashSet<usize>>>>,

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use toid::data::music_info::{Beat, PitchInOctave};
+use toid::data::music_info::{Beat, Instrument, PitchInOctave};
 use toid::high_layer_trial::music_language::num_lang::{parse_num_lang, send_num_lang};
 use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
 use toid::high_layer_trial::music_language::send_phrase::send_phrase;
@@ -26,6 +26,12 @@ fn main() {
         .get_resource_manager()
         .register(String::from("./toid-sample-resource/drums/drums.toml"))
         .unwrap();
+
+    player
+        .get_resource_manager()
+        .get_sf2(String::from("example_sf2"))
+        .unwrap()
+        .print_preset_names();
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
         as Arc<
@@ -54,7 +60,7 @@ fn main() {
         phrase_operation::marge(ph1, ph2),
         Beat::from(0),
         "a".to_string(),
-        Some("example_sf2".to_string()),
+        Instrument::SF2(String::from("example_sf2"), 2),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -76,7 +82,7 @@ fn main() {
         -4.0,
         Beat::from(0),
         "b".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 0),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -98,7 +104,7 @@ fn main() {
         -4.0,
         Beat::from(0),
         "c".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 0),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -123,9 +129,9 @@ fn main() {
         ),
         -2.0,
         -4.0,
-        Beat::from(0),
+        Beat::from(6),
         "d".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 0),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -147,7 +153,7 @@ fn main() {
         -4.0,
         Beat::from(0),
         "e".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 1),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -169,7 +175,7 @@ fn main() {
         -4.0,
         Beat::from(0),
         "f".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 1),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -191,7 +197,7 @@ fn main() {
         -4.0,
         Beat::from(0),
         "g".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 1),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -217,7 +223,7 @@ fn main() {
         ph4,
         Beat::from(0),
         "h".to_string(),
-        Some("example_sf2".to_string()),
+        Instrument::SF2(String::from("example_sf2"), 1),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -239,9 +245,9 @@ fn main() {
         ph6,
         Beat::from(0),
         "i".to_string(),
-        Some("example_sf2".to_string()),
+        Instrument::SF2(String::from("example_sf2"), 10),
         1.0,
-        0.0,
+        0.7,
         Arc::clone(&player)
             as Arc<
                 dyn Player<
@@ -340,10 +346,10 @@ fn main() {
     send_phrase(
         ph7,
         Beat::from(0),
-        "i".to_string(),
-        Some("example_sf2".to_string()),
-        1.0,
-        0.0,
+        "j".to_string(),
+        Instrument::SF2(String::from("example_sf2"), 13),
+        0.3,
+        -0.7,
         Arc::clone(&player)
             as Arc<
                 dyn Player<

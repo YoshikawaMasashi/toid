@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use toid::data::music_info::Beat;
+use toid::data::music_info::{Beat, Instrument};
 use toid::high_layer_trial::music_language::num_lang::send_num_lang;
 use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
 use toid::music_state::states::{MusicState, MusicStateEvent, SchedulingStateEvent};
@@ -61,7 +61,7 @@ fn main() {
         0.0,
         Beat::from(0),
         "main".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 0),
         1.0,
         -0.5,
         Arc::clone(&player)
@@ -83,7 +83,7 @@ fn main() {
         0.0,
         Beat::from(0),
         "sub".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 0),
         0.7,
         0.5,
         Arc::clone(&player)
@@ -125,7 +125,7 @@ fn main() {
         0.0,
         Beat::from(8),
         "main".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 0),
         1.0,
         -0.5,
         Arc::clone(&player)
@@ -147,7 +147,7 @@ fn main() {
         0.0,
         Beat::from(8),
         "sub".to_string(),
-        Some(String::from("example_sf2")),
+        Instrument::SF2(String::from("example_sf2"), 0),
         0.7,
         0.5,
         Arc::clone(&player)

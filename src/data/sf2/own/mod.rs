@@ -48,8 +48,25 @@ impl SF2 {
     ) -> Result<Vec<f32>, String> {
         self.presets
             .get(preset_idx)
-            .ok_or("get failed")?
+            .ok_or("invalid preset_idx")?
             .get_samples(key, start, end)
+    }
+
+    pub fn get_preset_name(&self, preset_idx: usize) -> Result<String, String> {
+        let name = self
+            .presets
+            .get(preset_idx)
+            .ok_or("invalid preset_idx")?
+            .name
+            .clone();
+        Ok(name)
+    }
+
+    pub fn print_preset_names(&self) {
+        for preset_idx in 0..self.presets.len() {
+            let name = self.get_preset_name(preset_idx).unwrap();
+            println!("{} {}", preset_idx, name);
+        }
     }
 }
 
