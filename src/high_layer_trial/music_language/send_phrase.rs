@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use super::super::super::data::music_info::{Beat, Phrase, SamplePhrase, SampleTrack, Track};
+use super::super::super::data::music_info::{
+    Beat, Instrument, Phrase, SamplePhrase, SampleTrack, Track,
+};
 use super::super::super::music_state::states::{MusicState, MusicStateEvent, SectionStateEvent};
 use super::super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::super::players::player::Player;
@@ -9,7 +11,7 @@ pub fn send_phrase(
     phrase: Phrase,
     section_beat: Beat,
     track_name: String,
-    sf2_name: Option<String>,
+    instrument: Instrument,
     vol: f32,
     pan: f32,
     player: Arc<
@@ -18,7 +20,7 @@ pub fn send_phrase(
 ) -> Result<(), String> {
     let track = Track {
         phrase,
-        sf2_name,
+        instrument,
         vol,
         pan,
     };
