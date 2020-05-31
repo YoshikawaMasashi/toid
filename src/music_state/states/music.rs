@@ -18,6 +18,24 @@ pub struct MusicState {
 }
 
 impl MusicState {
+    fn clear(&self) -> Self {
+        let mut section_map = BTreeMap::new();
+        section_map.insert(Beat::from(0), Arc::new(SectionState::new()));
+        Self {
+            scheduling: Arc::new(SchedulingState::new()),
+            section_map,
+        }
+    }
+
+    fn clear_sections(&self) -> Self {
+        let mut section_map = BTreeMap::new();
+        section_map.insert(Beat::from(0), Arc::new(SectionState::new()));
+        Self {
+            scheduling: self.scheduling.clone(),
+            section_map,
+        }
+    }
+
     fn section_state_event(&self, beat: Beat, e: SectionStateEvent) -> Self {
         let mut new_section_map = self.section_map.clone();
 
@@ -87,6 +105,8 @@ impl State<MusicStateEvent> for MusicState {
             MusicStateEvent::SectionStateEvent(beat, e) => self.section_state_event(beat, e),
             MusicStateEvent::SchedulingStateEvent(e) => self.scheduling_state_event(e),
             MusicStateEvent::NewSection(beat) => self.new_section(beat),
+            MusicStateEvent::Clear => self.clear(),
+            MusicStateEvent::ClearSections => self.clear_sections(),
         }
     }
 }
@@ -111,6 +131,8 @@ pub enum MusicStateEvent {
     SectionStateEvent(Beat, SectionStateEvent),
     SchedulingStateEvent(SchedulingStateEvent),
     NewSection(Beat),
+    Clear,
+    ClearSections,
 }
 
 impl serialize::Serialize<MusicStateEvent> for MusicStateEvent {
