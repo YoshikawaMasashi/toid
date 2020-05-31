@@ -12,4 +12,6 @@ pub trait Player<S, E, R: StoreReader<O, RE, S, E>, O, RE> {
     fn send_event(&self, event: E) -> Result<(), String>;
     fn send_reader_event(&self, event: RE) -> Result<(), String>;
     fn send_resource_event(&self, event: ResourceManagerEvent) -> Result<(), String>;
+    fn save_state(&self, path: String) -> Result<(), String>;
+    fn load_state(&self, path: String) -> Result<(), String>;
 }
