@@ -1,4 +1,6 @@
 use std::borrow::Cow;
+use std::fs::File;
+use std::io::{Read, Write};
 use std::marker::PhantomData;
 use std::marker::{Send, Sync};
 use std::sync::Arc;
@@ -107,7 +109,7 @@ impl<
 }
 
 impl<
-        S: State<E>,
+        S: State<E> + Serialize<S>,
         E: Sized + Serialize<E>,
         R: StoreReader<O, RE, S, E>,
         O,
@@ -160,6 +162,24 @@ impl<
             }
             None => Err("sender have not been prepared yet".to_string()),
         }
+    }
+
+    fn save_state(&self, path: String) -> Result<(), String> {
+        let serialized_state: String = self.store.get_state()?.serialize()?;
+        let mut file = File::create(path).or_else(|e| Err(e.to_string()))?;
+        file.write_all(serialized_state.as_bytes())
+            .or_else(|e| Err(e.to_string()))?;
+        Ok(())
+    }
+
+    fn load_state(&self, path: String) -> Result<(), String> {
+        let mut file = File::open(path).or_else(|e| Err(e.to_string()))?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .or_else(|e| Err(e.to_string()))?;
+        let state: S = S::deserialize(contents)?;
+        self.store.set_state(state)?;
+        Ok(())
     }
 }
 

@@ -1,3 +1,5 @@
+use std::fs::File;
+use std::io::{Read, Write};
 use std::marker::PhantomData;
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -33,7 +35,7 @@ impl<S: State<E>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE: S
     }
 }
 
-impl<S: State<E>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE>
+impl<S: State<E> + Serialize<S>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE>
     Player<S, E, R, O, RE> for LocalPlayer<S, E, R, O, RE>
 {
     fn get_store(&self) -> Arc<Store<S, E>> {
@@ -63,6 +65,24 @@ impl<S: State<E>, E: Sized + Serialize<E>, R: StoreReader<O, RE, S, E>, O, RE>
 
     fn send_resource_event(&self, event: ResourceManagerEvent) -> Result<(), String> {
         self.resource_manager.apply(event)?;
+        Ok(())
+    }
+
+    fn save_state(&self, path: String) -> Result<(), String> {
+        let serialized_state: String = self.store.get_state()?.serialize()?;
+        let mut file = File::create(path).or_else(|e| Err(e.to_string()))?;
+        file.write_all(serialized_state.as_bytes())
+            .or_else(|e| Err(e.to_string()))?;
+        Ok(())
+    }
+
+    fn load_state(&self, path: String) -> Result<(), String> {
+        let mut file = File::open(path).or_else(|e| Err(e.to_string()))?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .or_else(|e| Err(e.to_string()))?;
+        let state: S = S::deserialize(contents)?;
+        self.store.set_state(state)?;
         Ok(())
     }
 }

@@ -6,7 +6,8 @@ use itertools::izip;
 use super::super::super::data::music_info::{Beat, Note, Phrase, Pitch, PitchInOctave};
 
 pub fn round_line(
-    line: (Vec<Beat>, Vec<Pitch>),
+    line_beat: Vec<Beat>,
+    line_pitch: Vec<Pitch>,
     start: Vec<Beat>,
     duration: Vec<Beat>,
     scale: Vec<PitchInOctave>,
@@ -14,7 +15,7 @@ pub fn round_line(
     let mut phrase = Phrase::new();
 
     let mut line_map: BTreeMap<Beat, Pitch> = BTreeMap::new();
-    for (&b, &p) in line.0.iter().zip(line.1.iter()) {
+    for (&b, &p) in line_beat.iter().zip(line_pitch.iter()) {
         line_map.insert(b, p);
     }
     let line_map = line_map;
