@@ -9,6 +9,7 @@ use super::{PitchInOctave, PitchInterval};
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Chord {
     root: PitchInOctave,
+    onroot: PitchInOctave,
     member: Vec<PitchInterval>,
 }
 
@@ -134,7 +135,7 @@ impl Chord {
             }
         }
 
-        Ok(("", Chord { root, member }))
+        Ok(("", Chord { root, onroot: root, member }))
     }
 
     pub fn to_scale(&self) -> Vec<PitchInOctave> {
