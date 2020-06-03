@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::super::data::music_info::beat::Beat;
+use super::super::super::data::music_info::Beat;
 use super::super::super::state_management::serialize;
 use super::super::super::state_management::state::State;
 
