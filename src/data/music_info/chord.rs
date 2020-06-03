@@ -182,7 +182,7 @@ impl From<Vec<f32>> for Chord {
         Chord {
             root: PitchInOctave::from(scale_vec[0]),
             onroot: PitchInOctave::from(scale_vec[0]),
-            member
+            member,
         }
     }
 }

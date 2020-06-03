@@ -130,7 +130,7 @@ impl From<Vec<f32>> for Scale {
         }
         Self {
             root: PitchInOctave::from(scale_vec[0]),
-            member
+            member,
         }
     }
 }
