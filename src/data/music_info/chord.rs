@@ -173,6 +173,20 @@ impl From<String> for Chord {
     }
 }
 
+impl From<Vec<f32>> for Chord {
+    fn from(scale_vec: Vec<f32>) -> Self {
+        let mut member = BTreeSet::new();
+        for mem in scale_vec.iter() {
+            member.insert(PitchInterval::from(mem - scale_vec[0]));
+        }
+        Chord {
+            root: PitchInOctave::from(scale_vec[0]),
+            onroot: PitchInOctave::from(scale_vec[0]),
+            member
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

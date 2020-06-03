@@ -122,6 +122,19 @@ impl From<(PitchInOctave, BTreeSet<PitchInterval>)> for Scale {
     }
 }
 
+impl From<Vec<f32>> for Scale {
+    fn from(scale_vec: Vec<f32>) -> Self {
+        let mut member = BTreeSet::new();
+        for mem in scale_vec.iter() {
+            member.insert(PitchInterval::from(mem - scale_vec[0]));
+        }
+        Self {
+            root: PitchInOctave::from(scale_vec[0]),
+            member
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
