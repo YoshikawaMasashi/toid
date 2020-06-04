@@ -332,7 +332,13 @@ fn main() {
     let duration: Vec<f32> = vec![0.25; 32];
     let duration = f32_vec_to_beat_vec(&duration);
 
-    let ph7 = phrase_operation::round_line(parlin_beat, parlin, start, duration, Scale::from("AbMajPenta".to_string()));
+    let ph7 = phrase_operation::round_line(
+        parlin_beat,
+        parlin,
+        start,
+        duration,
+        Scale::from("AbMajPenta".to_string()),
+    );
     let ph7 = phrase_operation::sixteen_shuffle(ph7);
 
     send_phrase(
