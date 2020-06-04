@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use toid::data::music_info::{Beat, Instrument, PitchInOctave};
+use toid::data::music_info::{Beat, Instrument, PitchInOctave, Scale};
 use toid::high_layer_trial::music_language::num_lang::{parse_num_lang, send_num_lang};
 use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
 use toid::high_layer_trial::music_language::send_phrase::send_phrase;
@@ -329,18 +329,10 @@ fn main() {
     let start = linspace(0.0, 7.75, 32);
     let start = f32_vec_to_beat_vec(&start);
 
-    let scale = vec![
-        PitchInOctave::from(0.0 - 4.0),
-        PitchInOctave::from(2.0 - 4.0),
-        PitchInOctave::from(4.0 - 4.0),
-        PitchInOctave::from(7.0 - 4.0),
-        PitchInOctave::from(9.0 - 4.0),
-    ];
-
     let duration: Vec<f32> = vec![0.25; 32];
     let duration = f32_vec_to_beat_vec(&duration);
 
-    let ph7 = phrase_operation::round_line(parlin_beat, parlin, start, duration, scale);
+    let ph7 = phrase_operation::round_line(parlin_beat, parlin, start, duration, Scale::from("AbMajPenta".to_string()));
     let ph7 = phrase_operation::sixteen_shuffle(ph7);
 
     send_phrase(

@@ -3,14 +3,14 @@ use std::ops::Bound::{Excluded, Included, Unbounded};
 
 use itertools::izip;
 
-use super::super::super::data::music_info::{Beat, Note, Phrase, Pitch, PitchInOctave};
+use super::super::super::data::music_info::{Beat, Note, Phrase, Pitch, Scale};
 
 pub fn round_line(
     line_beat: Vec<Beat>,
     line_pitch: Vec<Pitch>,
     start: Vec<Beat>,
     duration: Vec<Beat>,
-    scale: Vec<PitchInOctave>,
+    scale: Scale,
 ) -> Phrase {
     let mut phrase = Phrase::new();
 
@@ -21,7 +21,7 @@ pub fn round_line(
     let line_map = line_map;
 
     let mut scale_set: BTreeSet<Pitch> = BTreeSet::new();
-    for &p in scale.iter() {
+    for &p in scale.to_pitch_in_octave_vec().iter() {
         for i in 0..10 {
             scale_set.insert(Pitch::from(p.pitch + 12.0 * i as f32));
         }
