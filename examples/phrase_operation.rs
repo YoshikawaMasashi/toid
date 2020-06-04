@@ -70,7 +70,13 @@ fn main() {
     let duration: Vec<f32> = vec![0.5; 16];
     let duration = f32_vec_to_beat_vec(&duration);
 
-    let phrase12 = round_line(parlin_beat, parlin, start, duration, Scale::from("CMajPenta".to_string()));
+    let phrase12 = round_line(
+        parlin_beat,
+        parlin,
+        start,
+        duration,
+        Scale::from("CMajPenta".to_string()),
+    );
 
     send_phrase(
         phrase11,

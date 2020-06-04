@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::ops::Bound::{Included, Unbounded};
 
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +8,7 @@ use super::{Beat, Chord};
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ChordProgression {
     chords: BTreeMap<Beat, Chord>,
-    length: Beat,
+    pub length: Beat,
 }
 
 impl ChordProgression {
@@ -32,6 +33,16 @@ impl ChordProgression {
             chords: self.chords.clone(),
             length,
         }
+    }
+
+    pub fn get_chord(&self, beat: Beat) -> Chord {
+        self.chords
+            .range((Unbounded, Included(&beat)))
+            .rev()
+            .next()
+            .unwrap()
+            .1
+            .clone()
     }
 }
 

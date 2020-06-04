@@ -6,12 +6,12 @@ use nom::character::complete::one_of;
 use nom::IResult;
 use serde::{Deserialize, Serialize};
 
-use super::{PitchInOctave, PitchInterval, Scale};
+use super::{Pitch, PitchInOctave, PitchInterval, Scale};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Chord {
     root: PitchInOctave,
-    onroot: PitchInOctave,
+    pub onroot: PitchInOctave,
     member: BTreeSet<PitchInterval>,
 }
 
@@ -164,6 +164,20 @@ impl Chord {
 
     pub fn to_scale(&self) -> Scale {
         Scale::from((self.root, self.member.clone()))
+    }
+
+    pub fn get_pitchs(self, min_pitch: Pitch, max_pitch: Pitch) -> Vec<Pitch> {
+        let mut ret_pitchs: BTreeSet<Pitch> = BTreeSet::new();
+        for &interval in self.member.iter() {
+            let base_pitch = PitchInOctave::from(self.root.pitch + interval.interval).pitch;
+            for i in 0..10 {
+                let pitch = Pitch::from(base_pitch + 12.0 * i as f32);
+                if pitch >= min_pitch && pitch <= max_pitch {
+                    ret_pitchs.insert(pitch);
+                }
+            }
+        }
+        ret_pitchs.iter().cloned().collect()
     }
 }
 
