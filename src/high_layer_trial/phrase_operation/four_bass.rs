@@ -11,5 +11,6 @@ pub fn four_bass(prog: ChordProgression) -> Phrase {
             start: Beat::from(i as i32),
         });
     }
+    ph = ph.set_length(prog.length);
     ph
 }

@@ -14,5 +14,6 @@ pub fn four_comp(prog: ChordProgression, min_pitch: Pitch, max_pitch: Pitch) -> 
             });
         }
     }
+    ph = ph.set_length(prog.length);
     ph
 }
