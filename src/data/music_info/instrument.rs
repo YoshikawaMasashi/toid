@@ -6,4 +6,5 @@ pub enum Instrument {
     Sin,
     Tri,
     Saw,
+    Sample(String),
 }

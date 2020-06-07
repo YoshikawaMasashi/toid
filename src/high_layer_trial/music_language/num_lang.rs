@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
-use super::super::super::data::music_info::{Beat, Instrument, Note, Phrase, Pitch, PitchInterval};
+use super::super::super::data::music_info::{
+    Beat, Instrument, Phrase, Pitch, PitchInterval, PitchNote,
+};
 use super::super::super::music_state::states::{MusicState, MusicStateEvent};
 use super::super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::super::players::player::Player;
-use super::send_phrase::send_phrase;
+use super::send_phrase::send_pitch_phrase;
 
-pub fn parse_num_lang(s: String, octave: f32, key: f32) -> Phrase {
+pub fn parse_num_lang(s: String, octave: f32, key: f32) -> Phrase<PitchNote> {
     let mut now: Beat = Beat::from(0);
     let length_unit: Beat = Beat::from(0.5);
     let mut phrase = Phrase::new();
@@ -31,7 +33,7 @@ pub fn parse_num_lang(s: String, octave: f32, key: f32) -> Phrase {
 
         match pitch {
             Some(pitch) => {
-                let note = Note {
+                let note = PitchNote {
                     pitch: pitch.add_interval(PitchInterval {
                         interval: pitch_offset,
                     }),
@@ -61,7 +63,7 @@ pub fn send_num_lang(
         dyn Player<MusicState, MusicStateEvent, WaveReader, (Vec<i16>, Vec<i16>), WaveReaderEvent>,
     >,
 ) -> Result<(), String> {
-    send_phrase(
+    send_pitch_phrase(
         parse_num_lang(phrase_string, octave, key),
         section_beat,
         phrase_name,

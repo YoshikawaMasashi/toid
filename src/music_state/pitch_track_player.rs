@@ -4,9 +4,9 @@ use std::iter::Iterator;
 use std::ops::Bound::{Excluded, Included};
 use std::sync::Arc;
 
-use log::error;
+use log::{error, warn};
 
-use super::super::data::music_info::{Beat, Instrument, Note, Track};
+use super::super::data::music_info::{Beat, Instrument, PitchNote, Track};
 use super::super::resource_management::resource_manager::ResourceManager;
 
 fn tri(x: f32) -> f32 {
@@ -19,12 +19,12 @@ fn saw(x: f32) -> f32 {
     x / PI - 1.0
 }
 
-pub struct TrackPlayer {
+pub struct PitchTrackPlayer {
     wave_length: u64,
-    played_notes: BTreeMap<u64, Vec<(u64, Note)>>,
+    played_notes: BTreeMap<u64, Vec<(u64, PitchNote)>>,
 }
 
-impl TrackPlayer {
+impl PitchTrackPlayer {
     pub fn new() -> Self {
         Self {
             wave_length: 512,
@@ -38,7 +38,7 @@ impl TrackPlayer {
 
     pub fn play(
         &mut self,
-        track: &Track,
+        track: &Track<PitchNote>,
         resource_manager: Arc<ResourceManager>,
         cum_current_samples: &u64,
         cum_current_beats: &Beat,
@@ -231,6 +231,7 @@ impl TrackPlayer {
                     }
                 }
             }
+            _ => warn!("instrument is not for pitch track"),
         };
 
         // 使ったself.played_notesのノートを消す
@@ -243,7 +244,7 @@ impl TrackPlayer {
 
     fn register_notes(
         &mut self,
-        notes: &BTreeSet<Note>,
+        notes: &BTreeSet<PitchNote>,
         current_bpm: &f32,
         cum_start_samples: &u64,
     ) {

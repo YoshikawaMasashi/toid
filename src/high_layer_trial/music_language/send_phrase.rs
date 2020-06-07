@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
 use super::super::super::data::music_info::{
-    Beat, Instrument, Phrase, SamplePhrase, SampleTrack, Track,
+    Beat, Instrument, Phrase, PitchNote, SampleNote, Track,
 };
 use super::super::super::music_state::states::{MusicState, MusicStateEvent, SectionStateEvent};
 use super::super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::super::players::player::Player;
 
-pub fn send_phrase(
-    phrase: Phrase,
+pub fn send_pitch_phrase(
+    phrase: Phrase<PitchNote>,
     section_beat: Beat,
     track_name: String,
     instrument: Instrument,
@@ -26,13 +26,13 @@ pub fn send_phrase(
     };
     player.send_event(MusicStateEvent::SectionStateEvent(
         section_beat,
-        SectionStateEvent::NewTrack(track_name.clone(), track),
+        SectionStateEvent::NewPitchTrack(track_name.clone(), track),
     ))?;
     Ok(())
 }
 
 pub fn send_sample_phrase(
-    phrase: SamplePhrase,
+    phrase: Phrase<SampleNote>,
     section_beat: Beat,
     track_name: String,
     sample_name: String,
@@ -42,9 +42,9 @@ pub fn send_sample_phrase(
         dyn Player<MusicState, MusicStateEvent, WaveReader, (Vec<i16>, Vec<i16>), WaveReaderEvent>,
     >,
 ) -> Result<(), String> {
-    let track = SampleTrack {
+    let track = Track {
         phrase,
-        sample_name,
+        instrument: Instrument::Sample(sample_name),
         vol,
         pan,
     };

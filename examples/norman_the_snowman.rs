@@ -3,7 +3,7 @@ use std::sync::Arc;
 use toid::data::music_info::{Beat, Instrument, PitchInOctave, Scale};
 use toid::high_layer_trial::music_language::num_lang::{parse_num_lang, send_num_lang};
 use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
-use toid::high_layer_trial::music_language::send_phrase::send_phrase;
+use toid::high_layer_trial::music_language::send_phrase::send_pitch_phrase;
 use toid::high_layer_trial::num::{
     change_max_min, f32_vec_to_beat_vec, f32_vec_to_pitch_vec, linspace, parlin_noise_seq,
 };
@@ -56,7 +56,7 @@ fn main() {
         -4.0,
     );
 
-    send_phrase(
+    send_pitch_phrase(
         phrase_operation::marge(ph1, ph2),
         Beat::from(0),
         "a".to_string(),
@@ -219,7 +219,7 @@ fn main() {
         -4.0,
     );
     let ph4 = phrase_operation::change_pitch_in_key(ph3, PitchInOctave { pitch: -4.0 }, 4);
-    send_phrase(
+    send_pitch_phrase(
         ph4,
         Beat::from(0),
         "h".to_string(),
@@ -241,7 +241,7 @@ fn main() {
 
     let ph5 = parse_num_lang("12356".to_string().repeat(8), 2.0, -4.0);
     let ph6 = phrase_operation::shuffle_start(ph5);
-    send_phrase(
+    send_pitch_phrase(
         ph6,
         Beat::from(0),
         "i".to_string(),
@@ -341,7 +341,7 @@ fn main() {
     );
     let ph7 = phrase_operation::sixteen_shuffle(ph7);
 
-    send_phrase(
+    send_pitch_phrase(
         ph7,
         Beat::from(0),
         "j".to_string(),

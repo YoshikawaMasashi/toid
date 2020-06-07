@@ -1,17 +1,18 @@
 use serde::{Deserialize, Serialize};
 
 use super::Instrument;
+use super::Note;
 use super::Phrase;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct Track {
-    pub phrase: Phrase,
+pub struct Track<N: Note + Ord + Eq + Clone> {
+    pub phrase: Phrase<N>,
     pub instrument: Instrument,
     pub vol: f32, // 0.0 ~ 1.0
     pub pan: f32, // -1.0(L) ~ 1.0(R)
 }
 
-impl Track {
+impl<N: Note + Ord + Eq + Clone> Track<N> {
     pub fn new() -> Self {
         Self {
             phrase: Phrase::new(),
@@ -21,7 +22,7 @@ impl Track {
         }
     }
 
-    pub fn set_phrase(&self, phrase: Phrase) -> Self {
+    pub fn set_phrase(&self, phrase: Phrase<N>) -> Self {
         Self {
             phrase,
             instrument: self.instrument.clone(),

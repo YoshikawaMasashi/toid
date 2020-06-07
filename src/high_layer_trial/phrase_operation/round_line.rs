@@ -3,7 +3,7 @@ use std::ops::Bound::{Excluded, Included, Unbounded};
 
 use itertools::izip;
 
-use super::super::super::data::music_info::{Beat, Note, Phrase, Pitch, Scale};
+use super::super::super::data::music_info::{Beat, Phrase, Pitch, PitchNote, Scale};
 
 pub fn round_line(
     line_beat: Vec<Beat>,
@@ -11,7 +11,7 @@ pub fn round_line(
     start: Vec<Beat>,
     duration: Vec<Beat>,
     scale: Scale,
-) -> Phrase {
+) -> Phrase<PitchNote> {
     let mut phrase = Phrase::new();
 
     let mut line_map: BTreeMap<Beat, Pitch> = BTreeMap::new();
@@ -65,13 +65,13 @@ pub fn round_line(
         match (up_pitch, down_pitch) {
             (Some(&up_pitch), Some(&down_pitch)) => {
                 if (up_pitch - not_round_pitch_).abs() > (down_pitch - not_round_pitch_).abs() {
-                    phrase = phrase.add_note(Note {
+                    phrase = phrase.add_note(PitchNote {
                         pitch: down_pitch,
                         start: start_beat,
                         duration: duration_beat,
                     });
                 } else {
-                    phrase = phrase.add_note(Note {
+                    phrase = phrase.add_note(PitchNote {
                         pitch: up_pitch,
                         start: start_beat,
                         duration: duration_beat,
@@ -79,14 +79,14 @@ pub fn round_line(
                 }
             }
             (Some(&up_pitch), None) => {
-                phrase = phrase.add_note(Note {
+                phrase = phrase.add_note(PitchNote {
                     pitch: up_pitch,
                     start: start_beat,
                     duration: duration_beat,
                 });
             }
             (None, Some(&down_pitch)) => {
-                phrase = phrase.add_note(Note {
+                phrase = phrase.add_note(PitchNote {
                     pitch: down_pitch,
                     start: start_beat,
                     duration: duration_beat,

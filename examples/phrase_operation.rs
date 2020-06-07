@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use toid::data::music_info::{Beat, Instrument, Scale};
 use toid::high_layer_trial::music_language::num_lang::parse_num_lang;
-use toid::high_layer_trial::music_language::send_phrase::send_phrase;
+use toid::high_layer_trial::music_language::send_phrase::send_pitch_phrase;
 use toid::high_layer_trial::num::{
     change_max_min, f32_vec_to_beat_vec, f32_vec_to_pitch_vec, linspace, parlin_noise_seq,
 };
@@ -78,7 +78,7 @@ fn main() {
         Scale::from("CMajPenta".to_string()),
     );
 
-    send_phrase(
+    send_pitch_phrase(
         phrase11,
         Beat::from(0),
         "phrase11".to_string(),
@@ -98,7 +98,7 @@ fn main() {
     )
     .unwrap();
 
-    send_phrase(
+    send_pitch_phrase(
         phrase12,
         Beat::from(0),
         "phrase12".to_string(),
