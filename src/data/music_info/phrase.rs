@@ -63,7 +63,7 @@ impl<N: Note + Eq + Ord + Clone> Eq for Phrase<N> {}
 
 #[cfg(test)]
 mod tests {
-    use super::super::{Beat, PitchNote, Pitch};
+    use super::super::{Beat, Pitch, PitchNote};
     use super::*;
 
     #[test]

@@ -11,6 +11,7 @@ pub enum Data {
 pub struct Wave {
     pub data: Data,
     pub sample_num: usize,
+    pub sample_rate: f32,
 }
 
 impl Wave {
@@ -47,47 +48,39 @@ impl Wave {
     }
 
     fn parsed_wave_to_own_wave(parsed_wave: parsed::Wave) -> Result<Wave, String> {
-        if parsed_wave.format.samplerate == 44100 {
-            match parsed_wave.format.channels {
-                1 => {
-                    let data = Self::parse_monoral_data(
-                        parsed_wave.data.data.as_slice(),
-                        parsed_wave.data.data.len() / (parsed_wave.format.bitswidth as usize / 8),
-                        parsed_wave.format.bitswidth as usize,
-                    )
-                    .unwrap()
-                    .1;
-                    Ok(Wave {
-                        data,
-                        sample_num: parsed_wave.data.data.len()
-                            / (parsed_wave.format.bitswidth as usize / 8),
-                    })
-                }
-                2 => {
-                    let data = Self::parse_stereo_data(
-                        parsed_wave.data.data.as_slice(),
-                        parsed_wave.data.data.len()
-                            / (parsed_wave.format.bitswidth as usize / 8)
-                            / 2,
-                        parsed_wave.format.bitswidth as usize,
-                    )
-                    .unwrap()
-                    .1;
-                    Ok(Wave {
-                        data,
-                        sample_num: parsed_wave.data.data.len()
-                            / (parsed_wave.format.bitswidth as usize / 8)
-                            / 2,
-                    })
-                }
-                _ => Err("invalid channel".to_string()),
+        match parsed_wave.format.channels {
+            1 => {
+                let data = Self::parse_monoral_data(
+                    parsed_wave.data.data.as_slice(),
+                    parsed_wave.data.data.len() / (parsed_wave.format.bitswidth as usize / 8),
+                    parsed_wave.format.bitswidth as usize,
+                )
+                .unwrap()
+                .1;
+                Ok(Wave {
+                    data,
+                    sample_num: parsed_wave.data.data.len()
+                        / (parsed_wave.format.bitswidth as usize / 8),
+                    sample_rate: parsed_wave.format.samplerate as f32,
+                })
             }
-        } else {
-            Err(format!(
-                "invalid samplerate and bitwidth: {} {}",
-                parsed_wave.format.samplerate, parsed_wave.format.bitswidth
-            )
-            .to_string())
+            2 => {
+                let data = Self::parse_stereo_data(
+                    parsed_wave.data.data.as_slice(),
+                    parsed_wave.data.data.len() / (parsed_wave.format.bitswidth as usize / 8) / 2,
+                    parsed_wave.format.bitswidth as usize,
+                )
+                .unwrap()
+                .1;
+                Ok(Wave {
+                    data,
+                    sample_num: parsed_wave.data.data.len()
+                        / (parsed_wave.format.bitswidth as usize / 8)
+                        / 2,
+                    sample_rate: parsed_wave.format.samplerate as f32,
+                })
+            }
+            _ => Err("invalid channel".to_string()),
         }
     }
 
@@ -107,7 +100,7 @@ impl Wave {
                 for sample_idx in 0..sample_num {
                     let ret = le_i24(i)?;
                     i = ret.0;
-                    data[sample_idx] = ret.1 as f32 / (i16::MAX as i32 * i8::MAX as i32) as f32;
+                    data[sample_idx] = ret.1 as f32 / (i16::MAX as i32 * u8::MAX as i32) as f32;
                 }
             }
             _ => {
@@ -139,11 +132,11 @@ impl Wave {
                     let ret = le_i24(i)?;
                     i = ret.0;
                     left_data[sample_idx] =
-                        ret.1 as f32 / (i16::MAX as i32 * i8::MAX as i32) as f32;
+                        ret.1 as f32 / (i16::MAX as i32 * u8::MAX as i32) as f32;
                     let ret = le_i24(i)?;
                     i = ret.0;
                     right_data[sample_idx] =
-                        ret.1 as f32 / (i16::MAX as i32 * i8::MAX as i32) as f32;
+                        ret.1 as f32 / (i16::MAX as i32 * u8::MAX as i32) as f32;
                 }
             }
             _ => {
