@@ -7,10 +7,10 @@ pub enum EffectInfo {
 }
 
 impl EffectInfo {
-    pub fn get_effect(&self) -> Box<dyn Effect> {
+    pub fn get_effect(&self) -> Box<dyn Effect + Sync + Send> {
         match self {
             EffectInfo::ToLeftEffect => {
-                Box::new(ToLeftEffect {}) as Box<dyn Effect>
+                Box::new(ToLeftEffect {}) as Box<dyn Effect + Sync + Send>
             }
         }
     }

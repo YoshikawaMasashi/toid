@@ -24,7 +24,7 @@ pub struct PitchTrackPlayer {
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, PitchNote)>>,
     effect_infos: Vec<EffectInfo>,
-    effects: Vec<Box<dyn Effect>>,
+    effects: Vec<Box<dyn Effect + Sync + Send>>,
 }
 
 impl PitchTrackPlayer {
@@ -106,10 +106,11 @@ impl PitchTrackPlayer {
         // Effect更新
         if self.effect_infos != track.effects {
             self.effect_infos = track.effects.clone();
-            self.effects = vec![];
+            let mut effects = vec![];
             for efi in self.effect_infos.iter() {
-                self.effects.push(efi.get_effect());
+                effects.push(efi.get_effect());
             }
+            self.effects = effects;
         }
 
         // self.played_notesのを鳴らす
