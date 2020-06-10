@@ -21,6 +21,7 @@ pub fn send_pitch_phrase(
     let track = Track {
         phrase,
         instrument,
+        effects: vec![],
         vol,
         pan,
     };
@@ -45,6 +46,7 @@ pub fn send_sample_phrase(
     let track = Track {
         phrase,
         instrument: Instrument::Sample(sample_name),
+        effects: vec![],
         vol,
         pan,
     };

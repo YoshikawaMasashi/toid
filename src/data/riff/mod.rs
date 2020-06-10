@@ -51,11 +51,7 @@ impl RiffChunk {
         };
         let (i, size) = le_u32(i)?;
 
-        let size = if id == "RIFF" {
-            i.len() as u32
-        } else {
-            size
-        };
+        let size = if id == "RIFF" { i.len() as u32 } else { size };
 
         let (i, data) = take(size)(i)?;
 
