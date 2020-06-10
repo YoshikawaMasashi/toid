@@ -56,3 +56,33 @@ pub fn send_sample_phrase(
     ))?;
     Ok(())
 }
+
+pub fn send_pitch_track(
+    track: Track<PitchNote>,
+    section_beat: Beat,
+    track_name: String,
+    player: Arc<
+        dyn Player<MusicState, MusicStateEvent, WaveReader, (Vec<i16>, Vec<i16>), WaveReaderEvent>,
+    >,
+) -> Result<(), String> {
+    player.send_event(MusicStateEvent::SectionStateEvent(
+        section_beat,
+        SectionStateEvent::NewPitchTrack(track_name.clone(), track),
+    ))?;
+    Ok(())
+}
+
+pub fn send_sample_track(
+    track: Track<SampleNote>,
+    section_beat: Beat,
+    track_name: String,
+    player: Arc<
+        dyn Player<MusicState, MusicStateEvent, WaveReader, (Vec<i16>, Vec<i16>), WaveReaderEvent>,
+    >,
+) -> Result<(), String> {
+    player.send_event(MusicStateEvent::SectionStateEvent(
+        section_beat,
+        SectionStateEvent::NewSampleTrack(track_name.clone(), track),
+    ))?;
+    Ok(())
+}

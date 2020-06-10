@@ -64,4 +64,16 @@ impl<N: Note + Ord + Eq + Clone> Track<N> {
             pan,
         }
     }
+
+    pub fn add_effect(&self, effect: EffectInfo) -> Self {
+        let mut new_effects = self.effects.clone();
+        new_effects.push(effect);
+        Self {
+            phrase: self.phrase.clone(),
+            instrument: self.instrument.clone(),
+            effects: new_effects,
+            vol: self.vol,
+            pan: self.pan,
+        }
+    }
 }
