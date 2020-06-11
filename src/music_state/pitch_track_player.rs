@@ -7,8 +7,8 @@ use std::sync::Arc;
 use log::{error, warn};
 
 use super::super::data::music_info::{Beat, Instrument, PitchNote, Track};
+use super::super::music_state::effects::{Effect, EffectInfo};
 use super::super::resource_management::resource_manager::ResourceManager;
-use super::super::music_state::effects::{EffectInfo, Effect};
 
 fn tri(x: f32) -> f32 {
     let x = (x - 0.5 * PI) % (2.0 * PI);
@@ -101,16 +101,6 @@ impl PitchTrackPlayer {
                     self.register_notes(new_notes, &current_bpm, &cum_start_samples);
                 }
             }
-        }
-
-        // Effect更新
-        if self.effect_infos != track.effects {
-            self.effect_infos = track.effects.clone();
-            let mut effects = vec![];
-            for efi in self.effect_infos.iter() {
-                effects.push(efi.get_effect());
-            }
-            self.effects = effects;
         }
 
         // self.played_notesのを鳴らす
@@ -248,6 +238,16 @@ impl PitchTrackPlayer {
             }
             _ => warn!("instrument is not for pitch track"),
         };
+
+        // Effect更新
+        if self.effect_infos != track.effects {
+            self.effect_infos = track.effects.clone();
+            let mut effects = vec![];
+            for efi in self.effect_infos.iter() {
+                effects.push(efi.get_effect());
+            }
+            self.effects = effects;
+        }
 
         // Effect
         for effect in self.effects.iter_mut() {

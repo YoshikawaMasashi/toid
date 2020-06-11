@@ -11,6 +11,7 @@ use super::super::resource_management::resource_manager::ResourceManager;
 use super::super::state_management::serialize;
 use super::super::state_management::store::Store;
 use super::super::state_management::store_reader::StoreReader;
+use super::effects::{Effect, EffectInfo};
 use super::pitch_track_player::PitchTrackPlayer;
 use super::sample_track_player::SampleTrackPlayer;
 use super::states::{MusicState, MusicStateEvent};
@@ -24,6 +25,8 @@ pub struct WaveReader {
     cum_current_beats: Beat,
     pitch_track_players: HashMap<String, PitchTrackPlayer>,
     sample_track_players: HashMap<String, SampleTrackPlayer>,
+    effect_infos: Vec<EffectInfo>,
+    effects: Vec<Box<dyn Effect + Sync + Send>>,
 }
 
 impl WaveReader {
@@ -45,6 +48,8 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
             cum_current_beats: Beat::from(0),
             pitch_track_players: HashMap::new(),
             sample_track_players: HashMap::new(),
+            effect_infos: vec![],
+            effects: vec![],
         }
     }
 
@@ -180,6 +185,30 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
                     right_wave[i] = right_wave[i] + right_wave_of_track[i];
                 }
             }
+        }
+
+        // Effect更新
+        if self.effect_infos
+            != music_state
+                .get_section_state_by_beat(cum_next_beats)
+                .effects
+        {
+            self.effect_infos = music_state
+                .get_section_state_by_beat(cum_next_beats)
+                .effects
+                .clone();
+            let mut effects = vec![];
+            for efi in self.effect_infos.iter() {
+                effects.push(efi.get_effect());
+            }
+            self.effects = effects;
+        }
+
+        // Effect
+        for effect in self.effects.iter_mut() {
+            let (l, r) = effect.effect(&left_wave, &right_wave);
+            left_wave = l;
+            right_wave = r;
         }
 
         self.cum_current_samples = cum_next_samples;

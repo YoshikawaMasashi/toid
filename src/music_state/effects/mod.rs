@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -9,9 +8,7 @@ pub enum EffectInfo {
 impl EffectInfo {
     pub fn get_effect(&self) -> Box<dyn Effect + Sync + Send> {
         match self {
-            EffectInfo::ToLeftEffect => {
-                Box::new(ToLeftEffect {}) as Box<dyn Effect + Sync + Send>
-            }
+            EffectInfo::ToLeftEffect => Box::new(ToLeftEffect {}) as Box<dyn Effect + Sync + Send>,
         }
     }
 }

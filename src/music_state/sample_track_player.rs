@@ -7,10 +7,13 @@ use log::error;
 
 use super::super::data::music_info::{Beat, Instrument, SampleNote, Track};
 use super::super::resource_management::resource_manager::ResourceManager;
+use super::super::music_state::effects::{Effect, EffectInfo};
 
 pub struct SampleTrackPlayer {
     wave_length: u64,
     played_notes: BTreeMap<u64, Vec<(u64, SampleNote)>>,
+    effect_infos: Vec<EffectInfo>,
+    effects: Vec<Box<dyn Effect + Sync + Send>>,
 }
 
 impl SampleTrackPlayer {
@@ -18,6 +21,8 @@ impl SampleTrackPlayer {
         Self {
             wave_length: 512,
             played_notes: BTreeMap::new(),
+            effect_infos: vec![],
+            effects: vec![],
         }
     }
 
@@ -144,6 +149,23 @@ impl SampleTrackPlayer {
                     }
                 }
             }
+        }
+
+        // Effect更新
+        if self.effect_infos != track.effects {
+            self.effect_infos = track.effects.clone();
+            let mut effects = vec![];
+            for efi in self.effect_infos.iter() {
+                effects.push(efi.get_effect());
+            }
+            self.effects = effects;
+        }
+
+        // Effect
+        for effect in self.effects.iter_mut() {
+            let (l, r) = effect.effect(&left_wave, &right_wave);
+            left_wave = l;
+            right_wave = r;
         }
 
         // 使ったself.played_notesのノートを消す

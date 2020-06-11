@@ -3,13 +3,12 @@ use std::sync::Arc;
 use toid::data::music_info::{Beat, Instrument, Track};
 use toid::high_layer_trial::music_language::num_lang::parse_num_lang;
 use toid::high_layer_trial::music_language::send_phrase::send_pitch_track;
+use toid::music_state::effects::EffectInfo;
 use toid::music_state::states::{MusicState, MusicStateEvent, SchedulingStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
-use toid::music_state::effects::EffectInfo;
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::local_player::LocalPlayer;
 use toid::players::player::Player;
-
 
 fn main() {
     let player = LocalPlayer::new();
@@ -39,7 +38,6 @@ fn main() {
         ))
         .unwrap();
 
-
     let phrase = parse_num_lang("1234321 ".to_string(), 1.0, 0.0);
     let mut track = Track::new();
     track = track.set_phrase(phrase);
@@ -47,7 +45,6 @@ fn main() {
     track = track.set_vol(1.0);
     track = track.set_pan(0.0);
     track = track.add_effect(EffectInfo::ToLeftEffect);
-
 
     send_pitch_track(
         track,

@@ -6,11 +6,13 @@ use serde::{Deserialize, Serialize};
 use super::super::super::data::music_info::{PitchNote, SampleNote, Track};
 use super::super::super::state_management::serialize;
 use super::super::super::state_management::state::State;
+use super::super::effects::EffectInfo;
 
 #[derive(Serialize, Deserialize)]
 pub struct SectionState {
     pub pitch_track_map: HashMap<String, Track<PitchNote>>,
     pub sample_track_map: HashMap<String, Track<SampleNote>>,
+    pub effects: Vec<EffectInfo>,
 }
 
 impl SectionState {
@@ -20,6 +22,7 @@ impl SectionState {
         Self {
             pitch_track_map: new_pitch_track_map,
             sample_track_map: self.sample_track_map.clone(),
+            effects: self.effects.clone(),
         }
     }
 
@@ -29,6 +32,17 @@ impl SectionState {
         Self {
             pitch_track_map: self.pitch_track_map.clone(),
             sample_track_map: new_sample_track_map,
+            effects: self.effects.clone(),
+        }
+    }
+
+    fn add_effect(&self, effect: EffectInfo) -> Self {
+        let mut new_effects = self.effects.clone();
+        new_effects.push(effect);
+        Self {
+            pitch_track_map: self.pitch_track_map.clone(),
+            sample_track_map: self.sample_track_map.clone(),
+            effects: new_effects,
         }
     }
 
@@ -54,6 +68,7 @@ impl State<SectionStateEvent> for SectionState {
         Self {
             pitch_track_map: HashMap::new(),
             sample_track_map: HashMap::new(),
+            effects: vec![],
         }
     }
 
@@ -61,6 +76,7 @@ impl State<SectionStateEvent> for SectionState {
         match event {
             SectionStateEvent::NewPitchTrack(key, track) => self.new_pitch_track(key, track),
             SectionStateEvent::NewSampleTrack(key, track) => self.new_sample_track(key, track),
+            SectionStateEvent::AddEffect(effect) => self.add_effect(effect),
         }
     }
 }
@@ -84,6 +100,7 @@ impl serialize::Serialize<SectionState> for SectionState {
 pub enum SectionStateEvent {
     NewPitchTrack(String, Track<PitchNote>),
     NewSampleTrack(String, Track<SampleNote>),
+    AddEffect(EffectInfo),
 }
 
 impl serialize::Serialize<SectionStateEvent> for SectionStateEvent {

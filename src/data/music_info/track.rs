@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
+use super::super::super::music_state::effects::EffectInfo;
 use super::Instrument;
 use super::Note;
 use super::Phrase;
-use super::super::super::music_state::effects::EffectInfo;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Track<N: Note + Ord + Eq + Clone> {
