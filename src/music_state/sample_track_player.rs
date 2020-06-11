@@ -6,8 +6,8 @@ use std::sync::Arc;
 use log::error;
 
 use super::super::data::music_info::{Beat, Instrument, SampleNote, Track};
-use super::super::resource_management::resource_manager::ResourceManager;
 use super::super::music_state::effects::{Effect, EffectInfo};
+use super::super::resource_management::resource_manager::ResourceManager;
 
 pub struct SampleTrackPlayer {
     wave_length: u64,
