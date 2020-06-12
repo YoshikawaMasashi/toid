@@ -22,6 +22,10 @@ impl<T: Clone> RingBuffer<T> {
         self.i = (self.i + self.n - 1) % self.n;
     }
 
+    pub fn insert(&mut self, i: usize, x: T) {
+        self.v[(self.i + i) % self.n] = x;
+    }
+
     pub fn last(&self) -> &T {
         &self.v[(self.i + self.n - 1) % self.n]
     }
@@ -29,12 +33,20 @@ impl<T: Clone> RingBuffer<T> {
     pub fn first(&self) -> &T {
         &self.v[self.i]
     }
+
+    pub fn get(&self, i: usize) -> Option<&T> {
+        self.v.get((self.i + i) % self.n)
+    }
+
+    pub fn get_mut(&mut self, i: usize) -> Option<&mut T> {
+        self.v.get_mut((self.i + i) % self.n)
+    }
 }
 
 pub struct RingBufferIter<'a, T> {
     buf: &'a RingBuffer<T>,
     i: usize,
-    back_i: usize,
+    back_i: isize,
 }
 
 impl<'a, T> RingBufferIter<'a, T> {
@@ -42,7 +54,7 @@ impl<'a, T> RingBufferIter<'a, T> {
         Self {
             buf,
             i: 0,
-            back_i: buf.n - 1,
+            back_i: (buf.n - 1) as isize,
         }
     }
 }
@@ -50,7 +62,7 @@ impl<'a, T> RingBufferIter<'a, T> {
 impl<'a, T> Iterator for RingBufferIter<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<&'a T> {
-        if self.i > self.back_i {
+        if self.i as isize > self.back_i {
             None
         } else {
             let ret: &T = &self.buf.v[(self.i + self.buf.i) % self.buf.n];
@@ -62,10 +74,10 @@ impl<'a, T> Iterator for RingBufferIter<'a, T> {
 
 impl<'a, T> DoubleEndedIterator for RingBufferIter<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.i > self.back_i {
+        if self.i as isize > self.back_i {
             None
         } else {
-            let ret: &T = &self.buf.v[(self.back_i + self.buf.i) % self.buf.n];
+            let ret: &T = &self.buf.v[(self.back_i as usize + self.buf.i) % self.buf.n];
             self.back_i -= 1;
             Some(ret)
         }
