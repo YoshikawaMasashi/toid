@@ -1,5 +1,6 @@
 mod convolution;
 mod fft;
+pub mod ring_buffer;
 mod to_left;
 
 use serde::{Deserialize, Serialize};
