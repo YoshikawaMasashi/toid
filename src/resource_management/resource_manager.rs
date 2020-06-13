@@ -42,7 +42,7 @@ impl ResourceManager {
         }
     }
 
-    pub fn get_drums_wave(&self, name: String, sound: String) -> Result<Arc<Wave>, String> {
+    pub fn get_sample_wave(&self, name: String, sound: String) -> Result<Arc<Wave>, String> {
         match self
             .units
             .read()
@@ -50,7 +50,7 @@ impl ResourceManager {
             .get(&name)
             .ok_or("get Error")?
         {
-            ResourceUnitEnum::Drums(drums) => match drums.waves.get(&sound) {
+            ResourceUnitEnum::Samples(samples) => match samples.waves.get(&sound) {
                 Some(wave) => Ok(Arc::clone(&wave)),
                 None => Err("there is not wave of sound string".to_string()),
             },

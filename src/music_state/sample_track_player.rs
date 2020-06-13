@@ -97,7 +97,7 @@ impl SampleTrackPlayer {
             for (cum_start_samples, note) in notes.iter() {
                 if let Instrument::Sample(sample_name) = &track.instrument {
                     let wave = resource_manager
-                        .get_drums_wave(sample_name.to_string(), note.sound.clone());
+                        .get_sample_wave(sample_name.to_string(), note.sound.clone());
                     match wave {
                         Ok(wave) => {
                             let start_idx = if *cum_start_samples <= *cum_current_samples {

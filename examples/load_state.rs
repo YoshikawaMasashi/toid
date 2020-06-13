@@ -16,7 +16,7 @@ fn main() {
         .unwrap();
     player
         .get_resource_manager()
-        .register(String::from("./toid-sample-resource/drums/drums.toml"))
+        .register(String::from("./toid-sample-resource/samples/samples.toml"))
         .unwrap();
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)

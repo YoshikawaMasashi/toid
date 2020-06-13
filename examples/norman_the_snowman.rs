@@ -24,7 +24,7 @@ fn main() {
         .unwrap();
     player
         .get_resource_manager()
-        .register(String::from("./toid-sample-resource/drums/drums.toml"))
+        .register(String::from("./toid-sample-resource/samples/samples.toml"))
         .unwrap();
 
     player
@@ -265,7 +265,7 @@ fn main() {
         "x x x x ".to_string(),
         Beat::from(8),
         "kick".to_string(),
-        "example_drums".to_string(),
+        "example_samples".to_string(),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -284,7 +284,7 @@ fn main() {
         "- - - - ".to_string(),
         Beat::from(8),
         "hat".to_string(),
-        "example_drums".to_string(),
+        "example_samples".to_string(),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -303,7 +303,7 @@ fn main() {
         "   ooo  ".to_string(),
         Beat::from(8),
         "snare".to_string(),
-        "example_drums".to_string(),
+        "example_samples".to_string(),
         1.0,
         0.0,
         Arc::clone(&player)

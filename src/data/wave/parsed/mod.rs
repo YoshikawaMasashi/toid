@@ -76,9 +76,9 @@ mod tests {
     #[test]
     fn test_parse() {
         let paths = [
-            "toid-sample-resource/drums/0_hihat_closed.wav",
-            "toid-sample-resource/drums/0_snare_drum.wav",
-            "toid-sample-resource/drums/3_kick_drum.wav",
+            "toid-sample-resource/samples/0_hihat_closed.wav",
+            "toid-sample-resource/samples/0_snare_drum.wav",
+            "toid-sample-resource/samples/3_kick_drum.wav",
         ];
         for path in paths.iter() {
             let mut f = fs::File::open(path).map_err(|_| "file open error").unwrap();
