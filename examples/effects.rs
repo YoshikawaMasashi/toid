@@ -19,6 +19,11 @@ fn main() {
         .register(String::from("./toid-sample-resource/sf2/sf2.toml"))
         .unwrap();
 
+    player
+        .get_resource_manager()
+        .register(String::from("./toid-sample-resource/impulse_response/impulse_response.toml"))
+        .unwrap();
+
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
         as Arc<
             dyn Player<
