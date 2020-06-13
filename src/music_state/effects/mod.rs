@@ -12,10 +12,10 @@ use super::super::resource_management::resource_manager::ResourceManager;
 use convolution::ConvolutionEffect;
 use to_left::ToLeftEffect;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum EffectInfo {
     ToLeftEffect,
-    SamplingReverb(String, String),
+    SamplingReverb(String, String, f32, f32),
 }
 
 impl EffectInfo {
@@ -25,7 +25,7 @@ impl EffectInfo {
     ) -> Box<dyn Effect + Sync + Send> {
         match self {
             EffectInfo::ToLeftEffect => Box::new(ToLeftEffect {}) as Box<dyn Effect + Sync + Send>,
-            EffectInfo::SamplingReverb(sample_name, sound) => {
+            EffectInfo::SamplingReverb(sample_name, sound, dry, wet) => {
                 let wave = resource_manager.get_sample_wave(sample_name.to_string(), sound.clone());
                 match wave {
                     Ok(wave) => {
@@ -35,7 +35,7 @@ impl EffectInfo {
                                 // TODO: fix
                                 let left_sample = left_sample.split_at(44100).0;
                                 let left_sample = Vec::from(left_sample);
-                                Box::new(ConvolutionEffect::new(&left_sample, 1.0, 0.1))
+                                Box::new(ConvolutionEffect::new(&left_sample, *dry, *wet))
                                     as Box<dyn Effect + Sync + Send>
                             }
                             Err(e) => {
