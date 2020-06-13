@@ -3,23 +3,53 @@ pub mod fft;
 pub mod ring_buffer;
 mod to_left;
 
+use std::sync::Arc;
+
+use log::error;
 use serde::{Deserialize, Serialize};
 
+use super::super::resource_management::resource_manager::ResourceManager;
 use convolution::ConvolutionEffect;
 use to_left::ToLeftEffect;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum EffectInfo {
     ToLeftEffect,
-    ConvolutionEffect,
+    SamplingReverb(String, String),
 }
 
 impl EffectInfo {
-    pub fn get_effect(&self) -> Box<dyn Effect + Sync + Send> {
+    pub fn get_effect(
+        &self,
+        resource_manager: Arc<ResourceManager>,
+    ) -> Box<dyn Effect + Sync + Send> {
         match self {
             EffectInfo::ToLeftEffect => Box::new(ToLeftEffect {}) as Box<dyn Effect + Sync + Send>,
-            EffectInfo::ConvolutionEffect => {
-                Box::new(ConvolutionEffect::new(&vec![0.0; 512])) as Box<dyn Effect + Sync + Send>
+            EffectInfo::SamplingReverb(sample_name, sound) => {
+                let wave = resource_manager.get_sample_wave(sample_name.to_string(), sound.clone());
+                match wave {
+                    Ok(wave) => {
+                        let sample_data = wave.get_samples(0, wave.sample_num);
+                        match sample_data {
+                            Ok((left_sample, _right_sample)) => {
+                                Box::new(ConvolutionEffect::new(&left_sample))
+                                    as Box<dyn Effect + Sync + Send>
+                            }
+                            Err(e) => {
+                                // TODO:
+                                error!("error {}", e);
+                                Box::new(ConvolutionEffect::new(&vec![0.0; 512]))
+                                    as Box<dyn Effect + Sync + Send>
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        // TODO:
+                        error!("error {}", e);
+                        Box::new(ConvolutionEffect::new(&vec![0.0; 512]))
+                            as Box<dyn Effect + Sync + Send>
+                    }
+                }
             }
         }
     }

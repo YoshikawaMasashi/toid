@@ -199,7 +199,7 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
                 .clone();
             let mut effects = vec![];
             for efi in self.effect_infos.iter() {
-                effects.push(efi.get_effect());
+                effects.push(efi.get_effect(Arc::clone(&resource_manager)));
             }
             self.effects = effects;
         }
