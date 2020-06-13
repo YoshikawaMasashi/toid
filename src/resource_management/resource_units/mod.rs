@@ -59,6 +59,7 @@ mod tests {
     #[test]
     fn test_load() {
         ResourceUnitEnum::load_toml("toid-sample-resource/sf2/sf2.toml".to_string()).unwrap();
-        ResourceUnitEnum::load_toml("toid-sample-resource/drums/drums.toml".to_string()).unwrap();
+        ResourceUnitEnum::load_toml("toid-sample-resource/samples/samples.toml".to_string())
+            .unwrap();
     }
 }

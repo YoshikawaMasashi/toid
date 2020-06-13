@@ -4,8 +4,8 @@ use toid::data::music_info::{Beat, Instrument, Track};
 use toid::high_layer_trial::music_language::num_lang::parse_num_lang;
 use toid::high_layer_trial::music_language::send_phrase::send_pitch_track;
 use toid::music_state::effects::EffectInfo;
-use toid::music_state::states::{MusicState, MusicStateEvent, SchedulingStateEvent};
 use toid::music_state::states::SectionStateEvent;
+use toid::music_state::states::{MusicState, MusicStateEvent, SchedulingStateEvent};
 use toid::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use toid::outputters::portaudio_outputter::PortAudioOutputter;
 use toid::players::local_player::LocalPlayer;
@@ -59,16 +59,17 @@ fn main() {
     //     1.0, 0.03
     // ));
 
-    player.send_event(MusicStateEvent::SectionStateEvent(
-        Beat::from(0),
-        SectionStateEvent::AddEffect(
-            EffectInfo::SamplingReverb(
+    player
+        .send_event(MusicStateEvent::SectionStateEvent(
+            Beat::from(0),
+            SectionStateEvent::AddEffect(EffectInfo::SamplingReverb(
                 "example_impulse_response".to_string(),
                 "st_marys_abbey".to_string(),
-                1.0, 0.03
-            )
-        )
-    ));
+                1.0,
+                0.03,
+            )),
+        ))
+        .unwrap();
 
     send_pitch_track(
         track,

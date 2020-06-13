@@ -113,8 +113,16 @@ impl Effect for ConvolutionEffect {
         self.residual_left_responce = residual_left_responce;
         self.residual_right_responce = residual_right_responce;
 
-        new_left_wave = new_left_wave.iter().zip(left_wave.iter()).map(|(&x, &y)| self.wet * x  + self.dry * y).collect();
-        new_right_wave = new_right_wave.iter().zip(right_wave.iter()).map(|(&x, &y)| self.wet * x +  self.dry * y).collect();
+        new_left_wave = new_left_wave
+            .iter()
+            .zip(left_wave.iter())
+            .map(|(&x, &y)| self.wet * x + self.dry * y)
+            .collect();
+        new_right_wave = new_right_wave
+            .iter()
+            .zip(right_wave.iter())
+            .map(|(&x, &y)| self.wet * x + self.dry * y)
+            .collect();
 
         (new_left_wave, new_right_wave)
     }
@@ -138,7 +146,7 @@ mod tests {
         for i in 0..700 {
             filter.push((i + 1) as f32);
         }
-        let mut conv_effect = ConvolutionEffect::new(&filter);
+        let mut conv_effect = ConvolutionEffect::new(&filter, 0.0, 1.0);
 
         let mut input1 = vec![];
         let mut input2 = vec![];
