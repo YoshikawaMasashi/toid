@@ -21,7 +21,9 @@ fn main() {
 
     player
         .get_resource_manager()
-        .register(String::from("./toid-sample-resource/impulse_response/impulse_response.toml"))
+        .register(String::from(
+            "./toid-sample-resource/impulse_response/impulse_response.toml",
+        ))
         .unwrap();
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)

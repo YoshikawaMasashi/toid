@@ -3,11 +3,13 @@ use nom::IResult;
 
 use super::parsed;
 
+#[derive(Clone)]
 pub enum Data {
     Monoral(Vec<f32>),
     Stereo((Vec<f32>, Vec<f32>)),
 }
 
+#[derive(Clone)]
 pub struct Wave {
     pub data: Data,
     pub sample_num: usize,
@@ -145,6 +147,57 @@ impl Wave {
         }
         Ok((i, Data::Stereo((left_data, right_data))))
     }
+
+    fn vec_f32_access(&self, v: &Vec<f32>, i: f32) -> f32 {
+        let left_idx = i as usize;
+        let right_idx = left_idx + 1;
+        let right_weight = i - left_idx as f32;
+        let left_weight = 1.0 - right_weight;
+
+        match (v.get(left_idx), v.get(right_idx)) {
+            (Some(left_value), Some(right_value)) => {
+                left_weight * left_value + right_weight * right_value
+            }
+            (Some(left_value), None) => left_weight * left_value,
+            (None, Some(right_value)) => right_weight * right_value,
+            (None, None) => 0.0,
+        }
+    }
+
+    pub fn change_sample_rate(&self, sample_rate: f32) -> Self {
+        let new_sample_width = self.sample_rate / sample_rate;
+        let mut sample_idx: f32 = 0.0;
+        let mut new_sample_num: usize = 0;
+
+        let new_data = match &self.data {
+            Data::Monoral(wave) => {
+                let mut new_wave: Vec<f32> = vec![];
+                while sample_idx < self.sample_num as f32 - 1.0 {
+                    new_wave.push(self.vec_f32_access(wave, sample_idx));
+                    sample_idx += new_sample_width;
+                    new_sample_num += 1;
+                }
+                Data::Monoral(new_wave)
+            }
+            Data::Stereo((left_wave, right_wave)) => {
+                let mut new_left_wave: Vec<f32> = vec![];
+                let mut new_right_wave: Vec<f32> = vec![];
+                while sample_idx < self.sample_num as f32 - 1.0 {
+                    new_left_wave.push(self.vec_f32_access(left_wave, sample_idx));
+                    new_right_wave.push(self.vec_f32_access(right_wave, sample_idx));
+                    sample_idx += new_sample_width;
+                    new_sample_num += 1;
+                }
+                Data::Stereo((new_left_wave, new_right_wave))
+            }
+        };
+
+        Wave {
+            data: new_data,
+            sample_num: new_sample_num,
+            sample_rate: sample_rate,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -171,5 +224,30 @@ mod tests {
 
             Wave::parse(buffer).unwrap();
         }
+    }
+
+    #[test]
+    fn test_change_sample_rate() {
+        let path = "toid-sample-resource/impulse_response/phase1_stereo.wav";
+
+        let mut f = fs::File::open(path).map_err(|_| "file open error").unwrap();
+        let mut buffer = Vec::new();
+        f.read_to_end(&mut buffer)
+            .map_err(|_| "read error")
+            .unwrap();
+        let buffer = buffer.as_slice();
+
+        let wave = Wave::parse(buffer).unwrap();
+
+        assert_eq!(wave.sample_rate, 44100.0);
+
+        let sample_num = wave.sample_num;
+
+        let wave = wave.change_sample_rate(22050.0);
+
+        assert_eq!(wave.sample_rate, 22050.0);
+
+        assert!(wave.sample_num as f32 >= sample_num as f32 / 2.0 - 0.5);
+        assert!(wave.sample_num as f32 <= sample_num as f32 / 2.0 + 0.5);
     }
 }
