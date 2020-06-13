@@ -12,11 +12,13 @@ pub struct ConvolutionEffect {
     fft_right_sample: RingBuffer<Vec<Complex<f64>>>,
     residual_left_responce: Vec<f32>,
     residual_right_responce: Vec<f32>,
+    dry: f32,
+    wet: f32,
     // block_size: usize,
 }
 
 impl ConvolutionEffect {
-    pub fn new(filter: &Vec<f32>) -> Self {
+    pub fn new(filter: &Vec<f32>, dry: f32, wet: f32) -> Self {
         let mut fft_filter = vec![];
         let block_size = (filter.len() - 1) / FRAMES_PER_BUFFER + 1;
         for block_idx in 0..block_size {
@@ -48,6 +50,8 @@ impl ConvolutionEffect {
             fft_right_sample,
             residual_left_responce: vec![0.0; FRAMES_PER_BUFFER],
             residual_right_responce: vec![0.0; FRAMES_PER_BUFFER],
+            dry,
+            wet,
             // block_size,
         }
     }
@@ -108,6 +112,9 @@ impl Effect for ConvolutionEffect {
 
         self.residual_left_responce = residual_left_responce;
         self.residual_right_responce = residual_right_responce;
+
+        new_left_wave = new_left_wave.iter().zip(left_wave.iter()).map(|(&x, &y)| self.wet * x  + self.dry * y).collect();
+        new_right_wave = new_right_wave.iter().zip(right_wave.iter()).map(|(&x, &y)| self.wet * x +  self.dry * y).collect();
 
         (new_left_wave, new_right_wave)
     }

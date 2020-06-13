@@ -25,24 +25,28 @@ impl Wave {
     pub fn get_samples(&self, start: usize, end: usize) -> Result<(Vec<f32>, Vec<f32>), String> {
         let mut left_sample = Vec::new();
         let mut right_sample = Vec::new();
-        left_sample.resize(end - start, 0.0);
-        right_sample.resize(end - start, 0.0);
+
+        let size = end - start;
 
         let start = std::cmp::min(start, self.sample_num);
         let end = std::cmp::min(end, self.sample_num);
 
         match &self.data {
             Data::Monoral(data) => {
-                for idx in start..end {
-                    left_sample.insert(idx - start, data[idx]);
-                    right_sample.insert(idx - start, data[idx]);
-                }
+                left_sample.resize(end - start, 0.0);
+                right_sample.resize(end - start, 0.0);
+                left_sample.copy_from_slice(data.split_at(start).1.split_at(end - start).0);
+                right_sample.copy_from_slice(data.split_at(start).1.split_at(end - start).0);
+                left_sample.resize(size, 0.0);
+                right_sample.resize(size, 0.0);
             }
             Data::Stereo((left_data, right_data)) => {
-                for idx in start..end {
-                    left_sample.insert(idx - start, left_data[idx]);
-                    right_sample.insert(idx - start, right_data[idx]);
-                }
+                left_sample.resize(end - start, 0.0);
+                right_sample.resize(end - start, 0.0);
+                left_sample.copy_from_slice(left_data.split_at(start).1.split_at(end - start).0);
+                right_sample.copy_from_slice(right_data.split_at(start).1.split_at(end - start).0);
+                left_sample.resize(size, 0.0);
+                right_sample.resize(size, 0.0);
             }
         };
 

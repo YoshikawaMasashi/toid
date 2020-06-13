@@ -32,13 +32,16 @@ impl EffectInfo {
                         let sample_data = wave.get_samples(0, wave.sample_num);
                         match sample_data {
                             Ok((left_sample, _right_sample)) => {
-                                Box::new(ConvolutionEffect::new(&left_sample))
+                                // TODO: fix
+                                let left_sample = left_sample.split_at(44100).0;
+                                let left_sample = Vec::from(left_sample);
+                                Box::new(ConvolutionEffect::new(&left_sample, 1.0, 0.1))
                                     as Box<dyn Effect + Sync + Send>
                             }
                             Err(e) => {
                                 // TODO:
                                 error!("error {}", e);
-                                Box::new(ConvolutionEffect::new(&vec![0.0; 512]))
+                                Box::new(ConvolutionEffect::new(&vec![0.0; 512], 1.0, 0.0))
                                     as Box<dyn Effect + Sync + Send>
                             }
                         }
@@ -46,7 +49,7 @@ impl EffectInfo {
                     Err(e) => {
                         // TODO:
                         error!("error {}", e);
-                        Box::new(ConvolutionEffect::new(&vec![0.0; 512]))
+                        Box::new(ConvolutionEffect::new(&vec![0.0; 512], 1.0, 0.0))
                             as Box<dyn Effect + Sync + Send>
                     }
                 }
