@@ -10,6 +10,8 @@ pub struct ConvolutionEffect {
     fft_filter: Vec<Vec<Complex<f64>>>,
     fft_left_sample: RingBuffer<Vec<Complex<f64>>>,
     fft_right_sample: RingBuffer<Vec<Complex<f64>>>,
+    residual_left_responce: Vec<f32>,
+    residual_right_responce: Vec<f32>,
     // block_size: usize,
 }
 
@@ -44,6 +46,8 @@ impl ConvolutionEffect {
             fft_filter,
             fft_left_sample,
             fft_right_sample,
+            residual_left_responce: vec![0.0; FRAMES_PER_BUFFER],
+            residual_right_responce: vec![0.0; FRAMES_PER_BUFFER],
             // block_size,
         }
     }
@@ -84,10 +88,26 @@ impl Effect for ConvolutionEffect {
 
         let mut new_left_wave = vec![];
         let mut new_right_wave = vec![];
+        let mut residual_left_responce = vec![];
+        let mut residual_right_responce = vec![];
         for sample_idx in 0..FRAMES_PER_BUFFER {
-            new_left_wave.push(convolved_left_sample[sample_idx].re as f32);
-            new_right_wave.push(convolved_right_sample[sample_idx].re as f32);
+            new_left_wave.push(
+                convolved_left_sample[sample_idx].re as f32
+                    + self.residual_left_responce[sample_idx],
+            );
+            new_right_wave.push(
+                convolved_right_sample[sample_idx].re as f32
+                    + self.residual_right_responce[sample_idx],
+            );
+
+            residual_left_responce
+                .push(convolved_left_sample[FRAMES_PER_BUFFER + sample_idx].re as f32);
+            residual_right_responce
+                .push(convolved_right_sample[FRAMES_PER_BUFFER + sample_idx].re as f32);
         }
+
+        self.residual_left_responce = residual_left_responce;
+        self.residual_right_responce = residual_right_responce;
 
         (new_left_wave, new_right_wave)
     }
