@@ -3,7 +3,7 @@ use rand::thread_rng;
 
 use super::super::super::data::music_info::{Beat, Note, Phrase};
 
-pub fn shuffle_start(phrase: Phrase) -> Phrase {
+pub fn shuffle_start<N: Note + Ord + Eq + Clone>(phrase: Phrase<N>) -> Phrase<N> {
     let mut new_phrase = Phrase::new();
     new_phrase = new_phrase.set_length(phrase.length);
 
@@ -12,11 +12,7 @@ pub fn shuffle_start(phrase: Phrase) -> Phrase {
     new_starts.shuffle(&mut rng);
     for ((_, note_vec), &new_start) in phrase.notes.iter().zip(new_starts.iter()) {
         for note in note_vec.iter() {
-            new_phrase = new_phrase.add_note(Note {
-                pitch: note.pitch,
-                duration: note.duration,
-                start: new_start,
-            });
+            new_phrase = new_phrase.add_note(note.set_start(new_start));
         }
     }
 

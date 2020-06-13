@@ -3,56 +3,80 @@ use std::iter::FromIterator;
 
 use serde::{Deserialize, Serialize};
 
-use super::super::super::data::music_info::{SampleTrack, Track};
+use super::super::super::data::music_info::{PitchNote, SampleNote, Track};
 use super::super::super::state_management::serialize;
 use super::super::super::state_management::state::State;
+use super::super::effects::EffectInfo;
 
 #[derive(Serialize, Deserialize)]
 pub struct SectionState {
-    pub track_map: HashMap<String, Track>,
-    pub sample_track_map: HashMap<String, SampleTrack>,
+    pub pitch_track_map: HashMap<String, Track<PitchNote>>,
+    pub sample_track_map: HashMap<String, Track<SampleNote>>,
+    pub effects: Vec<EffectInfo>,
 }
 
 impl SectionState {
-    fn new_track(&self, key: String, track: Track) -> Self {
-        let mut new_track_map = self.track_map.clone();
-        new_track_map.insert(key, track);
+    fn new_pitch_track(&self, key: String, track: Track<PitchNote>) -> Self {
+        let mut new_pitch_track_map = self.pitch_track_map.clone();
+        new_pitch_track_map.insert(key, track);
         Self {
-            track_map: new_track_map,
+            pitch_track_map: new_pitch_track_map,
             sample_track_map: self.sample_track_map.clone(),
+            effects: self.effects.clone(),
         }
     }
 
-    fn new_sample_track(&self, key: String, track: SampleTrack) -> Self {
+    fn new_sample_track(&self, key: String, track: Track<SampleNote>) -> Self {
         let mut new_sample_track_map = self.sample_track_map.clone();
         new_sample_track_map.insert(key, track);
         Self {
-            track_map: self.track_map.clone(),
+            pitch_track_map: self.pitch_track_map.clone(),
             sample_track_map: new_sample_track_map,
+            effects: self.effects.clone(),
         }
     }
 
-    pub fn get_track(&self, key: String) -> Option<Track> {
-        self.track_map.get(&key).cloned()
+    fn add_effect(&self, effect: EffectInfo) -> Self {
+        let mut new_effects = self.effects.clone();
+        new_effects.push(effect);
+        Self {
+            pitch_track_map: self.pitch_track_map.clone(),
+            sample_track_map: self.sample_track_map.clone(),
+            effects: new_effects,
+        }
     }
 
-    pub fn get_track_names(&self) -> Vec<String> {
-        Vec::from_iter(self.track_map.keys().cloned())
+    pub fn get_pitch_track(&self, key: String) -> Option<Track<PitchNote>> {
+        self.pitch_track_map.get(&key).cloned()
+    }
+
+    pub fn get_sample_track(&self, key: String) -> Option<Track<SampleNote>> {
+        self.sample_track_map.get(&key).cloned()
+    }
+
+    pub fn get_pitch_track_names(&self) -> Vec<String> {
+        Vec::from_iter(self.pitch_track_map.keys().cloned())
+    }
+
+    pub fn get_sample_track_names(&self) -> Vec<String> {
+        Vec::from_iter(self.sample_track_map.keys().cloned())
     }
 }
 
 impl State<SectionStateEvent> for SectionState {
     fn new() -> Self {
         Self {
-            track_map: HashMap::new(),
+            pitch_track_map: HashMap::new(),
             sample_track_map: HashMap::new(),
+            effects: vec![],
         }
     }
 
     fn reduce(&self, event: SectionStateEvent) -> Self {
         match event {
-            SectionStateEvent::NewTrack(key, track) => self.new_track(key, track),
+            SectionStateEvent::NewPitchTrack(key, track) => self.new_pitch_track(key, track),
             SectionStateEvent::NewSampleTrack(key, track) => self.new_sample_track(key, track),
+            SectionStateEvent::AddEffect(effect) => self.add_effect(effect),
         }
     }
 }
@@ -74,8 +98,9 @@ impl serialize::Serialize<SectionState> for SectionState {
 
 #[derive(Serialize, Deserialize)]
 pub enum SectionStateEvent {
-    NewTrack(String, Track),
-    NewSampleTrack(String, SampleTrack),
+    NewPitchTrack(String, Track<PitchNote>),
+    NewSampleTrack(String, Track<SampleNote>),
+    AddEffect(EffectInfo),
 }
 
 impl serialize::Serialize<SectionStateEvent> for SectionStateEvent {

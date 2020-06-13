@@ -3,11 +3,24 @@ use std::cmp::Ordering;
 use serde::{Deserialize, Serialize};
 
 use super::beat::Beat;
+use super::note::Note;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SampleNote {
     pub sound: String,
     pub start: Beat,
+}
+
+impl Note for SampleNote {
+    fn get_start(&self) -> Beat {
+        self.start
+    }
+    fn set_start(&self, start: Beat) -> Self {
+        SampleNote {
+            sound: self.sound.clone(),
+            start,
+        }
+    }
 }
 
 impl Eq for SampleNote {}

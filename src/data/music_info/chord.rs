@@ -1,15 +1,18 @@
+use std::collections::BTreeSet;
+
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::one_of;
 use nom::IResult;
 use serde::{Deserialize, Serialize};
 
-use super::{PitchInOctave, PitchInterval};
+use super::{Pitch, PitchInOctave, PitchInterval, Scale};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Chord {
     root: PitchInOctave,
-    member: Vec<PitchInterval>,
+    pub onroot: PitchInOctave,
+    member: BTreeSet<PitchInterval>,
 }
 
 #[derive(Debug)]
@@ -53,7 +56,7 @@ impl Chord {
         // parse M7, dim7, add9, sus4
         let alt_ret: IResult<&str, &str> =
             alt((tag("7"), tag("M7"), tag("dim7"), tag("add9"), tag("sus4")))(s);
-        let (_, tension) = match alt_ret {
+        let (s, tension) = match alt_ret {
             Ok((s, tension_str)) => match tension_str {
                 "7" => (s, Tension::Seventh),
                 "M7" => (s, Tension::Maj7),
@@ -64,91 +67,137 @@ impl Chord {
             Err(_) => (s, Tension::None),
         };
 
+        let on_ret: IResult<&str, &str> = tag("on")(s);
+        let (_s, onroot) = match on_ret {
+            Ok((s, _on_str)) => {
+                let (s, onroot) = one_of(&b"CDEFGAB"[..])(s)?;
+                let onroot = onroot.to_string();
+                let one_of_ret: IResult<&str, char> = one_of(&b"#b"[..])(s);
+                match one_of_ret {
+                    Ok((s, sf)) => (s, onroot + &sf.to_string()),
+                    Err(_) => (s, onroot),
+                }
+            }
+            Err(_) => (s, root.clone()),
+        };
+
         let root = PitchInOctave::from(root);
-        let mut member = vec![];
-        member.push(PitchInterval::from(0.0));
+        let onroot = PitchInOctave::from(onroot);
+        let mut member = BTreeSet::new();
+        member.insert(PitchInterval::from(0.0));
         match tension {
             Tension::Seventh => {
                 match second {
                     Second::Major => {
-                        member.push(PitchInterval::from(4.0));
+                        member.insert(PitchInterval::from(4.0));
                     }
                     Second::Minor => {
-                        member.push(PitchInterval::from(3.0));
+                        member.insert(PitchInterval::from(3.0));
                     }
                     Second::Sus4 => {
-                        member.push(PitchInterval::from(5.0));
+                        member.insert(PitchInterval::from(5.0));
                     }
                 };
-                member.push(PitchInterval::from(7.0));
-                member.push(PitchInterval::from(10.0));
+                member.insert(PitchInterval::from(7.0));
+                member.insert(PitchInterval::from(10.0));
             }
             Tension::Maj7 => {
                 match second {
                     Second::Major => {
-                        member.push(PitchInterval::from(4.0));
+                        member.insert(PitchInterval::from(4.0));
                     }
                     Second::Minor => {
-                        member.push(PitchInterval::from(3.0));
+                        member.insert(PitchInterval::from(3.0));
                     }
                     Second::Sus4 => {
-                        member.push(PitchInterval::from(5.0));
+                        member.insert(PitchInterval::from(5.0));
                     }
                 };
-                member.push(PitchInterval::from(7.0));
-                member.push(PitchInterval::from(11.0));
+                member.insert(PitchInterval::from(7.0));
+                member.insert(PitchInterval::from(11.0));
             }
             Tension::Dim7 => {
-                member.push(PitchInterval::from(3.0));
-                member.push(PitchInterval::from(6.0));
-                member.push(PitchInterval::from(9.0));
+                member.insert(PitchInterval::from(3.0));
+                member.insert(PitchInterval::from(6.0));
+                member.insert(PitchInterval::from(9.0));
             }
             Tension::Add9 => {
                 match second {
                     Second::Major => {
-                        member.push(PitchInterval::from(4.0));
+                        member.insert(PitchInterval::from(4.0));
                     }
                     Second::Minor => {
-                        member.push(PitchInterval::from(3.0));
+                        member.insert(PitchInterval::from(3.0));
                     }
                     Second::Sus4 => {
-                        member.push(PitchInterval::from(5.0));
+                        member.insert(PitchInterval::from(5.0));
                     }
                 };
-                member.push(PitchInterval::from(7.0));
-                member.push(PitchInterval::from(14.0));
+                member.insert(PitchInterval::from(7.0));
+                member.insert(PitchInterval::from(14.0));
             }
             Tension::None => {
                 match second {
                     Second::Major => {
-                        member.push(PitchInterval::from(4.0));
+                        member.insert(PitchInterval::from(4.0));
                     }
                     Second::Minor => {
-                        member.push(PitchInterval::from(3.0));
+                        member.insert(PitchInterval::from(3.0));
                     }
                     Second::Sus4 => {
-                        member.push(PitchInterval::from(5.0));
+                        member.insert(PitchInterval::from(5.0));
                     }
                 };
-                member.push(PitchInterval::from(7.0));
+                member.insert(PitchInterval::from(7.0));
             }
         }
 
-        Ok(("", Chord { root, member }))
+        Ok((
+            "",
+            Chord {
+                root,
+                onroot,
+                member,
+            },
+        ))
     }
 
-    pub fn to_scale(&self) -> Vec<PitchInOctave> {
-        let mut scale = vec![];
-        for &p in self.member.iter() {
-            scale.push(PitchInOctave::from(self.root.pitch + p.interval));
+    pub fn to_scale(&self) -> Scale {
+        Scale::from((self.root, self.member.clone()))
+    }
+
+    pub fn get_pitchs(self, min_pitch: Pitch, max_pitch: Pitch) -> Vec<Pitch> {
+        let mut ret_pitchs: BTreeSet<Pitch> = BTreeSet::new();
+        for &interval in self.member.iter() {
+            let base_pitch = PitchInOctave::from(self.root.pitch + interval.interval).pitch;
+            for i in 0..10 {
+                let pitch = Pitch::from(base_pitch + 12.0 * i as f32);
+                if pitch >= min_pitch && pitch <= max_pitch {
+                    ret_pitchs.insert(pitch);
+                }
+            }
         }
-        scale
+        ret_pitchs.iter().cloned().collect()
     }
 }
 
 impl From<String> for Chord {
     fn from(chord_name: String) -> Self {
         Self::parse_chord_name(chord_name.as_str()).unwrap().1
+    }
+}
+
+impl From<Vec<f32>> for Chord {
+    fn from(scale_vec: Vec<f32>) -> Self {
+        let mut member = BTreeSet::new();
+        for mem in scale_vec.iter() {
+            member.insert(PitchInterval::from(mem - scale_vec[0]));
+        }
+        Chord {
+            root: PitchInOctave::from(scale_vec[0]),
+            onroot: PitchInOctave::from(scale_vec[0]),
+            member,
+        }
     }
 }
 
@@ -159,11 +208,12 @@ mod tests {
 
     #[test]
     fn test_parse_chord_name() {
-        let chord = Chord::parse_chord_name("C#m7").unwrap().1;
+        let chord = Chord::from("C#m7".to_string());
 
         assert_eq!(chord.root, PitchInOctave::from(1.0));
+        assert_eq!(chord.onroot, PitchInOctave::from(1.0));
         assert_eq!(
-            chord.member,
+            chord.member.iter().cloned().collect::<Vec<PitchInterval>>(),
             vec![
                 PitchInterval::from(0.0),
                 PitchInterval::from(3.0),
@@ -172,16 +222,31 @@ mod tests {
             ]
         );
 
-        let chord = Chord::parse_chord_name("EM7").unwrap().1;
+        let chord = Chord::from("EM7".to_string());
 
         assert_eq!(chord.root, PitchInOctave::from(4.0));
+        assert_eq!(chord.onroot, PitchInOctave::from(4.0));
         assert_eq!(
-            chord.member,
+            chord.member.iter().cloned().collect::<Vec<PitchInterval>>(),
             vec![
                 PitchInterval::from(0.0),
                 PitchInterval::from(4.0),
                 PitchInterval::from(7.0),
                 PitchInterval::from(11.0)
+            ]
+        );
+
+        let chord = Chord::from("Abadd9onC".to_string());
+
+        assert_eq!(chord.root, PitchInOctave::from(8.0));
+        assert_eq!(chord.onroot, PitchInOctave::from(0.0));
+        assert_eq!(
+            chord.member.iter().cloned().collect::<Vec<PitchInterval>>(),
+            vec![
+                PitchInterval::from(0.0),
+                PitchInterval::from(4.0),
+                PitchInterval::from(7.0),
+                PitchInterval::from(14.0)
             ]
         );
     }

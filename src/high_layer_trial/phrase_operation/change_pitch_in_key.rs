@@ -1,6 +1,10 @@
-use super::super::super::data::music_info::{Note, Phrase, PitchInOctave, PitchInterval};
+use super::super::super::data::music_info::{Phrase, PitchInOctave, PitchInterval, PitchNote};
 
-pub fn change_pitch_in_key(phrase: Phrase, key: PitchInOctave, degree: usize) -> Phrase {
+pub fn change_pitch_in_key(
+    phrase: Phrase<PitchNote>,
+    key: PitchInOctave,
+    degree: usize,
+) -> Phrase<PitchNote> {
     const OFFSET_KEY: [[f32; 7]; 7] = [
         [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0],
         [0.0, 2.0, 3.0, 5.0, 7.0, 9.0, 10.0],
@@ -34,7 +38,7 @@ pub fn change_pitch_in_key(phrase: Phrase, key: PitchInOctave, degree: usize) ->
                 6
             };
             let offset = OFFSET_KEY[degree_in_key][degree % 7] + 12.0 * (degree / 7) as f32;
-            new_phrase = new_phrase.add_note(Note {
+            new_phrase = new_phrase.add_note(PitchNote {
                 pitch: note.pitch.add_interval(PitchInterval { interval: offset }),
                 duration: note.duration,
                 start: note.start,

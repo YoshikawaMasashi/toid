@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use toid::data::music_info::{Beat, Instrument, PitchInOctave};
+use toid::data::music_info::{Beat, Instrument, PitchInOctave, Scale};
 use toid::high_layer_trial::music_language::num_lang::{parse_num_lang, send_num_lang};
 use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
-use toid::high_layer_trial::music_language::send_phrase::send_phrase;
+use toid::high_layer_trial::music_language::send_phrase::send_pitch_phrase;
 use toid::high_layer_trial::num::{
     change_max_min, f32_vec_to_beat_vec, f32_vec_to_pitch_vec, linspace, parlin_noise_seq,
 };
@@ -24,7 +24,7 @@ fn main() {
         .unwrap();
     player
         .get_resource_manager()
-        .register(String::from("./toid-sample-resource/drums/drums.toml"))
+        .register(String::from("./toid-sample-resource/samples/samples.toml"))
         .unwrap();
 
     player
@@ -56,7 +56,7 @@ fn main() {
         -4.0,
     );
 
-    send_phrase(
+    send_pitch_phrase(
         phrase_operation::marge(ph1, ph2),
         Beat::from(0),
         "a".to_string(),
@@ -219,7 +219,7 @@ fn main() {
         -4.0,
     );
     let ph4 = phrase_operation::change_pitch_in_key(ph3, PitchInOctave { pitch: -4.0 }, 4);
-    send_phrase(
+    send_pitch_phrase(
         ph4,
         Beat::from(0),
         "h".to_string(),
@@ -241,7 +241,7 @@ fn main() {
 
     let ph5 = parse_num_lang("12356".to_string().repeat(8), 2.0, -4.0);
     let ph6 = phrase_operation::shuffle_start(ph5);
-    send_phrase(
+    send_pitch_phrase(
         ph6,
         Beat::from(0),
         "i".to_string(),
@@ -265,7 +265,7 @@ fn main() {
         "x x x x ".to_string(),
         Beat::from(8),
         "kick".to_string(),
-        "example_drums".to_string(),
+        "example_samples".to_string(),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -284,7 +284,7 @@ fn main() {
         "- - - - ".to_string(),
         Beat::from(8),
         "hat".to_string(),
-        "example_drums".to_string(),
+        "example_samples".to_string(),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -303,7 +303,7 @@ fn main() {
         "   ooo  ".to_string(),
         Beat::from(8),
         "snare".to_string(),
-        "example_drums".to_string(),
+        "example_samples".to_string(),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -329,21 +329,19 @@ fn main() {
     let start = linspace(0.0, 7.75, 32);
     let start = f32_vec_to_beat_vec(&start);
 
-    let scale = vec![
-        PitchInOctave::from(0.0 - 4.0),
-        PitchInOctave::from(2.0 - 4.0),
-        PitchInOctave::from(4.0 - 4.0),
-        PitchInOctave::from(7.0 - 4.0),
-        PitchInOctave::from(9.0 - 4.0),
-    ];
-
     let duration: Vec<f32> = vec![0.25; 32];
     let duration = f32_vec_to_beat_vec(&duration);
 
-    let ph7 = phrase_operation::round_line(parlin_beat, parlin, start, duration, scale);
+    let ph7 = phrase_operation::round_line(
+        parlin_beat,
+        parlin,
+        start,
+        duration,
+        Scale::from("AbMajPenta".to_string()),
+    );
     let ph7 = phrase_operation::sixteen_shuffle(ph7);
 
-    send_phrase(
+    send_pitch_phrase(
         ph7,
         Beat::from(0),
         "j".to_string(),

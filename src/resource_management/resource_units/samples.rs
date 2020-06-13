@@ -11,27 +11,27 @@ use super::super::super::data::wave::Wave;
 use super::ResourceUnit;
 
 #[derive(Deserialize)]
-struct DrumsConfig {
+struct SamplesConfig {
     resourcetype: String,
     name: String,
     waves: HashMap<String, String>,
 }
 
-pub struct DrumsResourceUnit {
+pub struct SamplesResourceUnit {
     pub name: String,
     pub config_path: Box<Path>,
     pub file_paths: HashMap<String, Box<Path>>,
     pub waves: HashMap<String, Arc<Wave>>,
 }
 
-impl ResourceUnit for DrumsResourceUnit {
+impl ResourceUnit for SamplesResourceUnit {
     fn load_toml(path: String) -> Result<Self, String> {
         let config_toml = fs::read_to_string(path.clone()).map_err(|_| "read error")?;
-        let decoded_config: DrumsConfig =
+        let decoded_config: SamplesConfig =
             toml::from_str(config_toml.as_str()).map_err(|e| e.to_string())?;
 
-        if decoded_config.resourcetype != "drums" {
-            return Err("is not drums".to_string());
+        if decoded_config.resourcetype != "samples" {
+            return Err("is not samples".to_string());
         }
 
         let mut file_paths = HashMap::new();
@@ -49,7 +49,7 @@ impl ResourceUnit for DrumsResourceUnit {
             waves.insert(key.clone(), wave);
         }
 
-        Ok(DrumsResourceUnit {
+        Ok(SamplesResourceUnit {
             name: decoded_config.name,
             config_path: Box::<Path>::from(Path::new(&path)),
             file_paths,
@@ -68,6 +68,7 @@ mod tests {
 
     #[test]
     fn test_load() {
-        DrumsResourceUnit::load_toml("toid-sample-resource/drums/drums.toml".to_string()).unwrap();
+        SamplesResourceUnit::load_toml("toid-sample-resource/samples/samples.toml".to_string())
+            .unwrap();
     }
 }

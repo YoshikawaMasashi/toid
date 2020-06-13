@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
-use super::super::super::data::music_info::{Beat, SampleNote, SamplePhrase};
+use super::super::super::data::music_info::{Beat, Phrase, SampleNote};
 use super::super::super::music_state::states::{MusicState, MusicStateEvent};
 use super::super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::super::players::player::Player;
 use super::send_phrase::send_sample_phrase;
 
-pub fn parse_sample_lang(s: String) -> SamplePhrase {
+pub fn parse_sample_lang(s: String) -> Phrase<SampleNote> {
     let mut now: Beat = Beat::from(0);
     let length_unit: Beat = Beat::from(0.5);
-    let mut phrase = SamplePhrase::new();
+    let mut phrase = Phrase::new();
 
     phrase = phrase.set_length(Beat::from(s.len() as f32 / 2.0));
 

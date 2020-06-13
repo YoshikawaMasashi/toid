@@ -11,9 +11,10 @@ use super::super::resource_management::resource_manager::ResourceManager;
 use super::super::state_management::serialize;
 use super::super::state_management::store::Store;
 use super::super::state_management::store_reader::StoreReader;
+use super::effects::{Effect, EffectInfo};
+use super::pitch_track_player::PitchTrackPlayer;
 use super::sample_track_player::SampleTrackPlayer;
 use super::states::{MusicState, MusicStateEvent};
-use super::track_player::TrackPlayer;
 
 pub struct WaveReader {
     wave_length: u64,
@@ -22,8 +23,10 @@ pub struct WaveReader {
     bpm_change_samples: u64,
     bpm_change_beats: Beat,
     cum_current_beats: Beat,
-    track_players: HashMap<String, TrackPlayer>,
+    pitch_track_players: HashMap<String, PitchTrackPlayer>,
     sample_track_players: HashMap<String, SampleTrackPlayer>,
+    effect_infos: Vec<EffectInfo>,
+    effects: Vec<Box<dyn Effect + Sync + Send>>,
 }
 
 impl WaveReader {
@@ -43,8 +46,10 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
             bpm_change_samples: 0,
             bpm_change_beats: Beat::from(0),
             cum_current_beats: Beat::from(0),
-            track_players: HashMap::new(),
+            pitch_track_players: HashMap::new(),
             sample_track_players: HashMap::new(),
+            effect_infos: vec![],
+            effects: vec![],
         }
     }
 
@@ -109,26 +114,27 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
             let state_track_keys: HashSet<String> = HashSet::from_iter(
                 music_state
                     .get_section_state_by_beat(cum_next_beats)
-                    .track_map
+                    .pitch_track_map
                     .keys()
                     .cloned(),
             );
             let track_player_keys: HashSet<String> =
-                HashSet::from_iter(self.track_players.keys().cloned());
+                HashSet::from_iter(self.pitch_track_players.keys().cloned());
 
             for key in track_player_keys.difference(&state_track_keys) {
-                self.track_players.remove(key);
+                self.pitch_track_players.remove(key);
             }
             for key in state_track_keys.difference(&track_player_keys) {
-                self.track_players.insert(key.clone(), TrackPlayer::new());
+                self.pitch_track_players
+                    .insert(key.clone(), PitchTrackPlayer::new());
             }
             for (key, track) in music_state
                 .get_section_state_by_beat(cum_next_beats)
-                .track_map
+                .pitch_track_map
                 .iter()
             {
                 let (left_wave_of_track, right_wave_of_track) =
-                    self.track_players.get_mut(key).unwrap().play(
+                    self.pitch_track_players.get_mut(key).unwrap().play(
                         &track,
                         Arc::clone(&resource_manager),
                         &self.cum_current_samples,
@@ -181,6 +187,30 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
             }
         }
 
+        // Effect更新
+        if self.effect_infos
+            != music_state
+                .get_section_state_by_beat(cum_next_beats)
+                .effects
+        {
+            self.effect_infos = music_state
+                .get_section_state_by_beat(cum_next_beats)
+                .effects
+                .clone();
+            let mut effects = vec![];
+            for efi in self.effect_infos.iter() {
+                effects.push(efi.get_effect(Arc::clone(&resource_manager)));
+            }
+            self.effects = effects;
+        }
+
+        // Effect
+        for effect in self.effects.iter_mut() {
+            let (l, r) = effect.effect(&left_wave, &right_wave);
+            left_wave = l;
+            right_wave = r;
+        }
+
         self.cum_current_samples = cum_next_samples;
         self.cum_current_beats = cum_next_beats;
 
@@ -213,7 +243,7 @@ impl StoreReader<(Vec<i16>, Vec<i16>), WaveReaderEvent, MusicState, MusicStateEv
                 self.bpm_change_samples = 0;
                 self.bpm_change_beats = Beat::from(0);
                 self.cum_current_beats = Beat::from(0);
-                self.track_players = HashMap::new();
+                self.pitch_track_players = HashMap::new();
                 self.sample_track_players = HashMap::new();
             }
         }

@@ -1,4 +1,4 @@
-pub mod drums;
+pub mod samples;
 pub mod sf2;
 
 use std::fs;
@@ -6,7 +6,7 @@ use std::fs;
 use serde_derive::Deserialize;
 use toml;
 
-use drums::DrumsResourceUnit;
+use samples::SamplesResourceUnit;
 use sf2::SF2ResourceUnit;
 
 #[derive(Deserialize)]
@@ -24,7 +24,7 @@ where
 
 pub enum ResourceUnitEnum {
     SF2(SF2ResourceUnit),
-    Drums(DrumsResourceUnit),
+    Samples(SamplesResourceUnit),
 }
 
 impl ResourceUnitEnum {
@@ -37,8 +37,8 @@ impl ResourceUnitEnum {
             "sf2" => Ok(ResourceUnitEnum::SF2(
                 SF2ResourceUnit::load_toml(path).unwrap(),
             )),
-            "drums" => Ok(ResourceUnitEnum::Drums(
-                DrumsResourceUnit::load_toml(path).unwrap(),
+            "samples" => Ok(ResourceUnitEnum::Samples(
+                SamplesResourceUnit::load_toml(path).unwrap(),
             )),
             _ => Err("invalid resource_type".to_string()),
         }
@@ -47,7 +47,7 @@ impl ResourceUnitEnum {
     pub fn get_name(&self) -> String {
         match self {
             ResourceUnitEnum::SF2(sf2) => sf2.get_name(),
-            ResourceUnitEnum::Drums(drums) => drums.get_name(),
+            ResourceUnitEnum::Samples(samples) => samples.get_name(),
         }
     }
 }
@@ -59,6 +59,7 @@ mod tests {
     #[test]
     fn test_load() {
         ResourceUnitEnum::load_toml("toid-sample-resource/sf2/sf2.toml".to_string()).unwrap();
-        ResourceUnitEnum::load_toml("toid-sample-resource/drums/drums.toml".to_string()).unwrap();
+        ResourceUnitEnum::load_toml("toid-sample-resource/samples/samples.toml".to_string())
+            .unwrap();
     }
 }

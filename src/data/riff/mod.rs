@@ -42,6 +42,7 @@ impl RiffChunk {
         }
         Ok(())
     }
+
     fn parse_riff(i: &[u8]) -> IResult<&[u8], RiffChunk> {
         let (i, id) = take(4u8)(i)?;
         let id = match String::from_utf8(id.to_vec()) {
@@ -49,6 +50,8 @@ impl RiffChunk {
             Err(_) => return Err(nom::Err::Error((i, nom::error::ErrorKind::NoneOf))),
         };
         let (i, size) = le_u32(i)?;
+
+        let size = if id == "RIFF" { i.len() as u32 } else { size };
 
         let (i, data) = take(size)(i)?;
 

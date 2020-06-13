@@ -19,7 +19,7 @@ fn main() {
         .unwrap();
     player
         .get_resource_manager()
-        .register(String::from("./toid-sample-resource/drums/drums.toml"))
+        .register(String::from("./toid-sample-resource/samples/samples.toml"))
         .unwrap();
 
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
@@ -102,8 +102,8 @@ fn main() {
     send_sample_lang(
         "x ".to_string(),
         Beat::from(0),
-        "drums".to_string(),
-        "example_drums".to_string(),
+        "samples".to_string(),
+        "example_samples".to_string(),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -167,7 +167,7 @@ fn main() {
         "----".to_string(),
         Beat::from(8),
         "hat".to_string(),
-        "example_drums".to_string(),
+        "example_samples".to_string(),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -187,7 +187,7 @@ fn main() {
         "x x x  x".to_string(),
         Beat::from(8),
         "bass".to_string(),
-        "example_drums".to_string(),
+        "example_samples".to_string(),
         1.0,
         0.0,
         Arc::clone(&player)
@@ -207,7 +207,7 @@ fn main() {
         "  o   o ".to_string(),
         Beat::from(8),
         "snare".to_string(),
-        "example_drums".to_string(),
+        "example_samples".to_string(),
         1.0,
         0.0,
         Arc::clone(&player)

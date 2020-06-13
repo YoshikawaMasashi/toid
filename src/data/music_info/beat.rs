@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 use std::fmt;
-use std::ops::{Add, Rem, Sub};
+use std::ops::{Add, Mul, Rem, Sub};
 
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -168,6 +168,26 @@ impl Rem<Self> for Beat {
     fn rem(self, modulus: Self) -> Self {
         Self {
             num: self.num % modulus.num,
+        }
+    }
+}
+
+impl Mul<f32> for Beat {
+    type Output = Self;
+
+    fn mul(self, other: f32) -> Self {
+        Self {
+            num: (self.num as f32 * other) as i64,
+        }
+    }
+}
+
+impl Mul<usize> for Beat {
+    type Output = Self;
+
+    fn mul(self, other: usize) -> Self {
+        Self {
+            num: self.num * other as i64,
         }
     }
 }
