@@ -19,6 +19,13 @@ fn main() {
         .register(String::from("./toid-sample-resource/sf2/sf2.toml"))
         .unwrap();
 
+    player
+        .get_resource_manager()
+        .register(String::from(
+            "./toid-sample-resource/impulse_response/impulse_response.toml",
+        ))
+        .unwrap();
+
     let mut portaudio_outputter = PortAudioOutputter::new(Arc::clone(&player)
         as Arc<
             dyn Player<
@@ -38,13 +45,17 @@ fn main() {
         ))
         .unwrap();
 
-    let phrase = parse_num_lang("1234321 ".to_string(), 1.0, 0.0);
+    let phrase = parse_num_lang("1234321         ".to_string(), 1.0, 0.0);
     let mut track = Track::new();
     track = track.set_phrase(phrase);
     track = track.set_inst(Instrument::SF2(String::from("example_sf2"), 0));
     track = track.set_vol(1.0);
     track = track.set_pan(0.0);
-    track = track.add_effect(EffectInfo::ToLeftEffect);
+    // track = track.add_effect(EffectInfo::ToLeftEffect);
+    track = track.add_effect(EffectInfo::SamplingReverb(
+        "example_impulse_response".to_string(),
+        "st_marys_abbey".to_string(),
+    ));
 
     send_pitch_track(
         track,

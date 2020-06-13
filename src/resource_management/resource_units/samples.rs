@@ -68,6 +68,7 @@ mod tests {
 
     #[test]
     fn test_load() {
-        SamplesResourceUnit::load_toml("toid-sample-resource/samples/samples.toml".to_string()).unwrap();
+        SamplesResourceUnit::load_toml("toid-sample-resource/samples/samples.toml".to_string())
+            .unwrap();
     }
 }
