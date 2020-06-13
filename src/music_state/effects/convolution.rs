@@ -117,6 +117,14 @@ impl Effect for ConvolutionEffect {
 mod tests {
     use super::*;
 
+    fn assert_error(true_value: f32, calc_value: f32) {
+        if true_value != 0.0 {
+            assert!((true_value - calc_value).abs() / true_value.abs() < 1e-3);
+        } else {
+            assert!(calc_value < 1e-3);
+        }
+    }
+
     #[test]
     fn test_convolution() {
         let mut filter = vec![];
@@ -141,9 +149,27 @@ mod tests {
         let (output3, _) = conv_effect.effect(&input3, &input3);
         let (output4, _) = conv_effect.effect(&input4, &input4);
 
-        // println!("{:?}", output1);
-        // println!("{:?}", output2);
-        println!("{:?}", output3);
-        println!("{:?}", output4);
+        let mut not_fft_conv = vec![0.0; 512 * 4];
+        for i in 0..512 * 2 {
+            for j in 0..700 {
+                not_fft_conv[i + j] += ((i + 1) * (j + 1)) as f32
+            }
+        }
+
+        for i in 0..512 {
+            assert_error(not_fft_conv[i], output1[i]);
+        }
+
+        for i in 0..512 {
+            assert_error(not_fft_conv[i + 512], output2[i]);
+        }
+
+        for i in 0..512 {
+            assert_error(not_fft_conv[i + 512 * 2], output3[i]);
+        }
+
+        for i in 0..512 {
+            assert_error(not_fft_conv[i + 512 * 3], output4[i]);
+        }
     }
 }

@@ -1,8 +1,6 @@
 use num::complex::Complex;
 
 pub fn fft(input: &Vec<Complex<f32>>) -> Vec<Complex<f32>> {
-    let PI = std::f32::consts::PI;
-
     let size = input.len();
     let mut butterfly_idx: Vec<usize> = vec![];
     butterfly_idx.push(0);
@@ -25,9 +23,9 @@ pub fn fft(input: &Vec<Complex<f32>>) -> Vec<Complex<f32>> {
             let right_exponents = right_idx % butterfly_step;
 
             let left_w =
-                (-2.0 * PI * Complex::i() * left_exponents as f32 / butterfly_step as f32).exp();
+                (-2.0 * std::f32::consts::PI * Complex::i() * left_exponents as f32 / butterfly_step as f32).exp();
             let right_w =
-                (-2.0 * PI * Complex::i() * right_exponents as f32 / butterfly_step as f32).exp();
+                (-2.0 * std::f32::consts::PI * Complex::i() * right_exponents as f32 / butterfly_step as f32).exp();
 
             let left = output[left_idx];
             let right = output[right_idx];
@@ -44,8 +42,6 @@ pub fn fft(input: &Vec<Complex<f32>>) -> Vec<Complex<f32>> {
 }
 
 pub fn ifft(input: &Vec<Complex<f32>>) -> Vec<Complex<f32>> {
-    let PI = std::f32::consts::PI;
-
     let size = input.len();
     let mut butterfly_idx: Vec<usize> = vec![];
     butterfly_idx.push(0);
@@ -68,9 +64,9 @@ pub fn ifft(input: &Vec<Complex<f32>>) -> Vec<Complex<f32>> {
             let right_exponents = right_idx % butterfly_step;
 
             let left_w =
-                (2.0 * PI * Complex::i() * left_exponents as f32 / butterfly_step as f32).exp();
+                (2.0 * std::f32::consts::PI * Complex::i() * left_exponents as f32 / butterfly_step as f32).exp();
             let right_w =
-                (2.0 * PI * Complex::i() * right_exponents as f32 / butterfly_step as f32).exp();
+                (2.0 * std::f32::consts::PI * Complex::i() * right_exponents as f32 / butterfly_step as f32).exp();
 
             let left = output[left_idx];
             let right = output[right_idx];
@@ -89,8 +85,6 @@ pub fn ifft(input: &Vec<Complex<f32>>) -> Vec<Complex<f32>> {
 }
 
 pub fn fft_64(input: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
-    let PI = std::f64::consts::PI;
-
     let size = input.len();
     let mut butterfly_idx: Vec<usize> = vec![];
     butterfly_idx.push(0);
@@ -113,9 +107,9 @@ pub fn fft_64(input: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
             let right_exponents = right_idx % butterfly_step;
 
             let left_w =
-                (-2.0 * PI * Complex::i() * left_exponents as f64 / butterfly_step as f64).exp();
+                (-2.0 * std::f64::consts::PI * Complex::i() * left_exponents as f64 / butterfly_step as f64).exp();
             let right_w =
-                (-2.0 * PI * Complex::i() * right_exponents as f64 / butterfly_step as f64).exp();
+                (-2.0 * std::f64::consts::PI * Complex::i() * right_exponents as f64 / butterfly_step as f64).exp();
 
             let left = output[left_idx];
             let right = output[right_idx];
@@ -132,8 +126,6 @@ pub fn fft_64(input: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
 }
 
 pub fn ifft_64(input: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
-    let PI = std::f64::consts::PI;
-
     let size = input.len();
     let mut butterfly_idx: Vec<usize> = vec![];
     butterfly_idx.push(0);
@@ -156,9 +148,9 @@ pub fn ifft_64(input: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
             let right_exponents = right_idx % butterfly_step;
 
             let left_w =
-                (2.0 * PI * Complex::i() * left_exponents as f64 / butterfly_step as f64).exp();
+                (2.0 * std::f64::consts::PI * Complex::i() * left_exponents as f64 / butterfly_step as f64).exp();
             let right_w =
-                (2.0 * PI * Complex::i() * right_exponents as f64 / butterfly_step as f64).exp();
+                (2.0 * std::f64::consts::PI * Complex::i() * right_exponents as f64 / butterfly_step as f64).exp();
 
             let left = output[left_idx];
             let right = output[right_idx];
@@ -181,19 +173,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fft() {
-        let mut input = vec![];
-        for i in 0..8 {
-            input.push(Complex::new(i as f32, 0.0));
-        }
-        let output = fft(&input);
-        // println!("{:?}", output);
-
-        // array([28.+0.j        , -4.+9.65685425j, -4.+4.j        , -4.+1.65685425j,
-        // -4.+0.j        , -4.-1.65685425j, -4.-4.j        , -4.-9.65685425j])
-    }
-
-    #[test]
     fn test_ifft() {
         let mut input = vec![];
         for i in 0..1024 {
@@ -201,39 +180,10 @@ mod tests {
         }
         let fft_output = fft(&input);
         let ifft_output = ifft(&fft_output);
-        // println!("{:?}", ifft_output.iter().map(|x| x.re).collect::<Vec<f32>>());
-    }
 
-    #[test]
-    fn test_conv() {
-        let size = 512;
-
-        let mut x1 = vec![];
-        let mut x2 = vec![];
-        for i in 0..size {
-            x1.push(Complex::new((i + 1) as f64, 0.0));
-            x2.push(Complex::new((i + 1) as f64, 0.0));
+        for i in 0..1024 {
+            assert!((ifft_output[i].re - input[i].re).abs() < 1e-3);
+            assert!((ifft_output[i].im - input[i].im).abs() < 1e-3);
         }
-        for i in 0..size {
-            x1.push(Complex::new(0.0, 0.0));
-            x2.push(Complex::new(0.0, 0.0));
-        }
-
-        let x1 = fft_64(&x1);
-        let x2 = fft_64(&x2);
-        // println!("{:?}", x1.split_at(16).0);
-        // println!("{:?}", x1.split_at(1024 - 16).1);
-
-        let ix1 = ifft_64(&x1);
-        // println!("{:?}", ix1.split_at(16).0);
-        // println!("{:?}", ix1.split_at(1024 - 16).1);
-
-        let mut x3 = vec![];
-        for i in 0..size * 2 {
-            x3.push(x1[i] * x2[i]);
-        }
-        let x3 = ifft_64(&x3);
-
-        // println!("{:?}", x3.iter().map(|x| x.re).collect::<Vec<f64>>());
     }
 }
