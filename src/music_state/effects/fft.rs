@@ -22,10 +22,12 @@ pub fn fft(input: &Vec<Complex<f32>>) -> Vec<Complex<f32>> {
             let left_exponents = left_idx % butterfly_step;
             let right_exponents = right_idx % butterfly_step;
 
-            let left_w =
-                (-2.0 * std::f32::consts::PI * Complex::i() * left_exponents as f32 / butterfly_step as f32).exp();
-            let right_w =
-                (-2.0 * std::f32::consts::PI * Complex::i() * right_exponents as f32 / butterfly_step as f32).exp();
+            let left_w = (-2.0 * std::f32::consts::PI * Complex::i() * left_exponents as f32
+                / butterfly_step as f32)
+                .exp();
+            let right_w = (-2.0 * std::f32::consts::PI * Complex::i() * right_exponents as f32
+                / butterfly_step as f32)
+                .exp();
 
             let left = output[left_idx];
             let right = output[right_idx];
@@ -63,10 +65,12 @@ pub fn ifft(input: &Vec<Complex<f32>>) -> Vec<Complex<f32>> {
             let left_exponents = left_idx % butterfly_step;
             let right_exponents = right_idx % butterfly_step;
 
-            let left_w =
-                (2.0 * std::f32::consts::PI * Complex::i() * left_exponents as f32 / butterfly_step as f32).exp();
-            let right_w =
-                (2.0 * std::f32::consts::PI * Complex::i() * right_exponents as f32 / butterfly_step as f32).exp();
+            let left_w = (2.0 * std::f32::consts::PI * Complex::i() * left_exponents as f32
+                / butterfly_step as f32)
+                .exp();
+            let right_w = (2.0 * std::f32::consts::PI * Complex::i() * right_exponents as f32
+                / butterfly_step as f32)
+                .exp();
 
             let left = output[left_idx];
             let right = output[right_idx];
@@ -106,10 +110,12 @@ pub fn fft_64(input: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
             let left_exponents = left_idx % butterfly_step;
             let right_exponents = right_idx % butterfly_step;
 
-            let left_w =
-                (-2.0 * std::f64::consts::PI * Complex::i() * left_exponents as f64 / butterfly_step as f64).exp();
-            let right_w =
-                (-2.0 * std::f64::consts::PI * Complex::i() * right_exponents as f64 / butterfly_step as f64).exp();
+            let left_w = (-2.0 * std::f64::consts::PI * Complex::i() * left_exponents as f64
+                / butterfly_step as f64)
+                .exp();
+            let right_w = (-2.0 * std::f64::consts::PI * Complex::i() * right_exponents as f64
+                / butterfly_step as f64)
+                .exp();
 
             let left = output[left_idx];
             let right = output[right_idx];
@@ -147,10 +153,12 @@ pub fn ifft_64(input: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
             let left_exponents = left_idx % butterfly_step;
             let right_exponents = right_idx % butterfly_step;
 
-            let left_w =
-                (2.0 * std::f64::consts::PI * Complex::i() * left_exponents as f64 / butterfly_step as f64).exp();
-            let right_w =
-                (2.0 * std::f64::consts::PI * Complex::i() * right_exponents as f64 / butterfly_step as f64).exp();
+            let left_w = (2.0 * std::f64::consts::PI * Complex::i() * left_exponents as f64
+                / butterfly_step as f64)
+                .exp();
+            let right_w = (2.0 * std::f64::consts::PI * Complex::i() * right_exponents as f64
+                / butterfly_step as f64)
+                .exp();
 
             let left = output[left_idx];
             let right = output[right_idx];
