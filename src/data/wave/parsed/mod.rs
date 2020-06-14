@@ -79,6 +79,7 @@ mod tests {
             "toid-sample-resource/samples/0_hihat_closed.wav",
             "toid-sample-resource/samples/0_snare_drum.wav",
             "toid-sample-resource/samples/3_kick_drum.wav",
+            "toid-sample-resource/impulse_response/phase1_stereo.wav",
         ];
         for path in paths.iter() {
             let mut f = fs::File::open(path).map_err(|_| "file open error").unwrap();

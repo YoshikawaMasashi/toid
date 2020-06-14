@@ -1,12 +1,24 @@
+use std::fs;
+use std::io::Write;
+
 use nom::number::streaming::{le_i16, le_i24};
 use nom::IResult;
 
 use super::parsed;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Data {
     Monoral(Vec<f32>),
     Stereo((Vec<f32>, Vec<f32>)),
+}
+
+impl Data {
+    fn get_chunnel_size(&self) -> usize {
+        match self {
+            Data::Monoral(_) => 1,
+            Data::Stereo(_) => 2,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -202,6 +214,97 @@ impl Wave {
             sample_rate: sample_rate,
         }
     }
+
+    pub fn to_riff_buffer(&self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = vec![];
+
+        // head chunk
+        for &v in "RIFF".as_bytes() {
+            buffer.push(v);
+        }
+
+        let format_chunk_size = 4 + 4 + 2 + 2 + 4 + 4 + 2 + 2;
+        let data_chunk_size = self.sample_num * 2 * self.data.get_chunnel_size() + 8;
+
+        for &v in &((4 + format_chunk_size + data_chunk_size) as u32).to_le_bytes() {
+            buffer.push(v);
+        }
+
+        for &v in "WAVE".as_bytes() {
+            buffer.push(v);
+        }
+
+        // format chunk
+        for &v in "fmt ".as_bytes() {
+            buffer.push(v);
+        }
+
+        for &v in &(16 as u32).to_le_bytes() {
+            buffer.push(v);
+        }
+
+        for &v in &(1 as u16).to_le_bytes() {
+            buffer.push(v);
+        }
+    
+        for &v in &(self.data.get_chunnel_size() as u16).to_le_bytes() {
+            buffer.push(v);
+        }
+
+        for &v in &(self.sample_rate as u32).to_le_bytes() {
+            buffer.push(v);
+        }
+
+        for &v in &((self.sample_rate as usize * 2 * self.data.get_chunnel_size()) as u32).to_le_bytes() {
+            buffer.push(v);
+        }
+    
+        for &v in &(2 * self.data.get_chunnel_size() as u16).to_le_bytes() {
+            buffer.push(v);
+        }
+    
+        for &v in &(16 as u16).to_le_bytes() {
+            buffer.push(v);
+        }
+
+        // data chunk
+        for &v in "data".as_bytes() {
+            buffer.push(v);
+        }
+
+        for &v in &((self.sample_num * 2 * self.data.get_chunnel_size()) as u32).to_le_bytes() {
+            buffer.push(v);
+        }
+
+        match &self.data {
+            Data::Monoral(wave) => {
+                for sample in wave.iter() {
+                    for &v in &((sample * std::i16::MAX as f32) as i16).to_le_bytes() {
+                        buffer.push(v);
+                    }
+                }
+            },
+            Data::Stereo((left_wave, right_wave)) => {
+                for (left_sample, right_sample) in left_wave.iter().zip(right_wave.iter()) {
+                    for &v in &((left_sample * std::i16::MAX as f32) as i16).to_le_bytes() {
+                        buffer.push(v);
+                    }
+                    for &v in &((right_sample * std::i16::MAX as f32) as i16).to_le_bytes() {
+                        buffer.push(v);
+                    }
+                }
+            }
+        }
+
+        buffer
+    }
+
+    pub fn save(&self, path: String) {
+        let mut file = fs::File::create(path).unwrap();
+        file.write_all(self.to_riff_buffer().as_slice()).unwrap();
+        file.flush().unwrap();
+
+    }
 }
 
 #[cfg(test)]
@@ -217,6 +320,7 @@ mod tests {
             "toid-sample-resource/samples/0_hihat_closed.wav",
             "toid-sample-resource/samples/0_snare_drum.wav",
             "toid-sample-resource/samples/3_kick_drum.wav",
+            "toid-sample-resource/impulse_response/phase1_stereo.wav",
         ];
         for path in paths.iter() {
             let mut f = fs::File::open(path).map_err(|_| "file open error").unwrap();
@@ -253,5 +357,20 @@ mod tests {
 
         assert!(wave.sample_num as f32 >= sample_num as f32 / 2.0 - 0.5);
         assert!(wave.sample_num as f32 <= sample_num as f32 / 2.0 + 0.5);
+    }
+
+    #[test]
+    fn test_to_riff_buffer() {
+        let path = "toid-sample-resource/samples/0_hihat_closed.wav";
+
+        let mut f = fs::File::open(path).map_err(|_| "file open error").unwrap();
+        let mut buffer = Vec::new();
+        f.read_to_end(&mut buffer)
+            .map_err(|_| "read error")
+            .unwrap();
+        let buffer = buffer.as_slice();
+        let wave = Wave::parse(buffer).unwrap();
+
+        Wave::parse(wave.to_riff_buffer().as_slice()).unwrap();
     }
 }
