@@ -1,13 +1,15 @@
 extern crate portaudio;
 
+use std::option::Option;
+use std::sync::Arc;
+use std::sync::RwLock;
+
+use portaudio as pa;
+
 use super::super::music_state::states::{MusicState, MusicStateEvent};
 use super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::players::player::Player;
 use super::super::state_management::store_reader::StoreReader;
-use portaudio as pa;
-use std::option::Option;
-use std::sync::Arc;
-use std::sync::RwLock;
 
 const CHANNELS: i32 = 2;
 const SAMPLE_RATE: f64 = 44_100.0;

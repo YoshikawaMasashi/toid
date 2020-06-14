@@ -246,7 +246,7 @@ impl Wave {
         for &v in &(1 as u16).to_le_bytes() {
             buffer.push(v);
         }
-    
+
         for &v in &(self.data.get_chunnel_size() as u16).to_le_bytes() {
             buffer.push(v);
         }
@@ -255,14 +255,16 @@ impl Wave {
             buffer.push(v);
         }
 
-        for &v in &((self.sample_rate as usize * 2 * self.data.get_chunnel_size()) as u32).to_le_bytes() {
+        for &v in
+            &((self.sample_rate as usize * 2 * self.data.get_chunnel_size()) as u32).to_le_bytes()
+        {
             buffer.push(v);
         }
-    
+
         for &v in &(2 * self.data.get_chunnel_size() as u16).to_le_bytes() {
             buffer.push(v);
         }
-    
+
         for &v in &(16 as u16).to_le_bytes() {
             buffer.push(v);
         }
@@ -283,7 +285,7 @@ impl Wave {
                         buffer.push(v);
                     }
                 }
-            },
+            }
             Data::Stereo((left_wave, right_wave)) => {
                 for (left_sample, right_sample) in left_wave.iter().zip(right_wave.iter()) {
                     for &v in &((left_sample * std::i16::MAX as f32) as i16).to_le_bytes() {
@@ -303,7 +305,6 @@ impl Wave {
         let mut file = fs::File::create(path).unwrap();
         file.write_all(self.to_riff_buffer().as_slice()).unwrap();
         file.flush().unwrap();
-
     }
 }
 

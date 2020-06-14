@@ -1,4 +1,4 @@
 pub mod own;
 pub mod parsed;
 
-pub use own::Wave;
+pub use own::{Data, Wave};
