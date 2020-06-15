@@ -53,10 +53,7 @@ impl Sample {
 
         for idx in start..end {
             let sample_link_idx = self.calculate_idx_of_sample_access(idx as f32 * freq_shift);
-            sample.insert(
-                idx - start,
-                self.sample_for_float_sample_link_idx(sample_link_idx)?,
-            );
+            sample[idx - start] = self.sample_for_float_sample_link_idx(sample_link_idx)?;
         }
 
         Ok(sample)
