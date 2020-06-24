@@ -1,10 +1,51 @@
 use std::sync::Arc;
 
+use nom::IResult;
+use nom::character::complete::char;
+use nom::bytes::complete::take;
+use nom::combinator::{cond, not};
+
 use super::super::super::data::music_info::{Beat, Phrase, SampleNote};
 use super::super::super::music_state::states::{MusicState, MusicStateEvent};
 use super::super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::super::players::player::Player;
 use super::send_phrase::send_sample_phrase;
+
+
+#[derive(Clone)]
+enum Element {
+    Sample(String),
+    Tuplet(Tuplet),
+}
+
+#[derive(Clone)]
+struct Tuplet {
+    elements: Vec<Element>
+}
+
+/*
+fn parse_element(s: &str) -> IResult<&str, Element>{
+
+
+    if let Ok((s, _)) = char('[')(s) {
+        let elements = vec![];
+        Ok((s, Element::Tuplet(Tuplet{elements})))
+    } else {
+        let (s, sample_str) = take(1u8)(s)?;
+        Ok((s, Element::Sample(s.to_string())))
+    }
+}
+*/
+
+fn parse_tuplet(s: &str) -> IResult<&str, Element> {
+    let elements = vec![];
+    Ok((s, Element::Tuplet(Tuplet{elements})))
+}
+
+fn parse_sample(s: &str) -> IResult<&str, Element> {
+    let (s, sample_str) = take(1u8)(s)?;
+    Ok((s, Element::Sample(s.to_string())))
+}
 
 pub fn parse_sample_lang(s: String) -> Phrase<SampleNote> {
     let mut now: Beat = Beat::from(0);
