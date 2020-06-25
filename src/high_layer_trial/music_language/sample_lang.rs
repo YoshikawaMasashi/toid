@@ -3,7 +3,8 @@ use std::sync::Arc;
 use nom::IResult;
 use nom::character::complete::char;
 use nom::bytes::complete::take;
-use nom::combinator::{cond, not};
+use nom::combinator::{cond, not, iterator};
+use nom::branch::alt;
 
 use super::super::super::data::music_info::{Beat, Phrase, SampleNote};
 use super::super::super::music_state::states::{MusicState, MusicStateEvent};
@@ -23,22 +24,19 @@ struct Tuplet {
     elements: Vec<Element>
 }
 
-/*
 fn parse_element(s: &str) -> IResult<&str, Element>{
-
-
-    if let Ok((s, _)) = char('[')(s) {
-        let elements = vec![];
-        Ok((s, Element::Tuplet(Tuplet{elements})))
-    } else {
-        let (s, sample_str) = take(1u8)(s)?;
-        Ok((s, Element::Sample(s.to_string())))
-    }
+    let (s, _) = not(char(']'))(s)?;
+    alt((parse_tuplet, parse_sample))(s)
 }
-*/
 
 fn parse_tuplet(s: &str) -> IResult<&str, Element> {
-    let elements = vec![];
+    let (s, _) = char('[')(s)?;
+
+    let mut it = iterator(s, parse_element);
+    let elements = it.collect();
+    let (s, _) = it.finish()?;
+    let (s, _) = char(']')(s)?;
+
     Ok((s, Element::Tuplet(Tuplet{elements})))
 }
 
