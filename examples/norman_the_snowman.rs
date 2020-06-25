@@ -300,7 +300,7 @@ fn main() {
     )
     .unwrap();
     send_sample_lang(
-        "   ooo  ".to_string(),
+        "   [oo][oo]o  ".to_string(),
         Beat::from(8),
         "snare".to_string(),
         "example_samples".to_string(),
