@@ -1,7 +1,7 @@
 [package]
 name = "toid"
 license = "MIT"
-version = "0.8.0-alpha"
+version = "0.9.0-alpha"
 authors = ["masashi yoshikawa <earnest.marshi@gmail.com>"]
 description = "live coding tool"
 edition = "2018"
