@@ -22,7 +22,7 @@ impl<T: Clone> RingBuffer<T> {
         self.i = (self.i + self.n - 1) % self.n;
     }
 
-    pub fn insert(&mut self, i: usize, x: T) {
+    pub fn set(&mut self, i: usize, x: T) {
         self.v[(self.i + i) % self.n] = x;
     }
 

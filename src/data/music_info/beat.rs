@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 use std::fmt;
-use std::ops::{Add, Mul, Rem, Sub};
+use std::ops::{Add, Div, Mul, Rem, Sub};
 
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -188,6 +188,26 @@ impl Mul<usize> for Beat {
     fn mul(self, other: usize) -> Self {
         Self {
             num: self.num * other as i64,
+        }
+    }
+}
+
+impl Div<f32> for Beat {
+    type Output = Self;
+
+    fn div(self, other: f32) -> Self::Output {
+        Self {
+            num: (self.num as f32 / other) as i64,
+        }
+    }
+}
+
+impl Div<usize> for Beat {
+    type Output = Self;
+
+    fn div(self, other: usize) -> Self::Output {
+        Self {
+            num: self.num / other as i64,
         }
     }
 }
