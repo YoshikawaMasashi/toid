@@ -8,14 +8,14 @@ use super::Effect;
 
 const FRAMES_PER_BUFFER: usize = 512;
 
-pub struct SchroederRebervEffect {
+pub struct SchroederReverbEffect {
     multitap_delay: MultitapDelay,
     comb_filters: Vec<CombFilter>,
     allpass_filters: Vec<AllpassFilter>,
 }
 
-impl SchroederRebervEffect {
-    fn new() -> SchroederRebervEffect {
+impl SchroederReverbEffect {
+    pub fn new() -> SchroederReverbEffect {
         let mut rng = rand::thread_rng();
 
         let mut multitap_delay: Vec<usize> = vec![];
@@ -43,7 +43,7 @@ impl SchroederRebervEffect {
             AllpassFilter::new((0.0017 * 44100.0 + 0.5) as usize, 0.7),
         ];
 
-        SchroederRebervEffect {
+        SchroederReverbEffect {
             multitap_delay,
             comb_filters,
             allpass_filters,
@@ -51,7 +51,7 @@ impl SchroederRebervEffect {
     }
 }
 
-impl Effect for SchroederRebervEffect {
+impl Effect for SchroederReverbEffect {
     fn effect(&mut self, left_wave: &Vec<f32>, right_wave: &Vec<f32>) -> (Vec<f32>, Vec<f32>) {
         let mut new_left_wave = vec![];
         let mut new_right_wave = vec![];
