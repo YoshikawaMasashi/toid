@@ -1,5 +1,8 @@
 // "サウンドエフェクトのプログラミング" p177-p188
 // https://www.amazon.co.jp/dp/B01IGW5BCU
+
+use rand::prelude::*;
+
 use super::ring_buffer::RingBuffer;
 use super::Effect;
 
@@ -9,6 +12,43 @@ pub struct SchroederRebervEffect {
     multitap_delay: MultitapDelay,
     comb_filters: Vec<CombFilter>,
     allpass_filters: Vec<AllpassFilter>,
+}
+
+impl SchroederRebervEffect {
+    fn new() -> SchroederRebervEffect {
+        let mut rng = rand::thread_rng();
+
+        let mut multitap_delay: Vec<usize> = vec![];
+        let mut multitap_amp: Vec<f32> = vec![];
+        for i in 0..10 {
+            let fluctdelay: f32 = 0.002 * rng.gen::<f32>();
+            let fluctamp: f32 = 0.1 * rng.gen::<f32>();
+            let delay_sec = 0.020 + (0.008 + fluctdelay) * (i as f32);
+            let delay = (delay_sec * 44100.0 + 0.5) as usize;
+            let amp = 0.6 + fluctamp + (-0.3) * (i as f32) / 10.0;
+            multitap_delay.push(delay);
+            multitap_amp.push(amp);
+        }
+        let multitap_delay = MultitapDelay::new(multitap_delay, multitap_amp);
+
+        let comb_filters = vec![
+            CombFilter::new((0.03985 * 44100.0 + 0.5) as usize, 0.871402),
+            CombFilter::new((0.03610 * 44100.0 + 0.5) as usize, 0.882762),
+            CombFilter::new((0.03327 * 44100.0 + 0.5) as usize, 0.891443),
+            CombFilter::new((0.03015 * 44100.0 + 0.5) as usize, 0.901117),
+        ];
+
+        let allpass_filters = vec![
+            AllpassFilter::new((0.005 * 44100.0 + 0.5) as usize, 0.7),
+            AllpassFilter::new((0.0017 * 44100.0 + 0.5) as usize, 0.7),
+        ];
+
+        SchroederRebervEffect {
+            multitap_delay,
+            comb_filters,
+            allpass_filters,
+        }
+    }
 }
 
 impl Effect for SchroederRebervEffect {
