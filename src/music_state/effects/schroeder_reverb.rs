@@ -5,13 +5,11 @@ use super::Effect;
 
 const FRAMES_PER_BUFFER: usize = 512;
 
-
 pub struct SchroederRebervEffect {
     multitap_delay: MultitapDelay,
     comb_filters: Vec<CombFilter>,
     allpass_filters: Vec<AllpassFilter>,
 }
-
 
 impl Effect for SchroederRebervEffect {
     fn effect(&mut self, left_wave: &Vec<f32>, right_wave: &Vec<f32>) -> (Vec<f32>, Vec<f32>) {
@@ -56,12 +54,22 @@ pub struct MultitapDelay {
 }
 
 impl MultitapDelay {
+    fn new(delay: Vec<usize>, amp: Vec<f32>) -> MultitapDelay {
+        let max_delay = *delay.iter().max().unwrap();
+        MultitapDelay {
+            size: delay.len(),
+            delay,
+            amp,
+            left_buffer: RingBuffer::new(max_delay, 0.0),
+            right_buffer: RingBuffer::new(max_delay, 0.0),
+        }
+    }
     fn filter(&mut self, left: f32, right: f32) -> (f32, f32) {
         let mut out_left: f32 = 0.0;
         let mut out_right: f32 = 0.0;
         for i in 0..self.size {
-            out_left += self.amp[i] * self.left_buffer.get(self.delay[i]).unwrap();
-            out_right += self.amp[i] * self.right_buffer.get(self.delay[i]).unwrap();
+            out_left += self.amp[i] * self.left_buffer.get(self.delay[i] - 1).unwrap();
+            out_right += self.amp[i] * self.right_buffer.get(self.delay[i] - 1).unwrap();
         }
         self.left_buffer.push(left);
         self.right_buffer.push(right);
@@ -77,9 +85,17 @@ pub struct CombFilter {
 }
 
 impl CombFilter {
+    fn new(delay: usize, amp: f32) -> CombFilter {
+        CombFilter {
+            delay,
+            amp,
+            left_buffer: RingBuffer::new(delay, 0.0),
+            right_buffer: RingBuffer::new(delay, 0.0),
+        }
+    }
     fn filter(&mut self, left: f32, right: f32) -> (f32, f32) {
-        let out_left: f32 = *self.left_buffer.get(self.delay).unwrap();
-        let out_right: f32 = *self.right_buffer.get(self.delay).unwrap();
+        let out_left: f32 = *self.left_buffer.get(self.delay - 1).unwrap();
+        let out_right: f32 = *self.right_buffer.get(self.delay - 1).unwrap();
         self.left_buffer.push(out_left + self.amp * left);
         self.right_buffer.push(out_right + self.amp * right);
         (out_left, out_right)
@@ -94,11 +110,19 @@ pub struct AllpassFilter {
 }
 
 impl AllpassFilter {
+    fn new(delay: usize, amp: f32) -> AllpassFilter {
+        AllpassFilter {
+            delay,
+            amp,
+            left_buffer: RingBuffer::new(delay, 0.0),
+            right_buffer: RingBuffer::new(delay, 0.0),
+        }
+    }
     fn filter(&mut self, left: f32, right: f32) -> (f32, f32) {
-        let left_before_z: f32 = left + self.amp * self.left_buffer.get(self.delay).unwrap();
-        let right_before_z: f32 = right + self.amp * self.right_buffer.get(self.delay).unwrap();
-        let out_left = -self.amp * left_before_z + self.left_buffer.get(self.delay).unwrap();
-        let out_right = -self.amp * right_before_z + self.right_buffer.get(self.delay).unwrap();
+        let left_before_z: f32 = left + self.amp * self.left_buffer.get(self.delay - 1).unwrap();
+        let right_before_z: f32 = right + self.amp * self.right_buffer.get(self.delay - 1).unwrap();
+        let out_left = -self.amp * left_before_z + self.left_buffer.get(self.delay - 1).unwrap();
+        let out_right = -self.amp * right_before_z + self.right_buffer.get(self.delay - 1).unwrap();
         self.left_buffer.push(left_before_z);
         self.right_buffer.push(right_before_z);
         (out_left, out_right)
