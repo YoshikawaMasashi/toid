@@ -6,14 +6,14 @@ use super::Effect;
 const FRAMES_PER_BUFFER: usize = 512;
 
 
-pub struct SchroederDelayEffect {
+pub struct SchroederRebervEffect {
     multitap_delay: MultitapDelay,
     comb_filters: Vec<CombFilter>,
     allpass_filters: Vec<AllpassFilter>,
 }
 
 
-impl Effect for SchroederDelayEffect {
+impl Effect for SchroederRebervEffect {
     fn effect(&mut self, left_wave: &Vec<f32>, right_wave: &Vec<f32>) -> (Vec<f32>, Vec<f32>) {
         let mut new_left_wave = vec![];
         let mut new_right_wave = vec![];

@@ -2,7 +2,7 @@ mod convolution;
 pub mod fft;
 pub mod ring_buffer;
 mod to_left;
-mod schroeder_delay;
+mod schroeder_reverb;
 
 use std::sync::Arc;
 
