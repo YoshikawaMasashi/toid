@@ -1,6 +1,7 @@
 mod convolution;
 pub mod fft;
 pub mod ring_buffer;
+mod schroeder_reverb;
 mod to_left;
 
 use std::sync::Arc;
@@ -10,12 +11,14 @@ use serde::{Deserialize, Serialize};
 
 use super::super::resource_management::resource_manager::ResourceManager;
 use convolution::ConvolutionEffect;
+use schroeder_reverb::SchroederReverbEffect;
 use to_left::ToLeftEffect;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum EffectInfo {
     ToLeftEffect,
     SamplingReverb(String, String, f32, f32),
+    SchroederReverb(f32, f32),
 }
 
 impl EffectInfo {
@@ -53,6 +56,9 @@ impl EffectInfo {
                             as Box<dyn Effect + Sync + Send>
                     }
                 }
+            }
+            EffectInfo::SchroederReverb(dry, wet) => {
+                Box::new(SchroederReverbEffect::new(*dry, *wet)) as Box<dyn Effect + Sync + Send>
             }
         }
     }
