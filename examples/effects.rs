@@ -62,12 +62,15 @@ fn main() {
     player
         .send_event(MusicStateEvent::SectionStateEvent(
             Beat::from(0),
+            /*
             SectionStateEvent::AddEffect(EffectInfo::SamplingReverb(
                 "example_impulse_response".to_string(),
                 "st_marys_abbey".to_string(),
                 1.0,
                 0.03,
             )),
+            */
+            SectionStateEvent::AddEffect(EffectInfo::SchroederReverb(1.0, 0.3)),
         ))
         .unwrap();
 

@@ -11,14 +11,14 @@ use serde::{Deserialize, Serialize};
 
 use super::super::resource_management::resource_manager::ResourceManager;
 use convolution::ConvolutionEffect;
-use to_left::ToLeftEffect;
 use schroeder_reverb::SchroederReverbEffect;
+use to_left::ToLeftEffect;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum EffectInfo {
     ToLeftEffect,
     SamplingReverb(String, String, f32, f32),
-    SchroederReverb,
+    SchroederReverb(f32, f32),
 }
 
 impl EffectInfo {
@@ -57,8 +57,8 @@ impl EffectInfo {
                     }
                 }
             }
-            EffectInfo::SchroederReverb => {
-                Box::new(SchroederReverbEffect::new()) as Box<dyn Effect + Sync + Send>
+            EffectInfo::SchroederReverb(dry, wet) => {
+                Box::new(SchroederReverbEffect::new(*dry, *wet)) as Box<dyn Effect + Sync + Send>
             }
         }
     }

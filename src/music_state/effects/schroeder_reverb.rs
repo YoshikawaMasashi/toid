@@ -12,10 +12,12 @@ pub struct SchroederReverbEffect {
     multitap_delay: MultitapDelay,
     comb_filters: Vec<CombFilter>,
     allpass_filters: Vec<AllpassFilter>,
+    dry: f32,
+    wet: f32,
 }
 
 impl SchroederReverbEffect {
-    pub fn new() -> SchroederReverbEffect {
+    pub fn new(dry: f32, wet: f32) -> SchroederReverbEffect {
         let mut rng = rand::thread_rng();
 
         let mut multitap_delay: Vec<usize> = vec![];
@@ -47,6 +49,8 @@ impl SchroederReverbEffect {
             multitap_delay,
             comb_filters,
             allpass_filters,
+            dry,
+            wet,
         }
     }
 }
@@ -77,8 +81,8 @@ impl Effect for SchroederReverbEffect {
                 rear_right = r;
             }
 
-            new_left_wave.push(new_left);
-            new_right_wave.push(new_right);
+            new_left_wave.push(self.dry * left_wave[i] + self.wet * new_left);
+            new_right_wave.push(self.dry * right_wave[i] + self.wet * new_right);
         }
 
         (new_left_wave, new_right_wave)
