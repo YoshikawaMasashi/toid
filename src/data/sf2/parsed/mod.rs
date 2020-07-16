@@ -82,3 +82,26 @@ fn convert_chunk_to_sf2(chunk: &RiffChunk) -> Result<SF2, String> {
 
     Ok(SF2 { info, sdta, pdta })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::fs;
+    use std::io::Read;
+
+    #[test]
+    fn test_parse() {
+        let paths = ["toid-sample-resource/sf2/florestan-subset.sf2"];
+        for path in paths.iter() {
+            let mut f = fs::File::open(path).map_err(|_| "file open error").unwrap();
+            let mut buffer = Vec::new();
+            f.read_to_end(&mut buffer)
+                .map_err(|_| "read error")
+                .unwrap();
+            let buffer = buffer.as_slice();
+
+            SF2::parse(buffer).unwrap();
+        }
+    }
+}
