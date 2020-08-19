@@ -16,6 +16,7 @@ use super::music_language::send_phrase::send_sample_phrase;
 enum Element {
     Pitch(PitchElement),
     Tuplet(TupletElement),
+    Rest(),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -44,7 +45,7 @@ fn parse_elements(s: &str) -> IResult<&str, Vec<Element>> {
 }
 
 fn parse_element(s: &str) -> IResult<&str, Element> {
-    alt((parse_tuplet, parse_pitch, parse_bracket_pitch))(s)
+    alt((parse_tuplet, parse_pitch, parse_bracket_pitch, parse_rest))(s)
 }
 
 fn parse_tuplet(s: &str) -> IResult<&str, Element> {
@@ -135,13 +136,18 @@ fn parse_bracket_pitch(s: &str) -> IResult<&str, Element> {
     )))
 }
 
+fn parse_rest(s: &str) -> IResult<&str, Element> {
+    let (s, _) = char(' ')(s)?;
+    Ok((s, Element::Rest()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_parse_elements() {
-        let s = "13[2+1(+2-)](13)";
+        let s = "13[2+1(+2-) ](13)";
         let true_elements = vec![
             Element::Pitch(PitchElement{pitch:1, shift:0}),
             Element::Pitch(PitchElement{pitch:3, shift:0}),
@@ -150,6 +156,7 @@ mod tests {
                     Element::Pitch(PitchElement{pitch:2, shift:1}),
                     Element::Pitch(PitchElement{pitch:1, shift:0}),
                     Element::Pitch(PitchElement{pitch:9, shift:-1}),
+                    Element::Rest(),
                 ],
             }),
             Element::Pitch(PitchElement{pitch:13, shift:0}),
