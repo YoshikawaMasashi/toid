@@ -1,17 +1,35 @@
 use std::sync::Arc;
 
 use nom::branch::alt;
-use nom::bytes::complete::take;
-use nom::character::complete::{char, one_of, digit1};
-use nom::combinator::{iterator, not};
+use nom::character::complete::{char, digit1, one_of};
+use nom::combinator::iterator;
 use nom::IResult;
 
-use super::super::data::music_info::{Beat, Phrase, PitchNote, PitchInterval, Pitch};
+use super::super::data::music_info::{Beat, Instrument, Phrase, Pitch, PitchInterval, PitchNote};
 use super::super::music_state::states::{MusicState, MusicStateEvent};
 use super::super::music_state::wave_reader::{WaveReader, WaveReaderEvent};
 use super::super::players::player::Player;
-use super::music_language::send_phrase::send_sample_phrase;
+use super::music_language::send_phrase::send_pitch_phrase;
 use super::phrase_operation::change_key;
+
+pub fn send_message(
+    usename: String,
+    message: String,
+    player: Arc<
+        dyn Player<MusicState, MusicStateEvent, WaveReader, (Vec<i16>, Vec<i16>), WaveReaderEvent>,
+    >,
+) -> Result<(), String> {
+    send_pitch_phrase(
+        parse_phrase(&message).unwrap().1,
+        Beat::from(0),
+        usename,
+        Instrument::SF2("example_sf2".to_string(), 0),
+        1.0,
+        0.0,
+        player,
+    )?;
+    Ok(())
+}
 
 fn parse_phrase(s: &str) -> IResult<&str, Phrase<PitchNote>> {
     let mut it = iterator(s, one_of("+-"));
@@ -22,10 +40,10 @@ fn parse_phrase(s: &str) -> IResult<&str, Phrase<PitchNote>> {
         match pm_chr {
             '+' => {
                 octave += 1;
-            },
+            }
             '-' => {
                 octave -= 1;
-            },
+            }
             _ => {}
         }
     }
@@ -67,8 +85,7 @@ fn parse_phrase(s: &str) -> IResult<&str, Phrase<PitchNote>> {
                     phrase = phrase.add_note(note.clone());
                 }
             }
-            Element::Rest() => {
-            }
+            Element::Rest() => {}
         }
         now = now + length_unit;
     }
@@ -77,7 +94,6 @@ fn parse_phrase(s: &str) -> IResult<&str, Phrase<PitchNote>> {
 
     Ok((s, phrase))
 }
-
 
 fn tuplet_to_notes(tuplet_element: TupletElement, start: Beat, duration: Beat) -> Vec<PitchNote> {
     let length_unit: Beat = duration / tuplet_element.size() as f32;
@@ -107,9 +123,7 @@ fn tuplet_to_notes(tuplet_element: TupletElement, start: Beat, duration: Beat) -
                 };
                 ret_notes.push(note);
             }
-            Element::Rest() => {
-
-            }
+            Element::Rest() => {}
             Element::Tuplet(tuplet_element) => {
                 let notes = tuplet_to_notes(tuplet_element.clone(), now, length_unit);
                 for note in notes.iter() {
@@ -179,21 +193,16 @@ fn parse_pitch(s: &str) -> IResult<&str, Element> {
         match pm_chr {
             '+' => {
                 shift += 1;
-            },
+            }
             '-' => {
                 shift -= 1;
-            },
+            }
             _ => {}
         }
     }
 
     let pitch: i32 = pitch_chr as i32 - 48; // char to num
-    Ok((s, Element::Pitch(
-        PitchElement{
-            pitch,
-            shift
-        }
-    )))
+    Ok((s, Element::Pitch(PitchElement { pitch, shift })))
 }
 
 fn parse_bracket_pitch(s: &str) -> IResult<&str, Element> {
@@ -207,17 +216,16 @@ fn parse_bracket_pitch(s: &str) -> IResult<&str, Element> {
         match pm_chr {
             '+' => {
                 octave += 1;
-            },
+            }
             '-' => {
                 octave -= 1;
-            },
+            }
             _ => {}
         }
     }
 
     let (s, pitch_str) = digit1(s)?;
     let pitch: i32 = pitch_str.parse().unwrap();
-
 
     let mut it = iterator(s, one_of("+-"));
     let pm_chrs: Vec<char> = it.collect();
@@ -227,10 +235,10 @@ fn parse_bracket_pitch(s: &str) -> IResult<&str, Element> {
         match pm_chr {
             '+' => {
                 shift += 1;
-            },
+            }
             '-' => {
                 shift -= 1;
-            },
+            }
             _ => {}
         }
     }
@@ -238,12 +246,7 @@ fn parse_bracket_pitch(s: &str) -> IResult<&str, Element> {
     let (s, _) = char(')')(s)?;
 
     let pitch: i32 = pitch + 7 * octave;
-    Ok((s, Element::Pitch(
-        PitchElement{
-            pitch,
-            shift
-        }
-    )))
+    Ok((s, Element::Pitch(PitchElement { pitch, shift })))
 }
 
 fn parse_rest(s: &str) -> IResult<&str, Element> {
@@ -259,17 +262,23 @@ mod tests {
     fn test_parse_elements() {
         let s = "13[2+1(+2-) ](13)";
         let true_elements = vec![
-            Element::Pitch(PitchElement{pitch:1, shift:0}),
-            Element::Pitch(PitchElement{pitch:3, shift:0}),
+            Element::Pitch(PitchElement { pitch: 1, shift: 0 }),
+            Element::Pitch(PitchElement { pitch: 3, shift: 0 }),
             Element::Tuplet(TupletElement {
                 elements: vec![
-                    Element::Pitch(PitchElement{pitch:2, shift:1}),
-                    Element::Pitch(PitchElement{pitch:1, shift:0}),
-                    Element::Pitch(PitchElement{pitch:9, shift:-1}),
+                    Element::Pitch(PitchElement { pitch: 2, shift: 1 }),
+                    Element::Pitch(PitchElement { pitch: 1, shift: 0 }),
+                    Element::Pitch(PitchElement {
+                        pitch: 9,
+                        shift: -1,
+                    }),
                     Element::Rest(),
                 ],
             }),
-            Element::Pitch(PitchElement{pitch:13, shift:0}),
+            Element::Pitch(PitchElement {
+                pitch: 13,
+                shift: 0,
+            }),
         ];
 
         let (_, elements) = parse_elements(s).unwrap();
@@ -277,4 +286,3 @@ mod tests {
         assert_eq!(elements, true_elements);
     }
 }
-

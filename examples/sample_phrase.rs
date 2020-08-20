@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use toid::data::music_info::{Beat, Instrument};
+use toid::high_layer_trial::chat;
 use toid::high_layer_trial::music_language::num_lang::send_num_lang;
 use toid::high_layer_trial::music_language::sample_lang::send_sample_lang;
 use toid::music_state::states::{MusicState, MusicStateEvent, SchedulingStateEvent};
@@ -54,6 +55,21 @@ fn main() {
     player
         .send_event(MusicStateEvent::NewSection(Beat::from(8.0)))
         .unwrap();
+
+    chat::send_message(
+        "marshi".to_string(),
+        "+++5 1 ".to_string(),
+        Arc::clone(&player)
+            as Arc<
+                dyn Player<
+                    MusicState,
+                    MusicStateEvent,
+                    WaveReader,
+                    (Vec<i16>, Vec<i16>),
+                    WaveReaderEvent,
+                >,
+            >,
+    );
 
     send_num_lang(
         "12345 643 2 1   ".to_string(),
