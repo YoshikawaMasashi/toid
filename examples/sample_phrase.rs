@@ -58,7 +58,7 @@ fn main() {
 
     chat::send_message(
         "marshi".to_string(),
-        "+++5 1 ".to_string(),
+        "+++5 [1  ][ 1 ]".to_string(),
         Arc::clone(&player)
             as Arc<
                 dyn Player<
